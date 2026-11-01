@@ -122,7 +122,7 @@ export default function PosTerminal() {
             <input
               type="text"
               placeholder="Cari nama produk atau Scan Barcode..."
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium outline-none"
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium outline-hidden"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               autoFocus
