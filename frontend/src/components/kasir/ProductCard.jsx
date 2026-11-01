@@ -1,4 +1,5 @@
-import { ShoppingCart, Plus, Barcode, Tag } from "lucide-react";
+import { useState } from "react";
+import { ImageOff, Plus } from "lucide-react";
 import { formatRupiah } from "../../utils/formatters";
 
 const BACKEND_BASE_URL =
@@ -13,90 +14,112 @@ const resolveImageUrl = (path) => {
 };
 
 export default function ProductCard({ product, onAddToCart }) {
+  const [imgFailed, setImgFailed] = useState(false);
+
   const isOutOfStock = product.stock <= 0;
-  const isLowStock = !isOutOfStock && product.stock <= (product.minStock || 10);
+  const isLowStock = !isOutOfStock && product.stock <= (product.minStock ?? 10);
   const fullImageUrl = resolveImageUrl(product.imageUrl);
+  const showImage = fullImageUrl && !imgFailed;
+
+  const handleActivate = () => {
+    if (!isOutOfStock) onAddToCart(product);
+  };
+
+  const stockTone = isLowStock
+    ? { dot: "bg-amber-500", text: "text-amber-700" }
+    : { dot: "bg-emerald-500", text: "text-slate-600" };
 
   return (
     <div
-      onClick={() => !isOutOfStock && onAddToCart(product)}
-      className={`group relative flex flex-col bg-white rounded-2xl border p-3 transition-all select-none ${
+      role="button"
+      tabIndex={isOutOfStock ? -1 : 0}
+      aria-disabled={isOutOfStock}
+      aria-label={`${product.name}, ${formatRupiah(Number(product.sellingPrice))}${
+        isOutOfStock ? ", stok habis" : ""
+      }`}
+      onClick={handleActivate}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleActivate();
+        }
+      }}
+      className={`group relative flex flex-col rounded-[20px] bg-white p-2.5 ring-1 select-none outline-none transition-all duration-300 focus-visible:ring-2 focus-visible:ring-blue-600 ${
         isOutOfStock
-          ? "border-slate-200 opacity-60 grayscale cursor-not-allowed bg-slate-50"
-          : "border-slate-200 shadow-sm hover:shadow-md hover:border-blue-400 cursor-pointer active:scale-[0.98]"
+          ? "ring-slate-200 cursor-not-allowed"
+          : "ring-slate-200/80 cursor-pointer shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:-translate-y-0.5 hover:ring-slate-300 hover:shadow-[0_14px_28px_-14px_rgba(15,23,42,0.28)] active:translate-y-0 active:scale-[0.985]"
       }`}
     >
-      {/* Badge Atas: Kategori & Status Stok */}
-      <div className="flex items-center justify-between gap-1 mb-2 z-10">
-        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 truncate max-w-[55%]">
-          <Tag size={10} className="shrink-0 text-slate-400" />
-          <span className="truncate">{product.category?.name || "Umum"}</span>
-        </span>
-
-        <span
-          className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
-            isOutOfStock
-              ? "bg-red-50 text-red-600 border border-red-200"
-              : isLowStock
-                ? "bg-amber-50 text-amber-700 border border-amber-200"
-                : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-          }`}
-        >
-          {isOutOfStock
-            ? "Habis"
-            : isLowStock
-              ? `Sisa ${product.stock}`
-              : `Stok: ${product.stock}`}
-        </span>
-      </div>
-
-      {/* Thumbnail Produk */}
-      <div className="w-full h-28 bg-slate-100 rounded-xl mb-2.5 flex items-center justify-center overflow-hidden relative border border-slate-100">
-        {fullImageUrl ? (
-          <>
-            <img
-              src={fullImageUrl}
-              alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={(e) => {
-                e.target.style.display = "none";
-                if (e.target.nextElementSibling) {
-                  e.target.nextElementSibling.style.display = "flex";
-                }
-              }}
-            />
-            <div className="hidden absolute inset-0 items-center justify-center bg-slate-100 text-slate-300">
-              <ShoppingCart size={28} className="opacity-40" />
-            </div>
-          </>
+      {/* Gambar produk */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100">
+        {showImage ? (
+          <img
+            src={fullImageUrl}
+            alt={product.name}
+            loading="lazy"
+            onError={() => setImgFailed(true)}
+            className={`h-full w-full object-cover transition-transform duration-500 ease-out ${
+              isOutOfStock ? "grayscale opacity-60" : "group-hover:scale-[1.06]"
+            }`}
+          />
         ) : (
-          <div className="flex items-center justify-center text-slate-300">
-            <ShoppingCart size={28} className="opacity-40" />
+          <div className="flex h-full w-full items-center justify-center text-slate-300">
+            <ImageOff size={26} strokeWidth={1.5} />
           </div>
         )}
+
+        {/* Indikator stok melayang di atas gambar */}
+        <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2 py-1 text-[10.5px] font-medium shadow-sm backdrop-blur-md">
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              isOutOfStock ? "bg-red-500" : stockTone.dot
+            }`}
+          />
+          <span className={isOutOfStock ? "text-red-600" : stockTone.text}>
+            {isOutOfStock
+              ? "Habis"
+              : isLowStock
+                ? `Sisa ${product.stock}`
+                : `${product.stock} tersedia`}
+          </span>
+        </span>
       </div>
 
-      {/* Info Produk & Harga */}
-      <div className="flex-1 flex flex-col justify-between">
-        <div>
-          {product.barcode && (
-            <div className="flex items-center gap-1 text-[10px] font-mono text-slate-400 mb-1">
-              <Barcode size={12} className="text-slate-400" />
-              <span>{product.barcode}</span>
-            </div>
-          )}
-          <h3 className="font-semibold text-xs text-slate-800 line-clamp-2 leading-tight">
-            {product.name}
-          </h3>
-        </div>
+      {/* Informasi produk */}
+      <div className="flex flex-1 flex-col px-1 pb-0.5 pt-3">
+        <p className="truncate text-[11px] font-medium tracking-wide text-slate-400">
+          {product.category?.name || "Umum"}
+        </p>
 
-        <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between">
-          <span className="text-xs font-extrabold text-blue-600">
+        <h3
+          className={`mt-0.5 line-clamp-2 min-h-[2.5rem] text-[13px] font-semibold leading-5 ${
+            isOutOfStock ? "text-slate-400" : "text-slate-800"
+          }`}
+        >
+          {product.name}
+        </h3>
+
+        {product.barcode && (
+          <p className="mt-1 truncate font-mono text-[10px] text-slate-400">
+            {product.barcode}
+          </p>
+        )}
+
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <span
+            className={`text-[15px] font-bold tabular-nums tracking-tight ${
+              isOutOfStock ? "text-slate-400" : "text-slate-900"
+            }`}
+          >
             {formatRupiah(Number(product.sellingPrice))}
           </span>
+
           {!isOutOfStock && (
-            <span className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-colors">
-              <Plus size={14} />
+            <span
+              aria-hidden="true"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white shadow-sm transition-all duration-300 group-hover:bg-blue-600 group-hover:rotate-90"
+            >
+              <Plus size={16} strokeWidth={2.25} />
             </span>
           )}
         </div>

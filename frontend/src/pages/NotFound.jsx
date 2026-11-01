@@ -53,11 +53,11 @@ export default function NotFound() {
           </Button>
 
           <Button
-            onClick={() => navigate("/")} // Arahkan ke beranda (atau '/admin')
+            onClick={() => navigate("/login")} // Arahkan ke beranda (atau '/admin')
             className="w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-6 shadow-md shadow-blue-500/20"
           >
             <Home size={18} />
-            <span>Ke Beranda</span>
+            <span>Ke Login</span>
           </Button>
         </div>
 

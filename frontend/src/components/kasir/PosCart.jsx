@@ -1,8 +1,13 @@
-import { ShoppingCart, CreditCard, XCircle } from "lucide-react";
-import Button from "../ui/Button";
+import { ShoppingBag, CreditCard, Trash2, Loader2 } from "lucide-react";
 import CartItem from "./CartItem";
 import { formatRupiah } from "../../utils/formatters";
 import { usePosStore } from "../../store/posStore";
+
+const inputClass =
+  "w-full rounded-xl bg-slate-50 py-2.5 pl-3.5 pr-20 text-[13px] text-slate-800 ring-1 ring-slate-200 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-blue-600";
+
+const inlineBtnClass =
+  "absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg px-3 py-1.5 text-xs font-semibold text-blue-600 outline-none transition hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-600";
 
 export default function PosCart({
   memberCode,
@@ -21,6 +26,9 @@ export default function PosCart({
     getCartTotal,
   } = usePosStore();
 
+  const total = getCartTotal();
+  const isEmpty = cart.length === 0;
+
   const handleIncrease = (item) => {
     addToCart({
       id: item.productId,
@@ -32,28 +40,38 @@ export default function PosCart({
   };
 
   return (
-    <div className="w-full lg:w-[380px] xl:w-[400px] flex flex-col bg-white shadow-xl z-20">
-      {/* Header Keranjang */}
-      <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <ShoppingCart size={18} className="text-blue-400" />
-          <h2 className="font-bold text-base">Keranjang Kasir</h2>
+    <aside className="z-20 flex w-full flex-col bg-white shadow-[-12px_0_32px_-20px_rgba(15,23,42,0.25)] lg:w-[380px] xl:w-[400px]">
+      {/* Header */}
+      <header className="flex items-center justify-between px-5 py-4">
+        <div className="flex items-center gap-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white">
+            <ShoppingBag size={17} strokeWidth={1.75} />
+          </span>
+          <div>
+            <h2 className="text-[15px] font-semibold leading-tight text-slate-900">
+              Keranjang
+            </h2>
+            <p className="text-[11px] text-slate-400">Pesanan saat ini</p>
+          </div>
         </div>
-        <span className="bg-blue-600 text-white px-2 py-0.5 rounded-full text-xs font-bold">
-          {cart.length} Item
-        </span>
-      </div>
 
-      {/* Daftar Item */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50">
-        {cart.length === 0 ? (
-          <div className="flex flex-col h-full items-center justify-center text-slate-400">
-            <ShoppingCart size={36} className="mb-2 opacity-25" />
-            <p className="text-xs font-semibold text-slate-600">
+        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold tabular-nums text-slate-600">
+          {cart.length} item
+        </span>
+      </header>
+
+      {/* Daftar item */}
+      <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto bg-slate-50/70 p-3.5 [scrollbar-width:thin]">
+        {isEmpty ? (
+          <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+            <span className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white text-slate-300 ring-1 ring-slate-200">
+              <ShoppingBag size={26} strokeWidth={1.5} />
+            </span>
+            <p className="text-sm font-semibold text-slate-700">
               Keranjang masih kosong
             </p>
-            <p className="text-[10px] text-slate-400 mt-0.5">
-              Klik produk pada katalog untuk memasukkan pesanan
+            <p className="mt-1 max-w-[220px] text-xs leading-relaxed text-slate-400">
+              Pilih produk dari katalog untuk mulai menambahkan pesanan.
             </p>
           </div>
         ) : (
@@ -69,85 +87,96 @@ export default function PosCart({
         )}
       </div>
 
-      {/* Panel Checkout & Voucher */}
-      <div className="p-4 bg-white border-t border-slate-200 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)]">
-        <div className="mb-3 pb-3 border-b border-slate-200 space-y-2">
-          <div className="flex gap-2">
+      {/* Checkout */}
+      <div className="border-t border-slate-200/80 bg-white px-5 pb-5 pt-4">
+        {/* Member & voucher */}
+        <div className="space-y-2">
+          <div className="relative">
             <input
               type="text"
-              placeholder="Scan NIS / Kode Member"
+              placeholder="Scan NIS atau kode member"
               value={memberCode}
               onChange={(e) => setMemberCode(e.target.value)}
-              className="flex-1 px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none"
+              aria-label="Kode member"
+              className={inputClass}
             />
-            <Button
-              size="sm"
-              variant="secondary"
-              className="px-3 bg-slate-100 text-xs"
-            >
+            <button type="button" className={inlineBtnClass}>
               Cek
-            </Button>
+            </button>
           </div>
-          <div className="flex gap-2">
+
+          <div className="relative">
             <input
               type="text"
-              placeholder="Kode Voucher Diskon"
+              placeholder="Kode voucher diskon"
               value={voucherCode}
               onChange={(e) => setVoucherCode(e.target.value)}
-              className="flex-1 px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none uppercase"
+              aria-label="Kode voucher"
+              className={`${inputClass} uppercase placeholder:normal-case`}
             />
-            <Button
-              size="sm"
-              variant="secondary"
-              className="px-3 bg-slate-100 text-xs text-blue-600 font-bold border-blue-200"
-            >
+            <button type="button" className={inlineBtnClass}>
               Gunakan
-            </Button>
+            </button>
           </div>
         </div>
 
-        <div className="space-y-1.5 mb-3 text-xs">
-          <div className="flex justify-between text-slate-600">
-            <span>Subtotal</span>
-            <span className="font-bold text-slate-800">
-              {formatRupiah(getCartTotal())}
-            </span>
+        {/* Ringkasan */}
+        <dl className="mt-5 space-y-2 text-[13px]">
+          <div className="flex justify-between">
+            <dt className="text-slate-500">Subtotal</dt>
+            <dd className="font-medium tabular-nums text-slate-800">
+              {formatRupiah(total)}
+            </dd>
           </div>
-          <div className="flex justify-between text-slate-600">
-            <span>Diskon</span>
-            <span className="font-bold text-emerald-600">- Rp 0</span>
+          <div className="flex justify-between">
+            <dt className="text-slate-500">Diskon</dt>
+            <dd className="font-medium tabular-nums text-emerald-600">
+              - Rp 0
+            </dd>
           </div>
-          <div className="border-t border-dashed border-slate-300 my-2 pt-2 flex justify-between items-center">
-            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-              Total Bayar
-            </span>
-            <span className="text-xl font-black text-blue-600 tracking-tight">
-              {formatRupiah(getCartTotal())}
-            </span>
+          <div className="flex items-baseline justify-between border-t border-dashed border-slate-200 pt-3">
+            <dt className="text-sm font-semibold text-slate-900">
+              Total bayar
+            </dt>
+            <dd className="text-2xl font-bold tabular-nums tracking-tight text-slate-900">
+              {formatRupiah(total)}
+            </dd>
           </div>
-        </div>
+        </dl>
 
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
+        {/* Aksi */}
+        <div className="mt-4 flex gap-2.5">
+          <button
+            type="button"
             onClick={clearCart}
-            disabled={cart.length === 0 || isProcessing}
-            className="px-3 text-red-500 hover:bg-red-50 hover:border-red-200 disabled:opacity-50"
-            title="Kosongkan Keranjang"
+            disabled={isEmpty || isProcessing}
+            title="Kosongkan keranjang"
+            aria-label="Kosongkan keranjang"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-slate-400 ring-1 ring-slate-200 outline-none transition hover:bg-red-50 hover:text-red-500 hover:ring-red-200 focus-visible:ring-2 focus-visible:ring-red-400 disabled:pointer-events-none disabled:opacity-40"
           >
-            <XCircle size={18} />
-          </Button>
+            <Trash2 size={18} strokeWidth={1.75} />
+          </button>
 
-          <Button
+          <button
+            type="button"
             onClick={onOpenPayment}
-            disabled={cart.length === 0 || isProcessing}
-            className="flex-1 py-3 text-sm bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/25"
+            disabled={isEmpty || isProcessing}
+            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_rgba(37,99,235,0.6)] outline-none transition hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 active:scale-[0.985] disabled:pointer-events-none disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
           >
-            <CreditCard size={17} className="mr-2" />
-            Proses Pembayaran
-          </Button>
+            {isProcessing ? (
+              <>
+                <Loader2 size={17} className="animate-spin" />
+                Memproses...
+              </>
+            ) : (
+              <>
+                <CreditCard size={17} strokeWidth={1.75} />
+                Proses pembayaran
+              </>
+            )}
+          </button>
         </div>
       </div>
-    </div>
+    </aside>
   );
 }
