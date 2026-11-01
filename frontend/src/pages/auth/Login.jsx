@@ -19,6 +19,8 @@ import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import { useAuthMutations } from "../../hooks/admin/useAuth";
 
+import { useAuthStore } from "../../store/authStore";
+
 // Skema Validasi Login Umum
 const loginSchema = z.object({
   email: z.string().email({ message: "Format email tidak valid." }),
@@ -30,6 +32,8 @@ export default function Login() {
   const [loginError, setLoginError] = useState("");
   const { login } = useAuthMutations();
 
+  const loginAction = useAuthStore((state) => state.login);
+
   const {
     register,
     handleSubmit,
@@ -40,14 +44,17 @@ export default function Login() {
     setLoginError("");
     login.mutate(data, {
       onSuccess: (res) => {
+        // CATATAN: Pastikan backend benar-benar merespons dengan key "token", bukan "accessToken"
         const { token, user } = res.data.data;
+
+        // 3. MASUKKAN KE ZUSTAND AGAR PROTECTED ROUTE TAHU ANDA SUDAH LOGIN
+        loginAction(user, token);
+
         localStorage.setItem("accessToken", token);
         sessionStorage.setItem("userRole", user.role);
 
         const userRole = user.role?.toUpperCase();
-        if (userRole === "ADMIN") {
-          navigate("/admin");
-        } else if (userRole === "KASIR") {
+        if (userRole === "KASIR") {
           navigate("/kasir");
         } else {
           navigate("/siswa");

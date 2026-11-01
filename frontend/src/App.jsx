@@ -20,6 +20,8 @@ import Pengaturan from "./pages/admin/Pengaturan";
 import AdminLogin from "./pages/auth/AdminLogin";
 import MonitoringTransaksi from "./pages/admin/MonitoringTransaksi";
 import NotFound from "./pages/NotFound";
+import PosTerminal from "./pages/kasir/PosTerminal";
+import RiwayatKasir from "./pages/kasir/RiwayatYasix";
 
 // Fallback Halaman 403
 const Unauthorized = () => (
@@ -93,8 +95,12 @@ const router = createBrowserRouter([
     ),
     children: [
       {
-        index: true,
-        element: <div className="p-4">Halaman Terminal POS (Segera Hadir)</div>,
+        path: "pos",
+        element: <PosTerminal />,
+      },
+      {
+        path: "riwayat",
+        element: <RiwayatKasir />,
       },
     ],
   },
