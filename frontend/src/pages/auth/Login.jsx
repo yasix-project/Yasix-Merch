@@ -17,7 +17,7 @@ import {
 import BCYasixLogo from "../../components/ui/BcYasixLogo";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
-import { useAuthMutations } from "../../hooks/useAuth";
+import { useAuthMutations } from "../../hooks/admin/useAuth";
 
 // Skema Validasi Login Umum
 const loginSchema = z.object({

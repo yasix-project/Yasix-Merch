@@ -21,7 +21,7 @@ import StrukPrinter from "../../components/shared/StrukPrinter"; // Komponen Str
 import {
   useTransactions,
   useTransactionMutations,
-} from "../../hooks/useTransactions";
+} from "../../hooks/admin/useTransactions";
 import { formatDate, formatRupiah } from "../../utils/formatters";
 
 export default function MonitoringTransaksi() {

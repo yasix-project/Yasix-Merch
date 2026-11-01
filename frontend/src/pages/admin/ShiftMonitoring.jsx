@@ -12,7 +12,7 @@ import Table from "../../components/ui/Table";
 import FilterBar from "../../components/ui/FilterBar";
 import { EndShiftModal } from "../../components/admin/ShiftModals";
 
-import { useShiftMutations, useShifts } from "../../hooks/useShifts";
+import { useShiftMutations, useShifts } from "../../hooks/admin/useShifts";
 import { formatRupiah, formatDate } from "../../utils/formatters";
 
 export default function MonitoringShift() {
@@ -21,12 +21,7 @@ export default function MonitoringShift() {
   const [selectedActiveShift, setSelectedActiveShift] = useState(null);
 
   // 1. Ambil Seluruh Shift
-  const {
-    data: allShifts = [],
-    isLoading,
-    isError,
-    error,
-  } = useShifts();
+  const { data: allShifts = [], isLoading, isError, error } = useShifts();
 
   // Pisahkan: Aktif (endTime null) dan Selesai
   const activeShifts = allShifts.filter((s) => !s.endTime);

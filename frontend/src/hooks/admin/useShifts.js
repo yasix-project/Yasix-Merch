@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { shiftService } from "../api/shiftService";
+import { shiftService } from "../../api/shiftService";
 
 export const shiftKeys = {
   all: ["shifts"],
@@ -25,8 +25,7 @@ export function useShiftMutations() {
 
   const endShift = useMutation({
     mutationFn: (data) => shiftService.endShift(data),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: shiftKeys.all }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: shiftKeys.all }),
   });
 
   return { endShift };

@@ -12,7 +12,7 @@ import StatCard from "../../components/admin/StatCard";
 import SalesBarChart from "../../components/admin/SalesBarChart";
 import CategoryDonutChart from "../../components/admin/CategoryDonutChart";
 
-import { useAnalytics } from "../../hooks/useAnalytics";
+import { useAnalytics } from "../../hooks/admin/useAnalytics";
 import { formatRupiah } from "../../utils/formatters";
 
 // --- FALLBACK DUMMY DATA ---

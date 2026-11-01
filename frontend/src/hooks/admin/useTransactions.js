@@ -1,6 +1,6 @@
 // src/hooks/useTransactions.js
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { transactionService } from "../api/transactionService";
+import { transactionService } from "../../api/transactionService";
 
 export const transactionKeys = {
   all: ["transactions"],

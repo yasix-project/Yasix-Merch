@@ -17,7 +17,10 @@ import BulkActionBar from "../../components/ui/BulkActionBar";
 import StatCard from "../../components/admin/StatCard";
 import VoucherFormModal from "../../components/admin/VoucherFormModal";
 
-import { useVoucherMutations, useVouchers } from "../../hooks/useVouchers";
+import {
+  useVoucherMutations,
+  useVouchers,
+} from "../../hooks/admin/useVouchers";
 import { formatRupiah, formatDate } from "../../utils/formatters";
 
 export default function KelolaVoucher() {
@@ -27,12 +30,7 @@ export default function KelolaVoucher() {
   const [editingVoucher, setEditingVoucher] = useState(null);
 
   // 1. Fetch Data
-  const {
-    data: vouchers = [],
-    isLoading,
-    isError,
-    error,
-  } = useVouchers();
+  const { data: vouchers = [], isLoading, isError, error } = useVouchers();
 
   // 2. Mutations
   const {
@@ -193,8 +191,7 @@ export default function KelolaVoucher() {
           <button
             onClick={() => handleToggleStatus(v)}
             disabled={
-              toggleStatus.isPending &&
-              toggleStatus.variables?.id === v.id
+              toggleStatus.isPending && toggleStatus.variables?.id === v.id
             }
             className={`p-1.5 rounded transition-colors ${
               !v.isActive
@@ -237,8 +234,7 @@ export default function KelolaVoucher() {
     },
   ];
 
-  const isStatusLoading =
-    bulkActivate.isPending || bulkDeactivate.isPending;
+  const isStatusLoading = bulkActivate.isPending || bulkDeactivate.isPending;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-20">

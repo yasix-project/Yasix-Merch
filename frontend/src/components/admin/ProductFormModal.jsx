@@ -10,7 +10,7 @@ import Modal from "../ui/Modal";
 import Input from "../ui/Input";
 import Button from "../ui/Button";
 import { productService } from "../../api/productService";
-import { categoryKeys } from "../../hooks/useCategories";
+import { categoryKeys } from "../../hooks/admin/useCategories";
 import { formatRupiah } from "../../utils/formatters";
 
 const productSchema = z.object({

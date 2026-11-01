@@ -9,7 +9,10 @@ import StatCard from "../../components/admin/StatCard";
 import CategoryTypeModal from "../../components/admin/CategoryTypeModal";
 import CategoryFormModal from "../../components/admin/CategoryFormModal";
 
-import { useCategories, useCategoryMutations } from "../../hooks/useCategories";
+import {
+  useCategories,
+  useCategoryMutations,
+} from "../../hooks/admin/useCategories";
 import { formatDate } from "../../utils/formatters";
 
 export default function KelolaKategori() {
@@ -24,12 +27,7 @@ export default function KelolaKategori() {
   const [selectedCategoryType, setSelectedCategoryType] = useState("");
 
   // 1. Fetch Data
-  const {
-    data: categories = [],
-    isLoading,
-    isError,
-    error,
-  } = useCategories();
+  const { data: categories = [], isLoading, isError, error } = useCategories();
 
   // 2. Mutations
   const { save, remove, bulkRemove } = useCategoryMutations();

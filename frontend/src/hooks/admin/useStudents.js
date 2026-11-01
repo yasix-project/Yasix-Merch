@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import { studentService } from "../api/studentService";
+import { studentService } from "../../api/studentService";
 
 export const studentKeys = {
   all: ["students"],

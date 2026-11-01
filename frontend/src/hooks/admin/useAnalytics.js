@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { analyticsService } from "../api/analyticsService";
+import { analyticsService } from "../../api/analyticsService";
 
 export const analyticsKeys = {
   dashboard: ["analytics", "dashboard"],

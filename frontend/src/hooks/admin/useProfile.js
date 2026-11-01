@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { authService } from "../api/authService";
+import { authService } from "../../api/authService";
 
 export const profileKeys = {
   current: ["currentUser"],

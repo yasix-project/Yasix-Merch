@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { categoryService } from "../api/categoryService";
+import { categoryService } from "../../api/categoryService";
 
 export const categoryKeys = {
   all: ["categories"],
@@ -27,9 +27,7 @@ export function useCategoryMutations() {
 
   const save = useMutation({
     mutationFn: ({ id, data }) =>
-      id
-        ? categoryService.update(id, data)
-        : categoryService.create(data),
+      id ? categoryService.update(id, data) : categoryService.create(data),
     onSuccess: invalidateCategories,
   });
 

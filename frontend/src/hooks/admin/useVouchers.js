@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { voucherService } from "../api/voucherService";
+import { voucherService } from "../../api/voucherService";
 
 export const voucherKeys = {
   all: ["vouchers"],

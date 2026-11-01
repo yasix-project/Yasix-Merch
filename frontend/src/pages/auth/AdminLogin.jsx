@@ -8,7 +8,7 @@ import { Lock, Mail, ShieldAlert, ArrowRight, Loader2 } from "lucide-react";
 
 import Input from "../../components/ui/Input";
 import BCYasixLogo from "../../components/ui/BcYasixLogo";
-import { useAuthMutations } from "../../hooks/useAuth";
+import { useAuthMutations } from "../../hooks/admin/useAuth";
 import { useAuthStore } from "../../store/authStore";
 
 const loginSchema = z.object({

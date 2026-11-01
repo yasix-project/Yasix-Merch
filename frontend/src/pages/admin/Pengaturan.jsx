@@ -7,7 +7,7 @@ import { User, Award, Save, Loader2, CheckCircle2 } from "lucide-react";
 
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
-import { useProfile, useProfileMutations } from "../../hooks/useProfile";
+import { useProfile, useProfileMutations } from "../../hooks/admin/useProfile";
 
 // Schema Validasi Zod
 const profileSchema = z.object({
@@ -23,12 +23,7 @@ const profileSchema = z.object({
 
 export default function Pengaturan() {
   // 1. Fetch Data User Aktif dari /me
-  const {
-    data: user,
-    isLoading,
-    isError,
-    error,
-  } = useProfile();
+  const { data: user, isLoading, isError, error } = useProfile();
 
   const {
     register,

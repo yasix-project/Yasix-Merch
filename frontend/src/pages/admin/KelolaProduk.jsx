@@ -16,8 +16,11 @@ import ProductFilterBar from "../../components/admin/ProductFilterBar";
 import ProductTable from "../../components/admin/ProductTable";
 import FloatingBulkBar from "../../components/admin/FloatingBulkBar";
 
-import { useCategories } from "../../hooks/useCategories";
-import { useProductMutations, useProducts } from "../../hooks/useProducts";
+import { useCategories } from "../../hooks/admin/useCategories";
+import {
+  useProductMutations,
+  useProducts,
+} from "../../hooks/admin/useProducts";
 import { formatRupiah, exportProductsToCSV } from "../../utils/formatters";
 
 export default function KelolaProduk() {

@@ -9,8 +9,11 @@ import StatCard from "../../components/admin/StatCard";
 import StudentFormModal from "../../components/admin/StudentFormModal";
 import FloatingBulkBar from "../../components/admin/FloatingBulkBar";
 
-import useDebounce from "../../hooks/useDebounce";
-import { useStudentMutations, useStudents } from "../../hooks/useStudents";
+import useDebounce from "../../hooks/admin/useDebounce";
+import {
+  useStudentMutations,
+  useStudents,
+} from "../../hooks/admin/useStudents";
 import { formatDate } from "../../utils/formatters";
 
 export default function KelolaSiswa() {
@@ -19,8 +22,7 @@ export default function KelolaSiswa() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const debouncedSearch = useDebounce(searchQuery);
-  const selectedIds =
-    selection.search === debouncedSearch ? selection.ids : [];
+  const selectedIds = selection.search === debouncedSearch ? selection.ids : [];
   const updateSelectedIds = (updater) => {
     setSelection(({ search, ids }) => {
       const currentIds = search === debouncedSearch ? ids : [];
