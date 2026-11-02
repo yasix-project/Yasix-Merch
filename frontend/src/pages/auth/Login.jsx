@@ -55,7 +55,7 @@ export default function Login() {
 
         const userRole = user.role?.toUpperCase();
         if (userRole === "KASIR") {
-          navigate("/kasir");
+          navigate("/kasir/pos");
         } else {
           navigate("/siswa");
         }

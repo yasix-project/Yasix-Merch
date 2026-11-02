@@ -22,6 +22,7 @@ import MonitoringTransaksi from "./pages/admin/MonitoringTransaksi";
 import NotFound from "./pages/NotFound";
 import PosTerminal from "./pages/kasir/PosTerminal";
 import RiwayatKasir from "./pages/kasir/RiwayatYasix";
+import AntreanPrint from "./pages/kasir/AntreanPrint";
 
 // Fallback Halaman 403
 const Unauthorized = () => (
@@ -101,6 +102,10 @@ const router = createBrowserRouter([
       {
         path: "riwayat",
         element: <RiwayatKasir />,
+      },
+      {
+        path: "print",
+        element: <AntreanPrint />,
       },
     ],
   },
