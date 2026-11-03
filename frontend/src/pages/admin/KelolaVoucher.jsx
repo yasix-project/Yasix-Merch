@@ -22,8 +22,15 @@ import {
   useVouchers,
 } from "../../hooks/admin/useVouchers";
 import { formatRupiah, formatDate } from "../../utils/formatters";
+import { useConfirm } from "../../hooks/useConfirm";
+import {
+  showSuccessToast,
+  showErrorToast,
+  showWarningToast,
+} from "../../utils/toast";
 
 export default function KelolaVoucher() {
+  const confirm = useConfirm();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,9 +56,16 @@ export default function KelolaVoucher() {
         onSuccess: () => {
           setIsModalOpen(false);
           setEditingVoucher(null);
+          showSuccessToast(
+            editingVoucher
+              ? "Voucher berhasil diperbarui!"
+              : "Voucher baru berhasil dibuat!",
+          );
         },
         onError: (err) =>
-          alert(err.response?.data?.message || "Gagal menyimpan voucher."),
+          showErrorToast(
+            err.response?.data?.message || "Gagal menyimpan voucher.",
+          ),
       },
     );
   };
@@ -75,47 +89,102 @@ export default function KelolaVoucher() {
   const handleToggleStatus = (voucher) => {
     toggleStatus.mutate(
       { id: voucher.id, currentStatus: voucher.isActive },
-      { onError: () => alert("Gagal mengubah status voucher.") },
+      {
+        onSuccess: () => {
+          showSuccessToast(
+            `Voucher "${voucher.code}" berhasil ${
+              voucher.isActive ? "dinonaktifkan" : "diaktifkan"
+            }.`,
+          );
+        },
+        onError: () => showErrorToast("Gagal mengubah status voucher."),
+      },
     );
   };
 
-  const handleBulkDeactivate = () => {
-    if (
-      window.confirm(
-        `Yakin ingin menonaktifkan ${selectedIds.length} voucher terpilih?`,
-      )
-    ) {
+  const handleBulkDeactivate = async () => {
+    const isConfirmed = await confirm({
+      title: "Nonaktifkan Voucher Massal",
+      message: `Apakah Anda yakin ingin menonaktifkan ${selectedIds.length} voucher terpilih?`,
+      confirmText: "Ya, Nonaktifkan",
+      cancelText: "Batal",
+      variant: "warning",
+    });
+
+    if (isConfirmed) {
       bulkDeactivate.mutate(selectedIds, {
-        onSuccess: () => setSelectedIds([]),
+        onSuccess: () => {
+          setSelectedIds([]);
+          showSuccessToast(
+            `${selectedIds.length} voucher berhasil dinonaktifkan.`,
+          );
+        },
+        onError: () => showErrorToast("Gagal menonaktifkan beberapa voucher."),
       });
     }
   };
 
-  const handleBulkActivate = () => {
-    if (
-      window.confirm(
-        `Yakin ingin mengaktifkan kembali ${selectedIds.length} voucher terpilih?`,
-      )
-    ) {
+  const handleBulkActivate = async () => {
+    const isConfirmed = await confirm({
+      title: "Aktifkan Voucher Massal",
+      message: `Apakah Anda yakin ingin mengaktifkan kembali ${selectedIds.length} voucher terpilih?`,
+      confirmText: "Ya, Aktifkan",
+      cancelText: "Batal",
+      variant: "primary",
+    });
+
+    if (isConfirmed) {
       bulkActivate.mutate(selectedIds, {
-        onSuccess: () => setSelectedIds([]),
+        onSuccess: () => {
+          setSelectedIds([]);
+          showSuccessToast(`${selectedIds.length} voucher berhasil diaktifkan.`);
+        },
+        onError: () => showErrorToast("Gagal mengaktifkan beberapa voucher."),
       });
     }
   };
 
-  const handleBulkDelete = () => {
-    if (
-      window.confirm(
-        `Hapus ${selectedIds.length} voucher terpilih secara permanen?`,
-      )
-    ) {
+  const handleDeleteVoucher = async (v) => {
+    const isConfirmed = await confirm({
+      title: "Hapus Voucher",
+      message: `Apakah Anda yakin ingin menghapus voucher "${v.code}"? Tindakan ini tidak dapat dibatalkan.`,
+      confirmText: "Ya, Hapus",
+      cancelText: "Batal",
+      variant: "danger",
+    });
+
+    if (isConfirmed) {
+      remove.mutate(v.id, {
+        onSuccess: (_data, id) => {
+          setSelectedIds((prev) => prev.filter((item) => item !== id));
+          showSuccessToast("Voucher berhasil dihapus.");
+        },
+        onError: () => showErrorToast("Gagal menghapus voucher."),
+      });
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const isConfirmed = await confirm({
+      title: "Hapus Voucher Massal",
+      message: `Hapus ${selectedIds.length} voucher terpilih secara permanen? Tindakan ini tidak dapat dibatalkan.`,
+      confirmText: "Ya, Hapus Semua",
+      cancelText: "Batal",
+      variant: "danger",
+    });
+
+    if (isConfirmed) {
       bulkRemove.mutate(selectedIds, {
         onSuccess: (failedIds) => {
           setSelectedIds(failedIds);
           if (failedIds.length > 0) {
-            alert(`${failedIds.length} voucher gagal dihapus.`);
+            showWarningToast(`${failedIds.length} voucher gagal dihapus.`);
+          } else {
+            showSuccessToast("Seluruh voucher terpilih berhasil dihapus.");
           }
         },
+        onError: () =>
+          showErrorToast("Sebagian atau seluruh voucher gagal dihapus."),
       });
     }
   };
@@ -131,54 +200,67 @@ export default function KelolaVoucher() {
     {
       header: "Kode Voucher",
       render: (v) => (
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-primary/10 rounded-md text-primary">
-            <Ticket size={16} />
-          </div>
-          <span className="font-bold font-mono text-dark tracking-wide">
+        <div>
+          <span className="font-bold text-dark font-mono text-base tracking-wider bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
             {v.code}
           </span>
-        </div>
-      ),
-    },
-    {
-      header: "Detail Diskon",
-      render: (v) => (
-        <div>
-          <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-xs">
-            Diskon {v.discountPct}%
+          <br />
+          <span className="text-xs text-slate-500 mt-1 inline-block">
+            {v.name || "Promo Diskon"}
           </span>
-          {v.maxDiscount > 0 && (
-            <p className="text-[10px] text-slate-500 mt-1">
-              Maks. {formatRupiah(v.maxDiscount)}
-            </p>
-          )}
         </div>
       ),
     },
     {
-      header: "Minimal Belanja",
-      cellClassName: "font-mono font-medium text-slate-600",
-      render: (v) => formatRupiah(v.minPurchase),
+      header: "Nominal Potongan",
+      cellClassName: "font-mono font-bold text-dark",
+      render: (v) => (
+        <span className="text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md text-xs font-semibold border border-emerald-200">
+          {v.type === "PERCENTAGE"
+            ? `${v.discount}%`
+            : formatRupiah(v.discount)}
+        </span>
+      ),
     },
     {
-      header: "Berakhir Pada",
-      cellClassName: "font-mono text-slate-500 text-[11px]",
+      header: "Biaya Tukar Poin",
+      cellClassName: "font-mono font-bold text-dark",
+      render: (v) => (
+        <span className="text-amber-700 bg-amber-50 px-2 py-1 rounded-md text-xs font-semibold border border-amber-200">
+          {(v.pointCost || 0).toLocaleString("id-ID")} Poin
+        </span>
+      ),
+    },
+    {
+      header: "Min. Belanja",
+      cellClassName: "font-mono text-slate-600 text-xs",
+      render: (v) =>
+        v.minPurchase ? formatRupiah(v.minPurchase) : "Tanpa Minimum",
+    },
+    {
+      header: "Masa Berlaku",
+      cellClassName: "font-mono text-slate-500 text-xs",
       render: (v) => formatDate(v.validUntil),
     },
     {
       header: "Status",
+      className: "text-center",
       render: (v) => {
         const isExpired = new Date(v.validUntil) < new Date();
-        const active = v.isActive && !isExpired;
-
-        return active ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
-            <CheckCircle2 size={11} /> Aktif
+        if (isExpired) {
+          return (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+              <XCircle size={12} className="text-slate-400" /> Kedaluwarsa
+            </span>
+          );
+        }
+        return v.isActive ? (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <CheckCircle2 size={12} className="text-emerald-500" /> Aktif
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-200 text-slate-600">
-            <XCircle size={11} /> {isExpired ? "Kedaluwarsa" : "Nonaktif"}
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+            <XCircle size={12} className="text-red-500" /> Nonaktif
           </span>
         );
       },
@@ -190,13 +272,10 @@ export default function KelolaVoucher() {
         <div className="flex items-center justify-center gap-1">
           <button
             onClick={() => handleToggleStatus(v)}
-            disabled={
-              toggleStatus.isPending && toggleStatus.variables?.id === v.id
-            }
             className={`p-1.5 rounded transition-colors ${
-              !v.isActive
-                ? "text-amber-600 bg-amber-50 hover:bg-amber-100"
-                : "text-slate-400 hover:text-amber-600 hover:bg-amber-50"
+              v.isActive
+                ? "text-slate-400 hover:text-amber-600 hover:bg-amber-50"
+                : "text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
             }`}
             title={v.isActive ? "Nonaktifkan Voucher" : "Aktifkan Voucher"}
           >
@@ -215,15 +294,7 @@ export default function KelolaVoucher() {
           </button>
 
           <button
-            onClick={() => {
-              if (window.confirm("Yakin ingin menghapus voucher ini?"))
-                remove.mutate(v.id, {
-                  onSuccess: (_data, id) =>
-                    setSelectedIds((prev) =>
-                      prev.filter((item) => item !== id),
-                    ),
-                });
-            }}
+            onClick={() => handleDeleteVoucher(v)}
             className="p-1.5 text-slate-400 hover:text-danger hover:bg-danger/10 rounded transition-colors"
             title="Hapus"
           >

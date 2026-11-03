@@ -12,6 +12,7 @@ import Button from "../ui/Button";
 import { productService } from "../../api/productService";
 import { categoryKeys } from "../../hooks/admin/useCategories";
 import { formatRupiah } from "../../utils/formatters";
+import { showWarningToast } from "../../utils/toast";
 
 const productSchema = z.object({
   name: z.string().min(3, { message: "Nama produk minimal 3 karakter." }),
@@ -83,7 +84,7 @@ export default function ProductFormModal({
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        alert("Ukuran file gambar maksimal 2MB!");
+        showWarningToast("Ukuran file gambar maksimal 2MB!");
         return;
       }
       setSelectedFile(file);

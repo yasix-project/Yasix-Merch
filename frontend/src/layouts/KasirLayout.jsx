@@ -17,6 +17,8 @@ import BCYasixLogo from "../components/ui/BcYasixLogo";
 import { useAuthStore } from "../store/authStore";
 import { useShiftStore } from "../store/shiftStore";
 import { formatRupiah } from "../utils/formatters";
+import { useConfirm } from "../hooks/useConfirm";
+import { showSuccessToast, showErrorToast, showWarningToast } from "../utils/toast";
 
 const NAV_ITEMS = [
   { to: "/kasir/pos", label: "POS Terminal", icon: Monitor },
@@ -38,13 +40,12 @@ function CashField({ label, icon: Icon, ...props }) {
       </span>
       <div className="relative">
         <Icon
-          size={17}
-          strokeWidth={1.75}
+          size={18}
           className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
         />
         <input
           {...props}
-          className="w-full rounded-xl bg-slate-50 py-3 pl-10 pr-4 text-sm font-medium tabular-nums text-slate-900 ring-1 ring-slate-200 outline-none transition placeholder:font-normal placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-blue-600"
+          className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10"
         />
       </div>
     </label>
@@ -63,6 +64,7 @@ function Modal({ children }) {
 
 export default function KasirLayout() {
   const navigate = useNavigate();
+  const confirm = useConfirm();
 
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
@@ -96,13 +98,21 @@ export default function KasirLayout() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (activeShift) {
-      alert("Harap tutup shift terlebih dahulu sebelum keluar dari sistem.");
+      showWarningToast("Harap tutup shift terlebih dahulu sebelum keluar dari sistem.");
       return;
     }
-    if (window.confirm("Yakin ingin keluar dari sistem?")) {
+    const isConfirmed = await confirm({
+      title: "Keluar dari Sistem",
+      message: "Apakah Anda yakin ingin keluar dari sistem POS kasir?",
+      confirmText: "Ya, Keluar",
+      cancelText: "Batal",
+      variant: "warning",
+    });
+    if (isConfirmed) {
       logout();
+      showSuccessToast("Berhasil keluar dari sistem.");
       navigate("/login");
     }
   };
@@ -110,7 +120,7 @@ export default function KasirLayout() {
   const handleOpenShift = (e) => {
     e.preventDefault();
     if (!startCash || Number(startCash) < 0) {
-      alert("Harap masukkan modal awal yang valid.");
+      showErrorToast("Harap masukkan modal awal yang valid.");
       return;
     }
 
@@ -119,26 +129,39 @@ export default function KasirLayout() {
       startTime: new Date().toISOString(),
       startCash: Number(startCash),
     });
+    showSuccessToast("Shift kasir berhasil dibuka.");
     setStartCash("");
   };
 
-  const handleCloseShift = (e) => {
+  const handleCloseShift = async (e) => {
     e.preventDefault();
     if (!actualCash || Number(actualCash) < 0) {
-      alert("Harap masukkan total uang fisik yang valid.");
+      showErrorToast("Harap masukkan total uang fisik yang valid.");
       return;
     }
 
-    alert(
-      `Shift berhasil ditutup. Total uang fisik tercatat: ${formatRupiah(
+    const isConfirmed = await confirm({
+      title: "Tutup Shift Kasir",
+      message: `Apakah Anda yakin ingin mengakhiri sesi shift ini? Total uang fisik tercatat: ${formatRupiah(
         Number(actualCash),
-      )}`,
-    );
+      )}.`,
+      confirmText: "Ya, Tutup Shift",
+      cancelText: "Batal",
+      variant: "warning",
+    });
 
-    closeShift();
-    setIsClosing(false);
-    setStartCash("");
-    setActualCash("");
+    if (isConfirmed) {
+      showSuccessToast(
+        `Shift berhasil ditutup. Total uang fisik tercatat: ${formatRupiah(
+          Number(actualCash),
+        )}`,
+      );
+
+      closeShift();
+      setIsClosing(false);
+      setStartCash("");
+      setActualCash("");
+    }
   };
 
   const formattedTime = time.toLocaleTimeString("id-ID", {

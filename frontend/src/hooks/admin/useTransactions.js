@@ -1,6 +1,7 @@
 // src/hooks/useTransactions.js
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { transactionService } from "../../api/transactionService";
+import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
 export const transactionKeys = {
   all: ["transactions"],
@@ -46,10 +47,10 @@ export function useTransactionMutations() {
     mutationFn: (id) => transactionService.cancel(id),
     onSuccess: () => {
       invalidateTransactionsAndProducts();
-      alert("Transaksi berhasil dibatalkan dan stok dikembalikan.");
+      showSuccessToast("Transaksi berhasil dibatalkan dan stok dikembalikan.");
     },
     onError: (err) => {
-      alert(err.response?.data?.message || "Gagal membatalkan transaksi.");
+      showErrorToast(err.response?.data?.message || "Gagal membatalkan transaksi.");
     },
   });
 

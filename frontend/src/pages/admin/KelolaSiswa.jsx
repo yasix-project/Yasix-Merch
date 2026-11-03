@@ -15,8 +15,15 @@ import {
   useStudents,
 } from "../../hooks/admin/useStudents";
 import { formatDate } from "../../utils/formatters";
+import { useConfirm } from "../../hooks/useConfirm";
+import {
+  showSuccessToast,
+  showErrorToast,
+  showWarningToast,
+} from "../../utils/toast";
 
 export default function KelolaSiswa() {
+  const confirm = useConfirm();
   const [searchQuery, setSearchQuery] = useState("");
   const [selection, setSelection] = useState({ search: "", ids: [] });
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,9 +61,16 @@ export default function KelolaSiswa() {
         onSuccess: () => {
           setIsModalOpen(false);
           setEditingStudent(null);
+          showSuccessToast(
+            editingStudent
+              ? "Data siswa berhasil diperbarui!"
+              : "Data siswa baru berhasil ditambahkan!",
+          );
         },
         onError: (err) =>
-          alert(err.response?.data?.message || "Gagal menyimpan data siswa."),
+          showErrorToast(
+            err.response?.data?.message || "Gagal menyimpan data siswa.",
+          ),
       },
     );
   };
@@ -72,20 +86,47 @@ export default function KelolaSiswa() {
     );
   };
 
-  const handleBulkDelete = () => {
-    if (
-      window.confirm(
-        `Apakah Anda yakin ingin menghapus ${selectedIds.length} data siswa terpilih?`,
-      )
-    ) {
+  const handleDeleteStudent = async (student) => {
+    const isConfirmed = await confirm({
+      title: "Hapus Siswa",
+      message: `Apakah Anda yakin ingin menghapus data siswa "${student.name}"?`,
+      confirmText: "Ya, Hapus",
+      cancelText: "Batal",
+      variant: "danger",
+    });
+
+    if (isConfirmed) {
+      remove.mutate(student.id, {
+        onSuccess: () => {
+          updateSelectedIds((prev) => prev.filter((item) => item !== student.id));
+          showSuccessToast(`Data siswa "${student.name}" berhasil dihapus.`);
+        },
+        onError: () => showErrorToast("Gagal menghapus data siswa."),
+      });
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const isConfirmed = await confirm({
+      title: "Hapus Siswa Massal",
+      message: `Apakah Anda yakin ingin menghapus ${selectedIds.length} data siswa terpilih? Tindakan ini tidak dapat dibatalkan.`,
+      confirmText: "Ya, Hapus Semua",
+      cancelText: "Batal",
+      variant: "danger",
+    });
+
+    if (isConfirmed) {
       bulkRemove.mutate(selectedIds, {
         onSuccess: (failedIds) => {
           updateSelectedIds(failedIds);
           if (failedIds.length > 0) {
-            alert(`${failedIds.length} data siswa gagal dihapus.`);
+            showWarningToast(`${failedIds.length} data siswa gagal dihapus.`);
+          } else {
+            showSuccessToast("Seluruh data siswa terpilih berhasil dihapus.");
           }
         },
-        onError: () => alert("Sebagian atau seluruh data siswa gagal dihapus."),
+        onError: () =>
+          showErrorToast("Sebagian atau seluruh data siswa gagal dihapus."),
       });
     }
   };
@@ -99,41 +140,47 @@ export default function KelolaSiswa() {
   // 4. Konfigurasi Kolom Tabel
   const columns = [
     {
-      header: "Nama Siswa",
+      header: "Identitas Siswa",
       render: (s) => (
         <div>
-          <span className="font-bold text-dark block">{s.name}</span>
-          <span className="text-[11px] text-slate-400">{s.email}</span>
+          <span className="font-bold text-dark">{s.name}</span>
+          <br />
+          <span className="text-xs text-slate-400 font-mono">
+            NIS: {s.nis || "-"}
+          </span>
         </div>
       ),
     },
     {
-      header: "NIS",
-      cellClassName: "font-mono font-medium text-slate-600",
-      render: (s) => s.nis || "-",
-    },
-    {
-      header: "Kode QR Member",
-      cellClassName: "font-mono text-[11px] text-slate-500",
+      header: "Kelas & Jurusan",
       render: (s) => (
-        <div className="flex items-center gap-1.5">
-          <QrCode size={13} className="text-primary" />
-          <span>{s.qrCodeMember || "-"}</span>
-        </div>
-      ),
-    },
-    {
-      header: "Poin Loyalitas",
-      render: (s) => (
-        <span className="inline-flex items-center gap-1 font-mono font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-xs">
-          <Award size={12} /> {s.points || 0} Poin
+        <span className="text-slate-600 font-medium">
+          {s.class || "-"} {s.major ? `(${s.major})` : ""}
         </span>
       ),
     },
     {
+      header: "Saldo Poin",
+      cellClassName: "font-mono font-bold text-dark",
+      render: (s) => (
+        <span className="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg text-xs font-semibold border border-amber-200">
+          {(s.points || 0).toLocaleString("id-ID")} Poin
+        </span>
+      ),
+    },
+    {
+      header: "QR Member Token",
+      render: (s) => (
+        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-mono">
+          <QrCode size={14} className="text-primary shrink-0" />
+          <span className="truncate max-w-[120px]">{s.barcode || s.id}</span>
+        </div>
+      ),
+    },
+    {
       header: "Terdaftar",
-      cellClassName: "font-mono text-slate-400 text-[11px]",
-      render: (s) => formatDate(s.createdAt),
+      cellClassName: "font-mono text-slate-500",
+      render: (s) => formatDate(s.createdAt || new Date()),
     },
     {
       header: "Aksi",
@@ -152,17 +199,7 @@ export default function KelolaSiswa() {
           </button>
 
           <button
-            onClick={() => {
-              if (window.confirm(`Hapus data siswa "${s.name}"?`)) {
-                remove.mutate(s.id, {
-                  onSuccess: () =>
-                    updateSelectedIds((prev) =>
-                      prev.filter((item) => item !== s.id),
-                    ),
-                  onError: () => alert("Gagal menghapus data siswa."),
-                });
-              }
-            }}
+            onClick={() => handleDeleteStudent(s)}
             className="p-1.5 text-slate-400 hover:text-danger hover:bg-danger/10 rounded transition-colors"
             title="Hapus Siswa"
           >

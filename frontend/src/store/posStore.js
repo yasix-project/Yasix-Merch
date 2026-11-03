@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { showWarningToast } from "../utils/toast";
 
 export const usePosStore = create((set, get) => ({
   cart: [], // State untuk menampung array produk yang dibeli
@@ -10,7 +11,7 @@ export const usePosStore = create((set, get) => ({
 
     // Cek apakah stok produk ada
     if (product.stock <= 0) {
-      alert(`Maaf, stok ${product.name} sedang kosong!`);
+      showWarningToast(`Maaf, stok ${product.name} sedang kosong!`);
       return;
     }
 
@@ -30,7 +31,7 @@ export const usePosStore = create((set, get) => ({
           ),
         });
       } else {
-        alert(`Stok maksimal untuk ${product.name} sudah tercapai.`);
+        showWarningToast(`Stok maksimal untuk ${product.name} sudah tercapai.`);
       }
     } else {
       // Jika barang belum ada, masukkan sebagai item baru

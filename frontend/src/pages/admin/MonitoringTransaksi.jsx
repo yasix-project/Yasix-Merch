@@ -23,8 +23,17 @@ import {
   useTransactionMutations,
 } from "../../hooks/admin/useTransactions";
 import { formatDate, formatRupiah } from "../../utils/formatters";
+import { useConfirm } from "../../hooks/useConfirm";
+import {
+  showSuccessToast,
+  showErrorToast,
+  showWarningToast,
+  showInfoToast,
+} from "../../utils/toast";
 
 export default function MonitoringTransaksi() {
+  const confirm = useConfirm();
+
   // --- 1. STATE & HOOKS ---
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
@@ -40,40 +49,54 @@ export default function MonitoringTransaksi() {
   } = useTransactions();
   const { cancel } = useTransactionMutations();
 
-  // --- 2. LOGIKA PRINT STRUK (REACT-TO-PRINT) ---
-  const handlePrint = useReactToPrint({
-    content: () => strukRef.current,
-    documentTitle: "Struk_Yasix_Merch",
-    onAfterPrint: () => setPrintData([]), // Reset data print setelah jendela print tertutup
+  // Konfigurasi library Cetak (react-to-print)
+  const triggerPrint = useReactToPrint({
+    contentRef: strukRef,
+    documentTitle: `Struk_Yasix_${new Date().toISOString()}`,
+    onAfterPrint: () => setPrintData([]), // Reset buffer setelah dialog print tertutup
   });
 
-  // Memicu jendela cetak jika state printData diisi
+  // Otomatis cetak begitu printData terisi
   useEffect(() => {
     if (printData.length > 0) {
-      handlePrint();
+      triggerPrint();
     }
-  }, [printData, handlePrint]);
+  }, [printData, triggerPrint]);
 
-  const cetakSatuan = (transaction) => {
-    setPrintData([transaction]);
-  };
-
-  const cetakMassal = () => {
-    const selectedTxs = transactions.filter((t) => selectedIds.includes(t.id));
-    setPrintData(selectedTxs);
-  };
-
-  // --- 3. FILTERING & CHECKBOX LOGIC ---
-  const filteredTransactions = transactions.filter(
-    (t) =>
-      t.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.student?.name?.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-
-  const handleSelectAll = (e) => {
-    setSelectedIds(
-      e.target.checked ? filteredTransactions.map((t) => t.id) : [],
+  // --- 2. FILTER & METRICS DATA ---
+  const filteredTransactions = transactions.filter((t) => {
+    const query = searchQuery.toLowerCase();
+    const invoice = t.invoiceNumber?.toLowerCase() || "";
+    const student = t.student?.name?.toLowerCase() || "";
+    const nis = t.student?.nis?.toLowerCase() || "";
+    return (
+      invoice.includes(query) || student.includes(query) || nis.includes(query)
     );
+  });
+
+  // Ringkasan untuk StatCard
+  const totalOmzet = transactions
+    .filter((t) => t.status === "COMPLETED")
+    .reduce((acc, t) => acc + (t.totalAmount || 0), 0);
+
+  const pendingCount = transactions.filter(
+    (t) =>
+      t.status === "PENDING_PAYMENT" ||
+      t.status === "BOOKED" ||
+      t.status === "READY",
+  ).length;
+
+  const completedCount = transactions.filter(
+    (t) => t.status === "COMPLETED",
+  ).length;
+
+  // --- 3. SELECTION HANDLERS ---
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(filteredTransactions.map((t) => t.id));
+    } else {
+      setSelectedIds([]);
+    }
   };
 
   const handleSelectRow = (id) => {
@@ -86,8 +109,10 @@ export default function MonitoringTransaksi() {
 
   // --- 4. EXPORT CSV (LOGIKA FRONTEND) ---
   const handleExportCsv = () => {
-    if (transactions.length === 0)
-      return alert("Tidak ada data untuk diekspor");
+    if (transactions.length === 0) {
+      showWarningToast("Tidak ada data untuk diekspor.");
+      return;
+    }
 
     // Tentukan data yang akan diekspor (Semua atau yang di-cek saja)
     const dataToExport =
@@ -122,6 +147,22 @@ export default function MonitoringTransaksi() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    showSuccessToast("Data transaksi berhasil diekspor.");
+  };
+
+  const handleCancelTransaction = async (t) => {
+    const isConfirmed = await confirm({
+      title: "Batalkan Transaksi",
+      message: `Apakah Anda yakin ingin membatalkan transaksi ${t.invoiceNumber}? Stok produk yang dibatalkan akan otomatis dikembalikan ke sistem.`,
+      confirmText: "Ya, Batalkan Transaksi",
+      cancelText: "Kembali",
+      variant: "danger",
+    });
+
+    if (isConfirmed) {
+      cancel.mutate(t.id);
+    }
   };
 
   // --- 5. KOLOM TABEL ---
@@ -204,15 +245,7 @@ export default function MonitoringTransaksi() {
             t.status === "PENDING_PAYMENT" ||
             t.status === "READY") && (
             <button
-              onClick={() => {
-                if (
-                  window.confirm(
-                    `Batalkan transaksi ${t.invoiceNumber}? Stok produk akan kembali.`,
-                  )
-                ) {
-                  cancel.mutate(t.id);
-                }
-              }}
+              onClick={() => handleCancelTransaction(t)}
               disabled={cancel.isPending}
               className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
               title="Batalkan Transaksi"
@@ -225,72 +258,72 @@ export default function MonitoringTransaksi() {
     },
   ];
 
-  // --- 6. STATISTIK METRIK ---
-  const totalOmzet = transactions
-    .filter((t) => t.status === "COMPLETED")
-    .reduce((acc, curr) => acc + Number(curr.totalAmount), 0);
-  const totalTransaksi = transactions.length;
-  const pendingCount = transactions.filter(
-    (t) => t.status === "BOOKED" || t.status === "PENDING_PAYMENT",
-  ).length;
+  // --- 6. ACTION HANDLERS ---
+  const cetakSatuan = (trx) => {
+    setPrintData([trx]);
+  };
+
+  const cetakMassal = () => {
+    const selectedTransactions = transactions.filter((t) =>
+      selectedIds.includes(t.id),
+    );
+    setPrintData(selectedTransactions);
+  };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-28 relative">
-      {/* KONTEN TERSEMBUNYI UNTUK PRINTER THERMAL */}
+    <div className="space-y-6 pb-20">
+      {/* Hidden Struk Printer (Khusus Trigger Print CSS) */}
       <div className="hidden">
         <StrukPrinter ref={strukRef} transactions={printData} />
       </div>
 
-      {/* HEADER PAGE */}
+      {/* Header Info & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-dark tracking-tight">
             Monitoring Transaksi
           </h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            Sistem pengawasan aliran kas, pesanan pre-order, dan riwayat belanja
-            pada Yasix Merch.
+            Audit riwayat penjualan, pembatalan stok, dan cetak ulang bukti
+            transaksi
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {/* Tombol Export CSV (Berlaku untuk semua data jika tidak ada yg diceklis) */}
-          <Button variant="outline" size="sm" onClick={handleExportCsv}>
-            <Download size={15} className="text-slate-500 mr-2" />
-            Eksport CSV
-          </Button>
-        </div>
+
+        <Button variant="outline" size="sm" onClick={handleExportCsv}>
+          <Download size={15} className="text-slate-500" /> Export CSV
+        </Button>
       </div>
 
-      {/* STAT CARDS */}
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard
-          title="Total Omzet (Selesai)"
+          title="Omzet Kas Masuk"
           value={formatRupiah(totalOmzet)}
           icon={Receipt}
-          trendLabel="Seluruh transaksi Yasix Merch"
+          trendLabel="Dari transaksi lunas (Completed)"
         />
         <StatCard
-          title="Total Transaksi"
-          value={totalTransaksi}
-          icon={CheckCircle}
-          trendLabel="Termasuk Pre-order & Dibatalkan"
-        />
-        <StatCard
-          title="Pre-Order Aktif"
+          title="Pesanan Berjalan"
           value={pendingCount}
           icon={Clock}
-          trendLabel="Pesanan belum diambil / dilunasi"
+          trendLabel="Pre-order & Siap Ambil"
+        />
+        <StatCard
+          title="Transaksi Selesai"
+          value={completedCount}
+          icon={CheckCircle}
+          trendLabel="Berhasil di Kasir / POS"
         />
       </div>
 
-      {/* FILTER SEARCH */}
+      {/* Filter Bar */}
       <FilterBar
-        searchPlaceholder="Cari berdasarkan No. Invoice atau Nama Siswa..."
+        searchPlaceholder="Cari nomor invoice, nama siswa, atau NIS..."
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
       />
 
-      {/* TABLE UTAMA */}
+      {/* Table Data */}
       <Table
         columns={columns}
         data={filteredTransactions}
@@ -310,7 +343,7 @@ export default function MonitoringTransaksi() {
         onPrint={cetakMassal}
         onExport={handleExportCsv}
         onCancel={() =>
-          alert(
+          showInfoToast(
             "Fitur Batalkan Massal memerlukan setup API Backend. Gunakan batalkan per baris sementara.",
           )
         }

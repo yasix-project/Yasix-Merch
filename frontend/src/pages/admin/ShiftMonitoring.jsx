@@ -14,6 +14,7 @@ import { EndShiftModal } from "../../components/admin/ShiftModals";
 
 import { useShiftMutations, useShifts } from "../../hooks/admin/useShifts";
 import { formatRupiah, formatDate } from "../../utils/formatters";
+import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
 export default function MonitoringShift() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,9 +47,10 @@ export default function MonitoringShift() {
         setIsEndModalOpen(false);
         setSelectedActiveShift(null);
         resetForm();
+        showSuccessToast("Shift kasir berhasil ditutup.");
       },
       onError: (err) =>
-        alert(err.response?.data?.message || "Gagal menutup shift kasir."),
+        showErrorToast(err.response?.data?.message || "Gagal menutup shift kasir."),
     });
   };
 

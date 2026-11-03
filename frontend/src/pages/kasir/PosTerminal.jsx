@@ -13,6 +13,7 @@ import ProductCard from "../../components/kasir/ProductCard";
 import PosCart from "../../components/kasir/PosCart";
 import PaymentModal from "../../components/kasir/PaymentModal";
 import StrukPrinter from "../../components/shared/StrukPrinter";
+import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
 export default function PosTerminal() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -95,12 +96,13 @@ export default function PosTerminal() {
           items: savedTransaction.items?.length ? savedTransaction.items : cart,
         };
         setPrintData([transactionForPrint]);
+        showSuccessToast("Transaksi berhasil diproses!");
       },
       onError: (err) => {
         const errorMsg =
           err.response?.data?.message ||
           "Gagal memproses transaksi. Cek kembali ketersediaan stok produk.";
-        alert(errorMsg);
+        showErrorToast(errorMsg);
       },
     });
   };

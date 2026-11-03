@@ -14,8 +14,15 @@ import {
   useCategoryMutations,
 } from "../../hooks/admin/useCategories";
 import { formatDate } from "../../utils/formatters";
+import { useConfirm } from "../../hooks/useConfirm";
+import {
+  showSuccessToast,
+  showErrorToast,
+  showWarningToast,
+} from "../../utils/toast";
 
 export default function KelolaKategori() {
+  const confirm = useConfirm();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
 
@@ -39,9 +46,16 @@ export default function KelolaKategori() {
         onSuccess: () => {
           setIsFormModalOpen(false);
           setEditingCategory(null);
+          showSuccessToast(
+            editingCategory
+              ? "Kategori berhasil diperbarui!"
+              : "Kategori baru berhasil ditambahkan!",
+          );
         },
         onError: (err) =>
-          alert(err.response?.data?.message || "Gagal menyimpan kategori."),
+          showErrorToast(
+            err.response?.data?.message || "Gagal menyimpan kategori.",
+          ),
       },
     );
   };
@@ -57,6 +71,54 @@ export default function KelolaKategori() {
     setSelectedCategoryType(type);
     setIsTypeModalOpen(false);
     setIsFormModalOpen(true); // Lanjut ke form pengisian
+  };
+
+  const handleDeleteCategory = async (cat) => {
+    const isConfirmed = await confirm({
+      title: "Hapus Kategori",
+      message: `Apakah Anda yakin ingin menghapus kategori "${cat.name}"? Pastikan tidak ada produk di dalamnya.`,
+      confirmText: "Ya, Hapus",
+      cancelText: "Batal",
+      variant: "danger",
+    });
+
+    if (isConfirmed) {
+      remove.mutate(cat.id, {
+        onSuccess: () => {
+          setSelectedIds((prev) => prev.filter((item) => item !== cat.id));
+          showSuccessToast("Kategori berhasil dihapus.");
+        },
+        onError: (err) =>
+          showErrorToast(
+            err.response?.data?.message ||
+              "Gagal menghapus kategori. Pastikan tidak ada produk di dalamnya.",
+          ),
+      });
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const isConfirmed = await confirm({
+      title: "Hapus Massal Kategori",
+      message: `Apakah Anda yakin ingin menghapus ${selectedIds.length} kategori terpilih?`,
+      confirmText: "Ya, Hapus Semua",
+      cancelText: "Batal",
+      variant: "danger",
+    });
+
+    if (isConfirmed) {
+      bulkRemove.mutate(selectedIds, {
+        onSuccess: (failedIds) => {
+          setSelectedIds(failedIds);
+          if (failedIds.length > 0) {
+            showWarningToast(`${failedIds.length} kategori gagal dihapus.`);
+          } else {
+            showSuccessToast("Seluruh kategori terpilih berhasil dihapus.");
+          }
+        },
+        onError: () => showErrorToast("Gagal menghapus beberapa kategori."),
+      });
+    }
   };
 
   const filteredData = categories.filter((cat) =>
@@ -121,20 +183,7 @@ export default function KelolaKategori() {
             <Edit3 size={15} />
           </button>
           <button
-            onClick={() => {
-              if (window.confirm("Yakin ingin menghapus kategori ini?"))
-                remove.mutate(cat.id, {
-                  onSuccess: () =>
-                    setSelectedIds((prev) =>
-                      prev.filter((item) => item !== cat.id),
-                    ),
-                  onError: (err) =>
-                    alert(
-                      err.response?.data?.message ||
-                        "Gagal menghapus kategori. Pastikan tidak ada produk di dalamnya.",
-                    ),
-                });
-            }}
+            onClick={() => handleDeleteCategory(cat)}
             className="p-1.5 text-slate-400 hover:text-danger hover:bg-danger/10 rounded transition-colors"
             title="Hapus"
           >
@@ -146,74 +195,74 @@ export default function KelolaKategori() {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-20">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 pb-20">
+      {/* Header Info */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-dark tracking-tight">
-            Kategori Produk
-          </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Kelola sektor barang dan jasa cetak
+          <h1 className="text-2xl font-bold text-dark">Kelola Kategori</h1>
+          <p className="text-sm text-slate-500">
+            Klasifikasikan produk dan atur sifat stok (Barang Fisik vs Jasa Cetak).
           </p>
         </div>
-        <Button size="sm" onClick={handleAddNewCategory}>
+        <Button onClick={handleAddNewCategory}>
           <Plus size={16} /> Tambah Kategori
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Grid Ringkasan / Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Kategori"
           value={categories.length}
           icon={FolderTree}
-          trendLabel="Kategori Aktif Terdaftar"
+        />
+        <StatCard
+          title="Tipe Fisik"
+          value={categories.filter((c) => c.type === "FISIK").length}
+          icon={FolderTree}
+        />
+        <StatCard
+          title="Tipe Cetak"
+          value={categories.filter((c) => c.type === "CETAK").length}
+          icon={FolderTree}
+        />
+        <StatCard
+          title="Tipe Lainnya"
+          value={categories.filter((c) => c.type === "LAINNYA").length}
+          icon={FolderTree}
         />
       </div>
 
+      {/* Bar Pencarian */}
       <FilterBar
-        searchPlaceholder="Cari nama kategori..."
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        placeholder="Cari kategori berdasarkan nama..."
       />
 
+      {/* Tabel Data Utama */}
       <Table
         columns={columns}
         data={filteredData}
-        keyField="id"
         isLoading={isLoading}
         isError={isError}
-        errorMessage={error?.response?.data?.message || error?.message}
-        emptyMessage="Tidak ada kategori ditemukan."
+        errorMessage={error?.message}
+        selectable
         selectedIds={selectedIds}
-        onSelectAll={handleSelectAll}
         onSelectRow={handleSelectRow}
+        onSelectAll={handleSelectAll}
       />
 
+      {/* Floating Bulk Action Bar */}
       <BulkActionBar
         selectedCount={selectedIds.length}
-        onClear={() => setSelectedIds([])}
+        onClearSelection={() => setSelectedIds([])}
         itemLabel="Kategori Terpilih"
       >
         <Button
           variant="danger"
           size="xs"
-          onClick={() => {
-            if (
-              window.confirm(
-                `Yakin ingin menghapus ${selectedIds.length} kategori terpilih?`,
-              )
-            ) {
-              bulkRemove.mutate(selectedIds, {
-                onSuccess: (failedIds) => {
-                  setSelectedIds(failedIds);
-                  if (failedIds.length > 0) {
-                    alert(`${failedIds.length} kategori gagal dihapus.`);
-                  }
-                },
-                onError: () => alert("Gagal menghapus beberapa kategori."),
-              });
-            }
-          }}
+          onClick={handleBulkDelete}
           isLoading={bulkRemove.isPending}
           className="shadow-red-900/30 focus-visible:ring-red-300 active:scale-95"
         >
@@ -228,14 +277,17 @@ export default function KelolaKategori() {
         onSelectType={handleTypeSelected}
       />
 
-      {/* MODAL 2: Form Pengisian Kategori */}
+      {/* MODAL 2: Form Input Kategori */}
       <CategoryFormModal
         isOpen={isFormModalOpen}
-        onClose={() => setIsFormModalOpen(false)}
-        onSubmitData={handleSave}
+        onClose={() => {
+          setIsFormModalOpen(false);
+          setEditingCategory(null);
+        }}
         initialData={editingCategory}
-        selectedType={selectedCategoryType}
-        isSubmitting={save.isPending}
+        categoryType={selectedCategoryType}
+        onSubmit={handleSave}
+        isLoading={save.isPending}
       />
     </div>
   );

@@ -1,4 +1,6 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import ConfirmModal from "./components/ui/ConfirmModal";
 
 // Komponen Pelindung
 import ProtectedRoute from "./components/ui/ProtectedRoute";
@@ -132,5 +134,25 @@ const router = createBrowserRouter([
 ]);
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      <ConfirmModal />
+      <Toaster
+        position="top-right"
+        gutter={8}
+        toastOptions={{
+          duration: 3500,
+          style: {
+            fontFamily: "var(--font-sans, sans-serif)",
+            fontSize: "0.875rem",
+            borderRadius: "0.75rem",
+            padding: "12px 16px",
+            boxShadow:
+              "0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)",
+          },
+        }}
+      />
+    </>
+  );
 }

@@ -8,6 +8,7 @@ import { User, Award, Save, Loader2, CheckCircle2 } from "lucide-react";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import { useProfile, useProfileMutations } from "../../hooks/admin/useProfile";
+import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
 // Schema Validasi Zod
 const profileSchema = z.object({
@@ -56,7 +57,7 @@ export default function Pengaturan() {
   const handleFormSubmit = (data) => {
     update.mutate(data, {
       onSuccess: (res) => {
-        alert("Profil berhasil diperbarui!");
+        showSuccessToast("Profil berhasil diperbarui!");
         reset({
           name: res.data?.data?.name || user.name,
           email: res.data?.data?.email || user.email,
@@ -64,7 +65,7 @@ export default function Pengaturan() {
         });
       },
       onError: (err) => {
-        alert(err.response?.data?.message || "Gagal memperbarui profil.");
+        showErrorToast(err.response?.data?.message || "Gagal memperbarui profil.");
       },
     });
   };
