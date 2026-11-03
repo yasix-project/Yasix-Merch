@@ -1,124 +1,346 @@
-# 🛒 Business Center SMK Yadika 6 — Backend API Services
+# YasixMerch — Smart Point of Sale & Automated Document Printing System
 
-Aplikasi backend RESTful API untuk memodernisasi operasional unit usaha & koperasi SMK Yadika 6 (Business Center), mencakup transaksi Point of Sale (POS), Manajemen Inventaris ATK dengan Kalkulator Margin, Layanan Jasa Cetak/Print Mandiri berbasis PDF, Audit Shift Kasir, serta Dashboard Analytics Laporan Keuangan.
-
-Sistem ini dikembangkan khusus untuk mendukung partisipasi dalam **Garda Tech National Innovation Competition (GTNIC) 2026** pada subtema _Accelerating Digital Transformation for Business and SMEs_.
+> Solusi Digitalisasi Transaksi dan Manajemen Antrean Terpadu Business Center SMK Yadika 6
 
 ---
 
-## 🛠️ Tech Stack & Library
+## 📌 Latar Belakang Masalah & Solusi Inovasi
 
-- **Runtime & Framework:** Node.js (v24+) & Express.js (v5)
-- **Database & ORM:** MySQL 8.0 & Prisma ORM (v5.22)
-- **Containerization:** Docker & Docker Compose
-- **Authentication & Security:** JSON Web Token (JWT), Bcrypt, Helmet, CORS, Express Rate Limit
-- **File Processing & Upload:** Multer & `pdf-lib` (Automatic PDF Page Counter)
-- **Development & Tooling:** Nodemon, Morgan, Dotenv
+### Permasalahan
+
+Business Center (BC) SMK Yadika 6 merupakan unit produksi sekolah yang melayani kebutuhan operasional harian ratusan siswa dan guru, mulai dari pembelian alat tulis kantor (ATK), atribut seragam, konsumsi, hingga jasa cetak (print) dokumen tugas.
+
+Pada jam-jam krusial seperti jam istirahat dan jam masuk sekolah, sering terjadi **penumpukan antrean panjang (bottleneck)** di area konter kasir. Masalah ini dipicu oleh:
+
+1. **Pencatatan Transaksi Manual/Konvensional:** Waktu transaksi per pelanggan lambat karena kasir harus menghitung total belanja, memeriksa stok manual, dan menulis nota secara manual.
+2. **Antrean Jasa Cetak yang Tidak Efisien:** Siswa harus menyerahkan flashdisk atau mengirim file via WhatsApp secara bergantian di komputer kasir, menunggu dokumen dihitung halamannya secara manual, dan menunggu dokumen dicetak saat itu juga, yang menghambat antrean transaksi barang fisik.
+3. **Rekonsiliasi Kas yang Rentan Selisih (Fraud/Human Error):** Tidak adanya sistem shift yang mengunci modal awal dan menghitung fisik kas saat pergantian petugas jaga kasir.
+
+### Solusi Inovasi (YasixMerch)
+
+**YasixMerch** hadir sebagai sistem terpadu (*All-in-One School POS & Self-Service Printing Platform*) yang memecah kepadatan di Business Center melalui:
+
+* **Terminal POS Kasir Cepat:** Antarmuka kasir berbasis web yang responsif dengan *quick cash*, pemindaian barcode, integrasi diskon/member NIS siswa, dan cetak struk thermal otomatis.
+* **Manajemen Shift Kasir Ketat:** Alur buka/tutup shift dengan validasi modal awal dan uang fisik akhir untuk menjamin akuntabilitas kas operasional.
+* **Sistem Antrean Cetak Mandiri (Self-Service Print Queue):** Siswa dapat mengunggah file PDF secara mandiri dari perangkat mereka, sistem membaca jumlah halaman secara otomatis via `pdf-lib`, menghitung estimasi biaya seketika, dan kasir cukup memproses dokumen dari antrean layar khusus tanpa flashdisk.
+
+
+* **Pre-order Transaksi Siswa:** Fitur pemesanan mandiri oleh siswa untuk mengurangi antrean di depan etalase barang.
+
+
 
 ---
 
-## 🏗️ Arsitektur System & Folder Structure
+## 🛠️ Tech Stack
 
-Menggunakan pendekatan **Clean Modular Architecture** dengan pemisahan peran yang tegas antara _Routes_, _Controllers_, _Services (Business Logic)_, dan _Middlewares_:
+* **Frontend:** React 18 / 19, Vite, Tailwind CSS v4, Zustand (State Management), TanStack Query v5 (Server Cache & Synchronization), Lucide React, React-to-Print.
+* **Backend:** Node.js, Express.js (RESTful API Architecture).
+* **Database & ORM:** PostgreSQL / MySQL, Prisma ORM.
+* **Libraries & Keamanan:** `pdf-lib` (Document Parsing & Page Counting), Multer (File Handling), Express Rate Limit (Brute Force Protection), JWT & Bcrypt (Authentication & RBAC).
+
+
+
+---
+
+## 📂 Struktur Direktori Repositori
 
 ```text
-backend/
-├── prisma/
-│   ├── schema.prisma         # Skema database MySQL & Relasi Prisma ORM
-│   └── seed.js               # Script pengisian data awal (Admin, Kasir, Siswa, Kategori)
-├── src/
-│   ├── config/
-│   │   └── prisma.js         # Singleton instance Prisma Client
-│   ├── controllers/          # Handler HTTP Request & Response JSON
-│   ├── middlewares/          # JWT Verification, Role Guard, File Upload
-│   ├── routes/               # Mounting Endpoint API Modular
-│   ├── services/             # Business Logic & Atomic DB Transactions ($transaction)
-│   └── index.js              # Server Entry Point Express.js
-├── uploads/                  # Direktori penyimpanan berkas PDF jasa print
-├── .env                      # File konfigurasi Environment Variables
-├── docker-compose.yml        # Orchestration Container MySQL
-└── package.json
+├── backend/
+│   ├── prisma/
+│   │   └── schema.prisma         # Skema database & relasi tabel
+│   ├── src/
+│   │   ├── config/               # Konfigurasi database & environment
+│   │   ├── controllers/          # Logika pemrosesan data API
+│   │   ├── middlewares/          # Auth JWT, RBAC, Upload Multer, Rate Limiter
+│   │   ├── routes/               # Routing endpoint API Express
+│   │   └── services/             # Abstraksi business logic & hitungan PDF
+│   ├── uploads/                  # Penyimpanan lokal gambar produk & dokumen cetak
+│   ├── package.json
+│   └── server.js
+│
+├── frontend/
+│   ├── src/
+│   │   ├── api/                  # Axios instance & service layer
+│   │   ├── components/           # UI kit modular & sub-komponen POS
+│   │   ├── hooks/                # Custom hooks TanStack Query
+│   │   ├── layouts/              # AdminLayout & KasirLayout (Shift Protected)
+│   │   ├── pages/                # Halaman Admin, Kasir POS, Riwayat, & Antrean Print
+│   │   ├── store/                # Zustand stores (Auth, POS Cart, Shift)
+│   │   └── utils/                # Formatter Rupiah, Tanggal, Helper gambar
+│   ├── package.json
+│   └── vite.config.js
+│
+└── README.md
+
 ```
 
 ---
 
-## 🔌 API Endpoints Summary
+## 📋 Dokumentasi API Endpoints
 
-API v1 diakses melalui _prefix_ `/api/v1`. Seluruh rute terproteksi membutuhkan header:  
-`Authorization: Bearer <JWT_TOKEN>`
+Seluruh endpoint terproteksi mewajibkan header: `Authorization: Bearer <token>`.
 
-| Modul            | Method   | Endpoint                        | Access Role   | Deskripsi Fitur                                        |
-| :--------------- | :------- | :------------------------------ | :------------ | :----------------------------------------------------- |
-| **Health Check** | `GET`    | `/api/v1/health`                | Public        | Pengecekan status server & koneksi MySQL Docker        |
-| **Auth**         | `POST`   | `/api/v1/auth/login`            | Public        | Autentikasi pengguna & pengeluaran JWT Token           |
-|                  | `POST`   | `/api/v1/auth/register-siswa`   | Admin         | Pendaftaran akun siswa & auto-generate QR Member       |
-|                  | `GET`    | `/api/v1/auth/me`               | Authenticated | Mengambil profil user aktif                            |
-| **Products**     | `GET`    | `/api/v1/products`              | Authenticated | Katalog barang ATK (Filter & Search)                   |
-|                  | `GET`    | `/api/v1/products/low-stock`    | Admin, Kasir  | Alert barang dengan stok $\le$ minStock                |
-|                  | `POST`   | `/api/v1/products`              | Admin         | Tambah produk + **Kalkulator Margin Otomatis**         |
-|                  | `PUT`    | `/api/v1/products/:id`          | Admin         | Edit HPP, margin, stok, & detail produk                |
-|                  | `DELETE` | `/api/v1/products/:id`          | Admin         | Hapus produk dari sistem                               |
-| **Categories**   | `GET`    | `/api/v1/categories`            | Authenticated | Mengambil daftar kategori (ATK / PRINT)                |
-|                  | `POST`   | `/api/v1/categories`            | Admin         | Tambah kategori baru                                   |
-| **Jasa Print**   | `POST`   | `/api/v1/print/estimate`        | Authenticated | Upload PDF sementara & hitung jumlah halaman           |
-|                  | `POST`   | `/api/v1/print/order`           | Authenticated | Pemesanan jasa cetak & hitung estimasi biaya           |
-|                  | `GET`    | `/api/v1/print/orders`          | Admin, Kasir  | Pemantauan antrean cetak (_Print Queue_)               |
-| **Transactions** | `POST`   | `/api/v1/transactions/checkout` | Admin, Kasir  | **Atomic Checkout POS** (Potong stok & kalkulasi poin) |
-|                  | `GET`    | `/api/v1/transactions`          | Admin, Kasir  | Riwayat seluruh transaksi                              |
-|                  | `GET`    | `/api/v1/transactions/:id`      | Admin, Kasir  | Detail transaksi spesifik untuk E-Receipt/Struk        |
-| **Shifts**       | `POST`   | `/api/v1/shifts/start`          | Admin, Kasir  | Buka shift kasir & pencatatan kas awal                 |
-|                  | `GET`    | `/api/v1/shifts/active`         | Admin, Kasir  | Cek status shift aktif & estimasi penerimaan kas       |
-|                  | `POST`   | `/api/v1/shifts/end`            | Admin, Kasir  | Tutup shift & kalkulasi otomatis selisih kas           |
-|                  | `GET`    | `/api/v1/shifts`                | Admin, Kasir  | Riwayat rekapitulasi shift kasir                       |
-| **Vouchers**     | `POST`   | `/api/v1/vouchers/validate`     | Authenticated | Validasi kode promo diskon belanja                     |
-|                  | `POST`   | `/api/v1/vouchers`              | Admin         | Pembuatan kode promo voucher baru                      |
-| **Analytics**    | `GET`    | `/api/v1/analytics/dashboard`   | Admin         | Ringkasan Omset Hari Ini, Laba Bersih, & Stat          |
-|                  | `GET`    | `/api/v1/analytics/sales`       | Admin         | Laporan Rekapitulasi Penjualan (Filter Tanggal)        |
+### 1. Autentikasi (`/api/v1/auth`)
+
+| Method | Endpoint | Hak Akses | Deskripsi |
+| --- | --- | --- | --- |
+| `POST` | `/login`
+
+ | Publik
+
+ | Login umum pengguna dengan rate limiter
+
+ |
+| `POST` | `/login/admin`
+
+ | Publik
+
+ | Login khusus administrator dengan rate limiter ketat
+
+ |
+| `POST` | `/register-siswa`
+
+ | `ADMIN`
+
+ | Mendaftarkan akun siswa baru ke dalam sistem
+
+ |
+| `GET` | `/me`
+
+ | Terautentikasi
+
+ | Mengambil data profil pengguna yang sedang login
+
+ |
+| `PUT` | `/profile`
+
+ | Terautentikasi
+
+ | Memperbarui informasi profil pengguna
+
+ |
+
+### 2. Shift Kasir (`/api/v1/shifts`)
+
+| Method | Endpoint | Hak Akses | Deskripsi |
+| --- | --- | --- | --- |
+| `POST` | `/start`
+
+ | `ADMIN`, `KASIR`
+
+ | Membuka shift kasir baru dan input modal awal kas |
+| `GET` | `/active`
+
+ | `ADMIN`, `KASIR`
+
+ | Memeriksa status shift kasir yang aktif saat ini |
+| `POST` | `/end`
+
+ | `ADMIN`, `KASIR`
+
+ | Menutup shift kasir dan input rekonsiliasi kas fisik |
+| `GET` | `/`
+
+ | `ADMIN`
+
+ | Menampilkan seluruh riwayat shift kasir |
+
+### 3. Produk & Kategori (`/api/v1/products` & `/api/v1/categories`)
+
+| Method | Endpoint | Hak Akses | Deskripsi |
+| --- | --- | --- | --- |
+| `GET` | `/products`
+
+ | Terautentikasi
+
+ | Mengambil seluruh katalog produk aktif
+
+ |
+| `GET` | `/products/low-stock`
+
+ | `ADMIN`, `KASIR`
+
+ | Peringatan stok produk yang menyentuh batas minimum
+
+ |
+| `GET` | `/products/:id`
+
+ | Terautentikasi
+
+ | Mengambil detail spesifik produk
+
+ |
+| `POST` | `/products`
+
+ | `ADMIN`
+
+ | Menambahkan produk baru (mendukung upload gambar)
+
+ |
+| `PUT` | `/products/:id`
+
+ | `ADMIN`
+
+ | Memperbarui data produk & gambar
+
+ |
+| `DELETE` | `/products/:id`
+
+ | `ADMIN`
+
+ | Menghapus data produk
+
+ |
+| `GET` | `/categories`
+
+ | Terautentikasi
+
+ | Mengambil seluruh daftar kategori produk
+
+ |
+| `POST` | `/categories`
+
+ | `ADMIN`
+
+ | Menambahkan kategori baru
+
+ |
+
+### 4. Transaksi & POS (`/api/v1/transactions`)
+
+| Method | Endpoint | Hak Akses | Deskripsi |
+| --- | --- | --- | --- |
+| `POST` | `/checkout`
+
+ | `ADMIN`, `KASIR`
+
+ | Checkout transaksi langsung di terminal POS kasir |
+| `GET` | `/`
+
+ | `ADMIN`, `KASIR`
+
+ | Mengambil seluruh riwayat transaksi penjualan
+
+ |
+| `GET` | `/:id`
+
+ | `ADMIN`, `KASIR`
+
+ | Detail transaksi untuk cetak/cetak ulang struk
+
+ |
+| `POST` | `/pre-order`
+
+ | `SISWA`
+
+ | Pemesanan barang secara mandiri oleh siswa
+
+ |
+| `PATCH` | `/:id/complete`
+
+ | `ADMIN`, `KASIR`
+
+ | Pelunasan dan pengambilan barang pesanan pre-order
+
+ |
+| `PATCH` | `/:id/cancel`
+
+ | `ADMIN`, `KASIR`
+
+ | Pembatalan transaksi & pengembalian stok barang
+
+ |
+
+### 5. Jasa Cetak Dokumen (`/api/v1/print`)
+
+| Method | Endpoint | Hak Akses | Deskripsi |
+| --- | --- | --- | --- |
+| `POST` | `/estimate`
+
+ | Terautentikasi
+
+ | Parsing PDF otomatis untuk hitung halaman & biaya
+
+ |
+| `POST` | `/order`
+
+ | Terautentikasi
+
+ | Submit order cetak dokumen mandiri oleh siswa
+
+ |
+| `GET` | `/orders`
+
+ | `ADMIN`, `KASIR`
+
+ | Menampilkan antrean order cetak aktif di kasir
+
+ |
+
+### 6. Siswa, Voucher & Analitik
+
+| Method | Endpoint | Hak Akses | Deskripsi |
+| --- | --- | --- | --- |
+| `GET` | `/students`
+
+ | `ADMIN`, `KASIR`
+
+ | Daftar data siswa/member Business Center
+
+ |
+| `PATCH` | `/students/:id/points`
+
+ | `ADMIN`, `KASIR`
+
+ | Penambahan atau pemotongan poin loyalitas siswa
+
+ |
+| `POST` | `/vouchers/validate`
+
+ | Terautentikasi
+
+ | Validasi kupon diskon sebelum transaksi diproses
+
+ |
+| `GET` | `/analytics/dashboard`
+
+ | `ADMIN`
+
+ | Metrik ringkasan omzet, laba, dan penjualan
+
+ |
+| `GET` | `/analytics/sales`
+
+ | `ADMIN`
+
+ | Laporan penjualan berkala untuk monitoring
+
+ |
 
 ---
 
-## 🚀 Panduan Memulai (Local Setup)
+## 🔑 Akun Uji Coba Pengujian Juri
 
-### 1. Prerequisites
+Gunakan kredensial berikut untuk menguji masing-masing *role* hak akses pada antarmuka aplikasi:
 
-- [Node.js v24+](https://nodejs.org/)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-
-### 2. Konfigurasi Environment (`.env`)
-
-Buat file `.env` di dalam folder `backend/`:
-
-```env
-DATABASE_URL=""
-PORT=
-JWT_SECRET=""
-```
-
-### 3. Jalankan Database MySQL via Docker
-
-```bash
-docker compose up -d
-```
-
-### 4. Eksekusi Migrasi & Data Seed
-
-```bash
-# 1. Migrasi database
-npx prisma migrate dev --name init
-
-# 2. Generasi Prisma Client
-npx prisma generate
-
-# 3. Jalankan seeding data awal (Admin, Kasir, Siswa, & Kategori)
-npx prisma db seed
-```
-
-### 5. Jalankan Server Backend
-
-```bash
-npm run dev
-```
-
-Server backend akan berjalan di: `http://localhost:5000`
+| Role | Username / Email | Password | Hak Akses Utama |
+| --- | --- | --- | --- |
+| **ADMINISTRATOR** | `[ISI_EMAIL_ADMIN]` | `[ISI_PASSWORD_ADMIN]` | Back-office penuh, Analitik Dashboard, Manajemen Produk/Kategori/Voucher. |
+| **KASIR** | `[ISI_EMAIL_KASIR]` | `[ISI_PASSWORD_KASIR]` | Buka/Tutup Shift, Terminal POS Kasir, Riwayat Transaksi, Antrean Print. |
+| **SISWA (MEMBER)** | `[ISI_EMAIL_SISWA]` | `[ISI_PASSWORD_SISWA]` | Order Print Mandiri, Pre-order Barang, Cek Poin & Riwayat Belanja. |
 
 ---
+
+## 🔗 Tautan Media & Demonstrasi
+
+* **Live Demo Aplikasi:** `[ISI_URL_DEPLOYMENT_FRONTEND]`
+* **API Server Base URL:** `[ISI_URL_DEPLOYMENT_BACKEND]`
+* **Video Demonstrasi Produk (YouTube / Drive):** `[ISI_LINK_VIDEO_GTNIC]`
+
+---
+
+## 👥 Tim Pengembang (GTNIC 2026)
+
+* **Institusi:** SMK Yadika 6
+* **Kategori Inovasi:** Software & Digital Transformation
+* **Kontributor:** `[ISI_NAMA_LENGKAP_ANGGOTA_TIM]`
