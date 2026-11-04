@@ -170,6 +170,6 @@ Gunakan kredensial berikut untuk melakukan penilaian antarmuka sistem:
 - **Institusi:** SMK Yadika 6
 - **Bidang Inovasi:** Software Engineering & Digital Transformation
 - **Susunan Tim Pengembang:**
-  - `[ISI_NAMA_KETUA_TIM]` — Lead Developer / Fullstack Engineer
-  - `[ISI_NAMA_ANGGOTA_1]` — Frontend & UI/UX Specialist
-  - `[ISI_NAMA_ANGGOTA_2]` — Backend & Database Engineer
+  - `Sep Meyer Vander F.D` — Lead Developer /Backend & Database Engineer
+  - `Miracle Benaya C.T` — Frontend & UI/UX Specialist
+  - `M. Khalil Khairudin` —  Fullstack Engineer
