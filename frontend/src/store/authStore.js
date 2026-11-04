@@ -17,6 +17,23 @@ export const useAuthStore = create((set) => ({
     });
   },
 
+  // Tambahkan ini agar tidak error saat dipanggil oleh useCurrentUser
+  updateUser: (newUserData) => {
+    set((state) => {
+      const mergedUser = { ...state.user, ...newUserData };
+      localStorage.setItem("user", JSON.stringify(mergedUser));
+
+      if (newUserData.role) {
+        localStorage.setItem("role", newUserData.role);
+      }
+
+      return {
+        user: mergedUser,
+        role: newUserData.role || state.role,
+      };
+    });
+  },
+
   logout: () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");

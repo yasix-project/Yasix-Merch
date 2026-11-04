@@ -10,16 +10,41 @@ const countPdfPagesService = async (filePath) => {
 };
 
 // Menghitung Biaya Cetak
-const calculatePrintCostService = (totalPages, colorType, paperSize = "A4") => {
-  const pricePerPage = colorType === "COLOR" ? 1000 : 500;
-  const totalPrice = totalPages * pricePerPage;
+const calculatePrintCostService = (totalPagesOrObj, colorType, paperSize = "A4") => {
+  let totalPages = totalPagesOrObj;
+  let isColor = false;
+  let selectedPaper = paperSize;
+  let copies = 1;
+
+  if (typeof totalPagesOrObj === "object" && totalPagesOrObj !== null) {
+    totalPages = totalPagesOrObj.totalPages || 1;
+    isColor =
+      totalPagesOrObj.isColor ??
+      (totalPagesOrObj.colorType === "COLOR");
+    selectedPaper = totalPagesOrObj.paperSize || paperSize || "A4";
+    copies = parseInt(totalPagesOrObj.copies) || 1;
+  } else {
+    isColor = colorType === "COLOR" || colorType === true;
+  }
+
+  const validColorType = isColor ? "COLOR" : "BW";
+  const pricePerPage = isColor ? 1000 : 500;
+  const totalPrice = totalPages * pricePerPage * copies;
 
   return {
     totalPages,
-    colorType,
-    paperSize,
+    colorType: validColorType,
+    isColor,
+    paperSize: selectedPaper,
+    copies,
     pricePerPage,
     totalPrice,
+    specs: {
+      totalPages,
+      isColor,
+      copies,
+      paperSize: selectedPaper,
+    },
   };
 };
 

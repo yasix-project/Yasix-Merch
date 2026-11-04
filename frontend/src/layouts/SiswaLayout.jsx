@@ -1,42 +1,124 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
-import { Home, Search, QrCode, ShoppingCart } from "lucide-react";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import {
+  ShoppingBag,
+  Printer,
+  ClipboardList,
+  User,
+  Sparkles,
+  LogOut,
+} from "lucide-react";
+import { useAuthStore } from "../store/authStore";
+import { useCurrentUser } from "../hooks/useCurrentUser";
 
 export default function SiswaLayout() {
-  const location = useLocation();
+  const logout = useAuthStore((state) => state.logout);
+  const navigate = useNavigate();
+
+  // Panggil query /auth/me untuk memvalidasi & menyegarkan data user
+  const { user: liveUser, isFetching, refetch } = useCurrentUser();
+  const cachedUser = useAuthStore((state) => state.user);
+
+  // Gunakan data live backend atau fallback ke cache lokal
+  const user = liveUser || cachedUser;
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   const navItems = [
-    { name: "Beranda", path: "/siswa", icon: Home },
-    { name: "Katalog", path: "/siswa/katalog", icon: Search },
-    { name: "QR Tiket", path: "/siswa/tiket", icon: QrCode },
-    { name: "Keranjang", path: "/siswa/checkout", icon: ShoppingCart },
+    { to: "/siswa/katalog", label: "Katalog", icon: ShoppingBag },
+    { to: "/siswa/print", label: "Print PDF", icon: Printer },
+    { to: "/siswa/pesanan", label: "Pesanan", icon: ClipboardList },
+    { to: "/siswa/profil", label: "Kartu Saya", icon: User },
   ];
 
   return (
-    <div className="mx-auto max-w-md bg-gray-50 min-h-screen relative shadow-2xl">
-      {/* Area Konten Utama */}
-      <main className="pb-20 min-h-screen overflow-y-auto">
-        <Outlet />
-      </main>
+    <div className="min-h-screen bg-slate-100 flex justify-center text-slate-800">
+      <div className="w-full max-w-lg bg-slate-50 min-h-screen flex flex-col shadow-2xl relative border-x border-slate-200">
+        {/* Top Header Siswa */}
+        <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-blue-500/20">
+              {user?.name ? user.name.charAt(0).toUpperCase() : "S"}
+            </div>
+            <div className="leading-tight">
+              <h1 className="text-xs font-bold text-slate-900 truncate max-w-[150px]">
+                {user?.name || "Siswa Yasix"}
+              </h1>
+              <p className="text-[10px] font-mono text-slate-400">
+                NIS: {user?.nis || "-"}
+              </p>
+            </div>
+          </div>
 
-      {/* Navigasi Bawah */}
-      <nav className="fixed bottom-0 w-full max-w-md bg-white border-t border-gray-200 px-6 py-3 flex justify-between items-center rounded-t-xl z-50">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.name}
-              to={item.path}
-              className={`flex flex-col items-center gap-1 ${
-                isActive ? "text-blue-600" : "text-gray-500 hover:text-blue-500"
-              }`}
+          <div className="flex items-center gap-2">
+            {/* Badge Saldo Poin dengan tombol Refresh */}
+            <button
+              onClick={() => refetch()}
+              className="flex items-center gap-1 px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-full text-amber-700 text-xs font-black shadow-2xs hover:bg-amber-100 transition-colors"
+              title="Klik untuk menyegarkan saldo poin"
             >
-              <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[10px] font-medium">{item.name}</span>
-            </Link>
-          );
-        })}
-      </nav>
+              <Sparkles
+                size={13}
+                className={`text-amber-500 ${isFetching ? "animate-spin" : ""}`}
+              />
+              <span>{user?.points ?? 0} Poin</span>
+            </button>
+
+            {/* Tombol Keluar */}
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+              title="Keluar"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
+        </header>
+
+        {/* Konten Halaman */}
+        <main className="flex-1 p-4 pb-24 overflow-y-auto">
+          <Outlet />
+        </main>
+
+        {/* Bottom Navigation Bar */}
+        <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg bg-white/95 backdrop-blur-lg border-t border-slate-200 px-3 py-2 z-40 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+          <div className="grid grid-cols-4 gap-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `flex flex-col items-center justify-center py-1.5 rounded-xl transition-all duration-200 ${
+                      isActive
+                        ? "text-blue-600 font-bold scale-105"
+                        : "text-slate-400 hover:text-slate-600 font-medium"
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <div
+                        className={`p-1 rounded-lg transition-colors ${
+                          isActive ? "bg-blue-50" : "bg-transparent"
+                        }`}
+                      >
+                        <Icon size={19} strokeWidth={isActive ? 2.5 : 2} />
+                      </div>
+                      <span className="text-[10px] mt-0.5 tracking-tight">
+                        {item.label}
+                      </span>
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
+          </div>
+        </nav>
+      </div>
     </div>
   );
 }

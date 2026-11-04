@@ -1,0 +1,99 @@
+import { Printer, AlertCircle, Loader2, Sparkles } from "lucide-react";
+import Button from "../../components/ui/Button";
+
+import { useStudentPrint } from "../../hooks/useStudentPrint";
+import PrintSuccessTicket from "../../components/siswa/PrintSuccessTicket";
+import PrintFileUploader from "../../components/siswa/PrintFileUploader";
+import PrintConfigOptions from "../../components/siswa/PrintConfigOptions";
+import PrintCostSummary from "../../components/siswa/PrintCostSummary";
+
+export default function SiswaPrint() {
+  const {
+    file,
+    colorType,
+    paperSize,
+    finishing,
+    notes,
+    estimate,
+    isEstimating,
+    isSubmitting,
+    errorMessage,
+    successOrder,
+    setFinishing,
+    setNotes,
+    handleFileSelect,
+    handleColorChange,
+    handlePaperChange,
+    resetFile,
+    submitOrder,
+  } = useStudentPrint();
+
+  return (
+    <div className="space-y-4 pb-6">
+      {/* Header */}
+      <div>
+        <h2 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <Printer className="text-blue-600" size={20} />
+          Print Mandiri Siswa
+        </h2>
+        <p className="text-xs text-slate-500 mt-0.5">
+          Unggah dokumen PDF, atur preferensi cetak, dan ambil langsung di
+          konter kasir[cite: 1].
+        </p>
+      </div>
+
+      {/* Tiket Berhasil */}
+      {successOrder && <PrintSuccessTicket order={successOrder} />}
+
+      {/* Error Alert */}
+      {errorMessage && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-xs flex items-center gap-2">
+          <AlertCircle size={16} className="shrink-0 text-red-500" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
+      {/* Formulir Print */}
+      <form onSubmit={submitOrder} className="space-y-4">
+        <PrintFileUploader
+          file={file}
+          onSelectFile={handleFileSelect}
+          onResetFile={resetFile}
+        />
+
+        <PrintConfigOptions
+          colorType={colorType}
+          paperSize={paperSize}
+          finishing={finishing}
+          notes={notes}
+          onColorChange={handleColorChange}
+          onPaperChange={handlePaperChange}
+          onFinishingChange={setFinishing}
+          onNotesChange={setNotes}
+        />
+
+        {file && (
+          <PrintCostSummary estimate={estimate} isEstimating={isEstimating} />
+        )}
+
+        <Button
+          type="submit"
+          disabled={!file || isEstimating || isSubmitting}
+          className="w-full py-3.5 text-sm font-bold bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/30 rounded-2xl flex items-center justify-center gap-2"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              Mengirim Antrean Cetak...
+            </>
+          ) : (
+            <>
+              <Sparkles size={16} />
+              Kirim Antrean Cetak
+            </>
+          )}
+        </Button>
+      </form>
+    </div>
+  );
+}

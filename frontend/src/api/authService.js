@@ -8,6 +8,11 @@ export const authService = {
   loginAdmin: (credentials) =>
     axiosClient.post("/auth/login/admin", credentials),
 
-  getMe: () => axiosClient.get("/auth/me"),
+  // Unpack data agar mengembalikan payload user langsung
+  getMe: async () => {
+    const res = await axiosClient.get("/auth/me");
+    return res.data?.data || res.data;
+  },
+
   updateProfile: (data) => axiosClient.put("/auth/profile", data),
 };

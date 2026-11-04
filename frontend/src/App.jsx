@@ -1,4 +1,8 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+} from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import ConfirmModal from "./components/ui/ConfirmModal";
 
@@ -25,6 +29,8 @@ import NotFound from "./pages/NotFound";
 import PosTerminal from "./pages/kasir/PosTerminal";
 import RiwayatKasir from "./pages/kasir/RiwayatYasix";
 import AntreanPrint from "./pages/kasir/AntreanPrint";
+import SiswaProfil from "./pages/siswa/SiswaProfil";
+import SiswaPrint from "./pages/siswa/SiswaPrint";
 
 // Fallback Halaman 403
 const Unauthorized = () => (
@@ -35,6 +41,10 @@ const Unauthorized = () => (
 
 // Konfigurasi Rute
 const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Navigate to="/login" />,
+  },
   {
     path: "/login",
     element: <Login />,
@@ -120,10 +130,12 @@ const router = createBrowserRouter([
     ),
     children: [
       {
-        index: true,
-        element: (
-          <div className="p-4">Halaman Beranda Siswa (Segera Hadir)</div>
-        ),
+        path: "profil",
+        element: <SiswaProfil />,
+      },
+      {
+        path: "print",
+        element: <SiswaPrint />,
       },
     ],
   },

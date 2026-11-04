@@ -96,43 +96,61 @@ export default function AntreanPrint() {
     },
     {
       header: "Spesifikasi Dokumen",
-      render: (o) => (
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5 font-medium text-xs text-slate-800">
-            <FileText size={14} className="text-blue-500 shrink-0" />
-            <span className="truncate max-w-[180px]" title={o.fileName}>
-              {o.fileName}
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-1 text-[10px]">
-            <span className="px-1.5 py-0.5 bg-slate-100 rounded font-semibold text-slate-600">
-              {o.pageCount} Hal
-            </span>
-            <span
-              className={`px-1.5 py-0.5 rounded font-bold ${
-                o.colorType === "COLOR"
-                  ? "bg-purple-50 text-purple-700 border border-purple-200"
-                  : "bg-slate-100 text-slate-700"
-              }`}
-            >
-              {o.colorType === "COLOR" ? "Warna" : "B/W"}
-            </span>
-            <span className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600">
-              {o.paperSize || "A4"}
-            </span>
-            {o.finishing && (
-              <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded font-semibold">
-                {o.finishing}
+      render: (o) => {
+        const specs =
+          (typeof o.specs === "object" && o.specs) ||
+          (typeof o.config === "object" && o.config) ||
+          (typeof o.options === "object" && o.options) ||
+          (typeof o.details === "object" && o.details) ||
+          (typeof o.totalPages === "object" && o.totalPages) ||
+          (typeof o.pageCount === "object" && o.pageCount) ||
+          null;
+
+        const rawPages =
+          specs?.totalPages ??
+          (typeof o.pageCount === "number" || typeof o.pageCount === "string"
+            ? o.pageCount
+            : typeof o.totalPages === "number" || typeof o.totalPages === "string"
+              ? o.totalPages
+              : 1);
+
+        const pages =
+          typeof rawPages === "object" && rawPages !== null
+            ? rawPages.totalPages || 1
+            : Number(rawPages) || 1;
+
+        const isColor =
+          specs?.isColor ??
+          (o.colorType === "COLOR" || o.isColor === true);
+
+        const paperSize = specs?.paperSize || o.paperSize || "A4";
+        const copies = specs?.copies || o.copies || 1;
+
+        return (
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 font-medium text-xs text-slate-800">
+              <FileText size={14} className="text-blue-500 shrink-0" />
+              <span className="truncate max-w-[180px]" title={o.fileName}>
+                {o.fileName || "Dokumen Cetak"}
               </span>
+            </div>
+            <div className="text-xs space-y-0.5">
+              <span className="font-bold text-slate-800 block">
+                {pages} Halaman ({paperSize})
+              </span>
+              <span className="text-slate-500 block text-[11px]">
+                {isColor ? "Warna" : "Hitam Putih"} • {copies} Rangkap
+                {o.finishing ? ` • ${o.finishing}` : ""}
+              </span>
+            </div>
+            {o.notes && (
+              <p className="text-[10px] italic text-slate-500 bg-amber-50/70 border border-amber-200/60 rounded px-1.5 py-0.5 mt-1">
+                "{o.notes}"
+              </p>
             )}
           </div>
-          {o.notes && (
-            <p className="text-[10px] italic text-slate-500 bg-amber-50/70 border border-amber-200/60 rounded px-1.5 py-0.5 mt-1">
-              "{o.notes}"
-            </p>
-          )}
-        </div>
-      ),
+        );
+      },
     },
     {
       header: "Total Biaya",
@@ -209,8 +227,7 @@ export default function AntreanPrint() {
             Antrean Cetak Dokumen
           </h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            Daftar pesanan print mandiri dari siswa Business Center Yasix[cite:
-            2].
+            Daftar pesanan print mandiri dari siswa Business Center Yasix.
           </p>
         </div>
 
