@@ -101,7 +101,13 @@ const getAllPrintOrdersService = async (filter = {}) => {
 
 // Update Status Order Cetak
 const updatePrintOrderStatusService = async (id, status) => {
-  const allowedStatuses = ["PENDING", "COMPLETED", "CANCELLED"];
+  const allowedStatuses = [
+    "PENDING",
+    "PROCESSING",
+    "READY",
+    "COMPLETED",
+    "CANCELLED",
+  ];
   if (!allowedStatuses.includes(status)) {
     throw new Error(`Status tidak valid: ${status}`);
   }

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { printService } from "../../api/printService";
+import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
 export const printKeys = {
   all: ["printOrders"],
@@ -27,6 +28,12 @@ export function usePrintMutations() {
     mutationFn: ({ id, status }) => printService.updateStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: printKeys.all });
+      showSuccessToast("Status order cetak berhasil diperbarui.");
+    },
+    onError: (err) => {
+      showErrorToast(
+        err.response?.data?.message || "Gagal memperbarui status order cetak.",
+      );
     },
   });
 
