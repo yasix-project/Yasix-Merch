@@ -150,7 +150,7 @@ export default function Login() {
               <p className="text-blue-200/60 text-sm leading-relaxed pr-6 font-medium">
                 Platform manajemen dan koordinasi terpusat dengan sistem
                 proteksi data berlapis untuk efisiensi operasional harian
-                Business Center Yasix.
+                YasixMerch.
               </p>
             </div>
 
@@ -195,7 +195,7 @@ export default function Login() {
                 Masuk ke Akun
               </h2>
               <p className="text-sm text-slate-400 font-medium mt-0.5">
-                Portal Akses Pengguna BC Yasix
+                Portal Akses Pengguna YasixMerch
               </p>
             </div>
           </div>

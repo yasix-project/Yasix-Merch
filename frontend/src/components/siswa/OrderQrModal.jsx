@@ -45,7 +45,7 @@ export default function OrderQrModal({ order, isOpen, onClose }) {
               includeMargin={false}
             />
             <span className="text-[9px] font-mono font-bold text-slate-400 block mt-2">
-              SCAN DI KASIR BC
+              SCAN DI KASIR YASIXMERCH
             </span>
           </div>
 
@@ -80,7 +80,7 @@ export default function OrderQrModal({ order, isOpen, onClose }) {
           </div>
 
           <p className="text-[11px] text-slate-400 leading-relaxed">
-            Tunjukkan kode QR ini ke kasir Business Center saat mengambil dan
+            Tunjukkan kode QR ini ke kasir YasixMerch saat mengambil dan
             melunasi pesanan Anda.
           </p>
         </div>

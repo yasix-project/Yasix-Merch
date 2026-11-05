@@ -52,7 +52,7 @@ export default function PrintSuccessTicket({ order }) {
             Order Cetak Berhasil Dibuat
           </h3>
           <p className="text-xs text-emerald-900 mt-0.5">
-            Tunjukkan Nomor Order ini ke kasir Business Center saat pengambilan
+            Tunjukkan Nomor Order ini ke kasir YasixMerch saat pengambilan
             dokumen:
           </p>
         </div>

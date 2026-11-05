@@ -99,7 +99,7 @@ export default function SiswaProfil() {
         <button
           onClick={() =>
             alert(
-              "Silakan hubungi petugas Business Center jika ada selisih poin.",
+              "Silakan hubungi petugas YasixMerch jika ada selisih poin.",
             )
           }
           className="w-full flex items-center justify-between p-3.5 bg-white border border-slate-200 rounded-2xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"

@@ -55,7 +55,7 @@ export default function OrderSuccessModal({ order, isOpen, onClose }) {
             Pre-Order Berhasil Dibuat!
           </h3>
           <p className="text-[11px] text-slate-500 mt-0.5">
-            Pesanan Anda telah dicatat di sistem Business Center SMK Yadika 6.
+            Pesanan Anda telah dicatat di sistem YasixMerch SMK Yadika 6.
           </p>
         </div>
 

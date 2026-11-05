@@ -42,6 +42,6 @@ export const exportProductsToCSV = (products, selectedIds = []) => {
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `bc-yasix-products-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `yasixmerch-products-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
 };

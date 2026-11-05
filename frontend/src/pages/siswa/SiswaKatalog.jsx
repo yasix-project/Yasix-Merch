@@ -70,11 +70,10 @@ export default function SiswaKatalog() {
         <div>
           <h2 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
             <ShoppingBag className="text-primary" size={20} />
-            Katalog Business Center
+            Katalog YasixMerch
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Pesan perlengkapan sekolah dan ATK online, bayar dan ambil di kasir
-            Yasix.
+            Pesan perlengkapan sekolah dan ATK online, bayar dan ambil di kasir YasixMerch.
           </p>
         </div>
 

@@ -299,10 +299,10 @@ export default function CartDrawerModal({ isOpen, onClose, onOrderSuccess }) {
                 </div>
                 <div>
                   <h5 className="text-xs font-bold text-slate-900">
-                    Pay on Pickup (Bayar di Kasir Yasix)
+                    Pay on Pickup (Bayar di Kasir YasixMerch)
                   </h5>
                   <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
-                    Bayar saat mengambil barang di kasir Business Center (Bisa
+                    Bayar saat mengambil barang di kasir YasixMerch (Bisa
                     Tunai atau QRIS Dinamis).
                   </p>
                 </div>

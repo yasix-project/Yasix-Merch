@@ -313,7 +313,7 @@ export default function AntreanPrint() {
             Antrean Cetak Dokumen
           </h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            Daftar pesanan print mandiri dari siswa Business Center Yasix.
+            Daftar pesanan print mandiri dari siswa YasixMerch.
           </p>
         </div>
 

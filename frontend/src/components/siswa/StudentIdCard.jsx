@@ -20,7 +20,7 @@ export default function StudentIdCard({ user }) {
           </div>
           <div>
             <h3 className="text-xs font-black tracking-wider uppercase text-sky">
-              BC Yasix Member Card
+              YasixMerch Member Card
             </h3>
             <p className="text-[10px] text-slate-400">
               SMK Yadika 6 Digital Identity

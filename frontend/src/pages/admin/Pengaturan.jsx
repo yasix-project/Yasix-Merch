@@ -148,7 +148,7 @@ export default function Pengaturan() {
             </div>
             <p className="text-[11px] leading-relaxed text-blue-700">
               Perubahan profil akan langsung diperbarui ke seluruh sesi aplikasi
-              Business Center Yasix.
+              YasixMerch.
             </p>
           </div>
         </div>

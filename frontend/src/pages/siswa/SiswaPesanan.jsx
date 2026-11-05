@@ -167,8 +167,7 @@ export default function SiswaPesanan() {
             Pesanan Saya
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Pantau status belanja produk dan antrean cetak PDF Anda di Business
-            Center.
+            Pantau status belanja produk dan antrean cetak PDF Anda di YasixMerch.
           </p>
         </div>
 
@@ -379,7 +378,7 @@ export default function SiswaPesanan() {
                 </p>
                 <p className="text-slate-400 mt-1 max-w-xs mx-auto">
                   Pilih barang di menu Katalog untuk membuat pre-order dan ambil
-                  di kasir Business Center.
+                  di kasir YasixMerch.
                 </p>
               </div>
               <Link
@@ -500,7 +499,7 @@ export default function SiswaPesanan() {
                           className="text-emerald-700 shrink-0"
                         />
                         <span>
-                          Pesanan siap diambil di konter Business Center!
+                          Pesanan siap diambil di konter YasixMerch!
                         </span>
                       </div>
                     )}
@@ -586,7 +585,7 @@ export default function SiswaPesanan() {
                 </p>
                 <p className="text-slate-400 mt-1 max-w-xs mx-auto">
                   Unggah dokumen PDF Anda di menu Print untuk mulai mencetak
-                  mandiri di Business Center.
+                  mandiri di YasixMerch.
                 </p>
               </div>
               <Link

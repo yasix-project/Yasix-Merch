@@ -65,7 +65,7 @@ const studentPreOrder = async (req, res) => {
     return res.status(201).json({
       status: "success",
       message:
-        "Pre-order berhasil dibuat. Silakan ambil barang di Business Center dalam 1 jam.",
+        "Pre-order berhasil dibuat. Silakan ambil barang di YasixMerch dalam 1 jam.",
       data: preOrder,
     });
   } catch (error) {

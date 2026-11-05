@@ -66,8 +66,7 @@ export default function SiswaLayout() {
                   Pesanan Siap Diambil!
                 </p>
                 <p className="text-xs text-emerald-100 mt-0.5">
-                  Pesanan {latest.invoiceNumber} sudah siap di konter Business
-                  Center.
+                  Pesanan {latest.invoiceNumber} sudah siap di konter YasixMerch.
                 </p>
                 <Button
                   type="button"
@@ -169,7 +168,7 @@ export default function SiswaLayout() {
                   {readyCount} Pesanan Siap Diambil!
                 </span>
                 <span className="text-[10px] text-emerald-100 block">
-                  Pesanan Anda sudah disiapkan kasir di Business Center.
+                  Pesanan Anda sudah disiapkan kasir di YasixMerch.
                 </span>
               </div>
             </div>

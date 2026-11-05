@@ -21,7 +21,7 @@ router.get("/health", async (req, res) => {
     return res.status(200).json({
       status: "success",
       message:
-        "Business Center API & Database MySQL Docker terhubung dengan lancar!",
+        "YasixMerch API & Database MySQL Docker terhubung dengan lancar!",
       database: {
         status: "CONNECTED",
         totalUsers,

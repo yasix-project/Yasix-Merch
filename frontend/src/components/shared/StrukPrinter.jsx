@@ -56,7 +56,7 @@ const StrukPrinter = forwardRef(({ transactions = [] }, ref) => {
             <p className="text-[9px] leading-tight">
               SMK Yadika 6 Jatiwaringin
             </p>
-            <p className="text-[9px] leading-tight">Business Center</p>
+            <p className="text-[9px] leading-tight">YasixMerch</p>
           </div>
 
           {/* Info Transaksi */}

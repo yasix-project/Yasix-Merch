@@ -141,7 +141,7 @@ export default function Dashboard() {
               Status Operasional
             </h3>
             <p className="text-xs text-blue-100 leading-relaxed">
-              Business Center SMK Yadika 6 saat ini beroperasi dengan baik.
+              YasixMerch SMK Yadika 6 saat ini beroperasi dengan baik.
               Pantau terus grafik penjualan untuk melihat performa HPP dan Laba
               secara aktual.
             </p>
