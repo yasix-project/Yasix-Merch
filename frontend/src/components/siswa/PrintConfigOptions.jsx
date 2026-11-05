@@ -25,7 +25,7 @@ export default function PrintConfigOptions({
             onClick={() => onColorChange("BW")}
             className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex flex-col items-center justify-center transition-all ${
               colorType === "BW"
-                ? "border-blue-600 bg-blue-50/70 text-blue-700 shadow-xs"
+                ? "border-primary bg-primary/10 text-primary shadow-xs"
                 : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
             }`}
           >
@@ -40,7 +40,7 @@ export default function PrintConfigOptions({
             onClick={() => onColorChange("COLOR")}
             className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex flex-col items-center justify-center transition-all ${
               colorType === "COLOR"
-                ? "border-blue-600 bg-blue-50/70 text-blue-700 shadow-xs"
+                ? "border-primary bg-primary/10 text-primary shadow-xs"
                 : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
             }`}
           >
@@ -61,7 +61,7 @@ export default function PrintConfigOptions({
           <select
             value={paperSize}
             onChange={(e) => onPaperChange(e.target.value)}
-            className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none focus:border-blue-500"
+            className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
           >
             <option value="A4">A4 (Standar)</option>
             <option value="F4">F4 / Folio</option>
@@ -75,7 +75,7 @@ export default function PrintConfigOptions({
           <select
             value={finishing}
             onChange={(e) => onFinishingChange(e.target.value)}
-            className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none focus:border-blue-500"
+            className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
           >
             <option value="">Tanpa Jilid (Stapler)</option>
             <option value="Jilid Lakban">Jilid Lakban</option>
@@ -95,7 +95,7 @@ export default function PrintConfigOptions({
           placeholder="Contoh: Cetak hal 1-5 saja..."
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
-          className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none focus:border-blue-500"
+          className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
         />
       </div>
     </div>

@@ -42,13 +42,13 @@ export default function PrintCostSummary({ estimate, isEstimating }) {
     estimate?.totalPrice ?? totalPages * pricePerPage * copies;
 
   return (
-    <div className="bg-slate-900 text-white rounded-2xl p-4 space-y-2.5 shadow-md">
+    <div className="bg-dark text-bright rounded-2xl p-4 space-y-2.5 shadow-md border border-cyan/20">
       <div className="flex items-center justify-between">
         <span className="text-[11px] uppercase tracking-wider font-semibold text-slate-400">
           Estimasi Biaya Cetak
         </span>
         {isEstimating && (
-          <span className="inline-flex items-center gap-1 text-[11px] text-blue-400 animate-pulse">
+          <span className="inline-flex items-center gap-1 text-[11px] text-cyan animate-pulse">
             <Loader2 size={12} className="animate-spin" /> Menghitung halaman...
           </span>
         )}
@@ -74,7 +74,7 @@ export default function PrintCostSummary({ estimate, isEstimating }) {
             <span className="text-xs font-bold text-slate-300">
               Total Biaya:
             </span>
-            <span className="text-xl font-black text-blue-400 tracking-tight">
+            <span className="text-xl font-black text-cyan tracking-tight">
               {formatRupiah(totalPrice)}
             </span>
           </div>

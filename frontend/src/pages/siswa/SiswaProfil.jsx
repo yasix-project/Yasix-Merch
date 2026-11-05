@@ -30,7 +30,7 @@ export default function SiswaProfil() {
         <button
           onClick={() => refetch()}
           disabled={isFetching}
-          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-blue-600 font-semibold transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-primary font-semibold transition-colors"
         >
           <RefreshCw size={13} className={isFetching ? "animate-spin" : ""} />
           <span>{isFetching ? "Memperbarui..." : "Sinkronkan Data"}</span>
@@ -38,9 +38,9 @@ export default function SiswaProfil() {
       </div>
 
       {/* Benefit Poin */}
-      <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-200/80 rounded-2xl p-4 flex items-center justify-between shadow-2xs">
+      <div className="bg-gradient-to-r from-accent/20 via-accent/5 to-transparent border border-accent/40 rounded-2xl p-4 flex items-center justify-between shadow-2xs">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
+          <div className="w-10 h-10 rounded-xl bg-accent text-dark flex items-center justify-center font-bold shadow-md shadow-accent/20">
             <Gift size={20} />
           </div>
           <div>
@@ -114,7 +114,7 @@ export default function SiswaProfil() {
         <Button
           variant="outline"
           onClick={logout}
-          className="w-full py-3 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 text-xs font-bold rounded-2xl"
+          className="w-full py-3 text-danger border-danger/30 hover:bg-danger/10 hover:border-danger/40 text-xs font-bold rounded-2xl"
         >
           <LogOut size={15} className="mr-2" />
           Keluar dari Akun

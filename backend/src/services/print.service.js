@@ -86,9 +86,10 @@ const createPrintOrderService = async (fileData, bodyData, studentId) => {
   return printOrder;
 };
 
-// Mendapatkan Semua Order Cetak
-const getAllPrintOrdersService = async () => {
+// Mendapatkan Semua Order Cetak (Mendukung Filter)
+const getAllPrintOrdersService = async (filter = {}) => {
   return await prisma.printOrder.findMany({
+    where: filter,
     include: {
       student: {
         select: { id: true, name: true, email: true, nis: true },
@@ -98,9 +99,36 @@ const getAllPrintOrdersService = async () => {
   });
 };
 
+// Update Status Order Cetak
+const updatePrintOrderStatusService = async (id, status) => {
+  const allowedStatuses = ["PENDING", "COMPLETED", "CANCELLED"];
+  if (!allowedStatuses.includes(status)) {
+    throw new Error(`Status tidak valid: ${status}`);
+  }
+
+  const existingOrder = await prisma.printOrder.findUnique({
+    where: { id },
+  });
+
+  if (!existingOrder) {
+    throw new Error("Order cetak tidak ditemukan.");
+  }
+
+  return await prisma.printOrder.update({
+    where: { id },
+    data: { status },
+    include: {
+      student: {
+        select: { id: true, name: true, email: true, nis: true },
+      },
+    },
+  });
+};
+
 module.exports = {
   countPdfPagesService,
   calculatePrintCostService,
   createPrintOrderService,
   getAllPrintOrdersService,
+  updatePrintOrderStatusService,
 };

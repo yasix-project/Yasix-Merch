@@ -39,7 +39,7 @@ export default function SiswaLayout() {
         {/* Top Header Siswa */}
         <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-blue-500/20">
+            <div className="w-9 h-9 rounded-xl bg-primary-gradient text-white flex items-center justify-center font-bold text-sm shadow-md shadow-primary/20">
               {user?.name ? user.name.charAt(0).toUpperCase() : "S"}
             </div>
             <div className="leading-tight">
@@ -56,12 +56,12 @@ export default function SiswaLayout() {
             {/* Badge Saldo Poin dengan tombol Refresh */}
             <button
               onClick={() => refetch()}
-              className="flex items-center gap-1 px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-full text-amber-700 text-xs font-black shadow-2xs hover:bg-amber-100 transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1 bg-accent/15 border border-accent/30 rounded-full text-amber-900 text-xs font-black shadow-2xs hover:bg-accent/25 transition-colors"
               title="Klik untuk menyegarkan saldo poin"
             >
               <Sparkles
                 size={13}
-                className={`text-amber-500 ${isFetching ? "animate-spin" : ""}`}
+                className={`text-accent ${isFetching ? "animate-spin" : ""}`}
               />
               <span>{user?.points ?? 0} Poin</span>
             </button>
@@ -69,7 +69,7 @@ export default function SiswaLayout() {
             {/* Tombol Keluar */}
             <button
               onClick={handleLogout}
-              className="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+              className="p-2 rounded-xl text-slate-400 hover:text-danger hover:bg-danger/10 transition-colors"
               title="Keluar"
             >
               <LogOut size={16} />
@@ -94,7 +94,7 @@ export default function SiswaLayout() {
                   className={({ isActive }) =>
                     `flex flex-col items-center justify-center py-1.5 rounded-xl transition-all duration-200 ${
                       isActive
-                        ? "text-blue-600 font-bold scale-105"
+                        ? "text-primary font-bold scale-105"
                         : "text-slate-400 hover:text-slate-600 font-medium"
                     }`
                   }
@@ -103,7 +103,7 @@ export default function SiswaLayout() {
                     <>
                       <div
                         className={`p-1 rounded-lg transition-colors ${
-                          isActive ? "bg-blue-50" : "bg-transparent"
+                          isActive ? "bg-primary/10" : "bg-transparent"
                         }`}
                       >
                         <Icon size={19} strokeWidth={isActive ? 2.5 : 2} />

@@ -13,14 +13,14 @@ export default function Button({
     "flex items-center justify-center gap-2 font-semibold rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed";
 
   const variants = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-xs",
+    primary: "bg-primary text-white hover:bg-primary-hover shadow-xs",
     secondary:
       "bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-200/80",
-    danger: "bg-red-600 text-white hover:bg-red-700 shadow-xs",
-    amber: "bg-amber-600 text-white hover:bg-amber-700 shadow-xs",
+    danger: "bg-danger text-white hover:bg-danger/90 shadow-xs",
+    amber: "bg-accent text-dark hover:bg-accent/90 shadow-xs",
     outline:
       "bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/80 shadow-xs",
-    dark: "bg-slate-800 text-slate-100 hover:bg-slate-700 border border-slate-700",
+    dark: "bg-dark text-slate-100 hover:bg-dark/90 border border-slate-700",
   };
 
   const sizes = {

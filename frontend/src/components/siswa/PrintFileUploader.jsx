@@ -8,7 +8,7 @@ export default function PrintFileUploader({ file, onSelectFile, onResetFile }) {
     return (
       <div
         onClick={() => fileInputRef.current?.click()}
-        className="border-2 border-dashed border-slate-300 hover:border-blue-500 bg-white hover:bg-blue-50/40 rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 shadow-2xs"
+        className="border-2 border-dashed border-slate-300 hover:border-primary bg-white hover:bg-primary/5 rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 shadow-2xs"
       >
         <input
           type="file"
@@ -17,7 +17,7 @@ export default function PrintFileUploader({ file, onSelectFile, onResetFile }) {
           accept=".pdf"
           className="hidden"
         />
-        <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+        <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
           <UploadCloud size={26} />
         </div>
         <div>
@@ -35,7 +35,7 @@ export default function PrintFileUploader({ file, onSelectFile, onResetFile }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-3.5 flex items-center justify-between shadow-2xs">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center shrink-0">
           <FileText size={20} />
         </div>
         <div className="min-w-0">
@@ -51,7 +51,7 @@ export default function PrintFileUploader({ file, onSelectFile, onResetFile }) {
       <button
         type="button"
         onClick={onResetFile}
-        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+        className="p-2 text-slate-400 hover:text-danger hover:bg-danger/10 rounded-lg transition-colors"
         title="Ganti File"
       >
         <Trash2 size={16} />

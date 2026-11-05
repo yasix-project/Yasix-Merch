@@ -59,7 +59,19 @@ const createPrintOrder = async (req, res) => {
 
 const getAllPrintOrders = async (req, res) => {
   try {
-    const orders = await printService.getAllPrintOrdersService();
+    const { mine, status } = req.query;
+    const filter = {};
+
+    if (status && status !== "ALL") {
+      filter.status = status;
+    }
+
+    // Siswa hanya boleh melihat pesanannya sendiri demi privasi & keamanan data
+    if (req.user.role === "SISWA" || mine === "true") {
+      filter.studentId = req.user.id;
+    }
+
+    const orders = await printService.getAllPrintOrdersService(filter);
     return res.status(200).json({
       status: "success",
       data: orders,
@@ -72,8 +84,32 @@ const getAllPrintOrders = async (req, res) => {
   }
 };
 
+const updatePrintOrderStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const updatedOrder = await printService.updatePrintOrderStatusService(
+      id,
+      status,
+    );
+
+    return res.status(200).json({
+      status: "success",
+      message: "Status pesanan cetak berhasil diperbarui.",
+      data: updatedOrder,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   estimatePrintCost,
   createPrintOrder,
   getAllPrintOrders,
+  updatePrintOrderStatus,
 };

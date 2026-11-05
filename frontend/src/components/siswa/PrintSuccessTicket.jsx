@@ -42,16 +42,16 @@ export default function PrintSuccessTicket({ order }) {
   const copies = specs?.copies || order?.copies || 1;
 
   return (
-    <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-emerald-900 shadow-sm space-y-3">
+    <div className="bg-success/10 border border-success/30 rounded-2xl p-4 text-emerald-950 shadow-sm space-y-3">
       <div className="flex items-start gap-3">
-        <div className="p-2 bg-emerald-500 text-white rounded-xl shadow-xs">
+        <div className="p-2 bg-success text-white rounded-xl shadow-xs">
           <CheckCircle2 size={20} />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-700">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-success">
             Order Cetak Berhasil Dibuat
           </h3>
-          <p className="text-xs text-emerald-800 mt-0.5">
+          <p className="text-xs text-emerald-900 mt-0.5">
             Tunjukkan Nomor Order ini ke kasir Business Center saat pengambilan
             dokumen:
           </p>
@@ -59,7 +59,7 @@ export default function PrintSuccessTicket({ order }) {
       </div>
 
       {/* Detail Nomor Order PO */}
-      <div className="bg-white p-3 rounded-xl border border-emerald-200 flex items-center justify-between">
+      <div className="bg-white p-3 rounded-xl border border-success/30 flex items-center justify-between">
         <div>
           <span className="text-[10px] text-slate-400 block font-medium">
             Nomor Order
@@ -71,7 +71,7 @@ export default function PrintSuccessTicket({ order }) {
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold hover:bg-emerald-200 transition-colors"
+          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-success/15 text-success text-xs font-bold hover:bg-success/25 transition-colors"
         >
           {isCopied ? <Check size={14} /> : <Copy size={14} />}
           <span>{isCopied ? "Tersalin" : "Salin"}</span>
@@ -79,10 +79,10 @@ export default function PrintSuccessTicket({ order }) {
       </div>
 
       {/* Rincian Singkat File & Biaya */}
-      <div className="bg-emerald-100/50 rounded-xl p-2.5 text-xs space-y-1.5">
+      <div className="bg-success/10 rounded-xl p-2.5 text-xs space-y-1.5">
         <div className="flex items-center justify-between gap-2">
           <span className="text-slate-600 flex items-center gap-1 truncate max-w-[180px]">
-            <FileText size={13} className="shrink-0 text-emerald-700" />
+            <FileText size={13} className="shrink-0 text-success" />
             {order?.fileName || "Dokumen Cetak"}
           </span>
           <div className="text-xs text-right space-y-0.5 shrink-0">
@@ -94,9 +94,9 @@ export default function PrintSuccessTicket({ order }) {
             </span>
           </div>
         </div>
-        <div className="flex justify-between items-center pt-1 border-t border-emerald-200">
+        <div className="flex justify-between items-center pt-1 border-t border-success/20">
           <span className="text-slate-600">Total Tagihan Kasir:</span>
-          <span className="font-extrabold text-sm text-emerald-800">
+          <span className="font-extrabold text-sm text-success">
             {formatRupiah(order?.totalPrice || 0)}
           </span>
         </div>

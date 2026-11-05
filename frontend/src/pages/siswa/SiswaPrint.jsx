@@ -33,7 +33,7 @@ export default function SiswaPrint() {
       {/* Header */}
       <div>
         <h2 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-          <Printer className="text-blue-600" size={20} />
+          <Printer className="text-primary" size={20} />
           Print Mandiri Siswa
         </h2>
         <p className="text-xs text-slate-500 mt-0.5">
@@ -47,8 +47,8 @@ export default function SiswaPrint() {
 
       {/* Error Alert */}
       {errorMessage && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-xs flex items-center gap-2">
-          <AlertCircle size={16} className="shrink-0 text-red-500" />
+        <div className="bg-danger/10 border border-danger/20 text-danger rounded-xl p-3 text-xs flex items-center gap-2">
+          <AlertCircle size={16} className="shrink-0 text-danger" />
           <span>{errorMessage}</span>
         </div>
       )}
@@ -79,7 +79,7 @@ export default function SiswaPrint() {
         <Button
           type="submit"
           disabled={!file || isEstimating || isSubmitting}
-          className="w-full py-3.5 text-sm font-bold bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/30 rounded-2xl flex items-center justify-center gap-2"
+          className="w-full py-3.5 text-sm font-bold bg-primary hover:bg-primary-hover shadow-md shadow-primary/25 rounded-2xl flex items-center justify-center gap-2"
         >
           {isSubmitting ? (
             <>

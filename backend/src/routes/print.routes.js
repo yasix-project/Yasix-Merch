@@ -20,12 +20,20 @@ router.post(
   printController.createPrintOrder,
 );
 
-// Lihat semua order cetak (Khusus Admin & Kasir)
+// Lihat semua order cetak (Bisa diakses Admin, Kasir, dan Siswa)
 router.get(
   "/orders",
   verifyToken,
-  checkRole("ADMIN", "KASIR"),
+  checkRole("ADMIN", "KASIR", "SISWA"),
   printController.getAllPrintOrders,
+);
+
+// Update status order cetak (Khusus Admin & Kasir)
+router.patch(
+  "/orders/:id/status",
+  verifyToken,
+  checkRole("ADMIN", "KASIR"),
+  printController.updatePrintOrderStatus,
 );
 
 module.exports = router;

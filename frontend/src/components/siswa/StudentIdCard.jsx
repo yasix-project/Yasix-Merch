@@ -7,19 +7,19 @@ export default function StudentIdCard({ user }) {
   const points = user?.points ?? 0;
 
   return (
-    <div className="relative w-full rounded-3xl overflow-hidden shadow-xl bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white p-5 border border-slate-700/50">
+    <div className="relative w-full rounded-3xl overflow-hidden shadow-xl bg-gradient-to-br from-dark via-[#0f2b5b] to-slate-950 text-bright p-5 border border-cyan/20">
       {/* Background Decorative Pattern */}
-      <div className="absolute -top-12 -right-12 w-44 h-44 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
-      <div className="absolute -bottom-12 -left-12 w-44 h-44 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute -top-12 -right-12 w-44 h-44 bg-primary/20 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute -bottom-12 -left-12 w-44 h-44 bg-cyan/15 rounded-full blur-2xl pointer-events-none" />
 
       {/* Header Kartu */}
       <div className="flex items-start justify-between relative z-10 mb-4 pb-3 border-b border-white/10">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-600/30 border border-blue-400/30 flex items-center justify-center text-blue-300">
+          <div className="w-8 h-8 rounded-lg bg-primary/30 border border-cyan/30 flex items-center justify-center text-cyan">
             <School size={18} />
           </div>
           <div>
-            <h3 className="text-xs font-black tracking-wider uppercase text-blue-200">
+            <h3 className="text-xs font-black tracking-wider uppercase text-sky">
               BC Yasix Member Card
             </h3>
             <p className="text-[10px] text-slate-400">
@@ -28,7 +28,7 @@ export default function StudentIdCard({ user }) {
           </div>
         </div>
 
-        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-success/20 text-success border border-success/30">
           <ShieldCheck size={12} />
           Aktif
         </span>
@@ -51,16 +51,16 @@ export default function StudentIdCard({ user }) {
             <span className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">
               Nomor Induk Siswa (NIS)
             </span>
-            <p className="text-xs font-mono font-bold text-blue-300 tracking-wider">
+            <p className="text-xs font-mono font-bold text-cyan tracking-wider">
               {nis}
             </p>
           </div>
 
           {/* Saldo Poin */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-400/10 border border-amber-400/20 text-amber-300">
-            <Sparkles size={14} className="text-amber-400 animate-pulse" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-accent/15 border border-accent/30 text-accent">
+            <Sparkles size={14} className="text-accent animate-pulse" />
             <span className="text-xs font-black">{points}</span>
-            <span className="text-[10px] text-amber-200/80">Yasix Points</span>
+            <span className="text-[10px] text-accent/80">Yasix Points</span>
           </div>
         </div>
 
