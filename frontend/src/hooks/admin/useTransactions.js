@@ -5,21 +5,31 @@ import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
 export const transactionKeys = {
   all: ["transactions"],
-  list: () => ["transactions"],
+  list: (params) => ["transactions", params],
   detail: (id) => ["transactions", id],
 };
 
 // Hook untuk Fetching Data Transaksi
-export function useTransactions({ enabled = true } = {}) {
+export function useTransactions(
+  params = {},
+  { enabled = true, refetchInterval } = {},
+) {
+  const isLegacyOption =
+    params &&
+    (params.enabled !== undefined || params.refetchInterval !== undefined);
+  const actualParams = isLegacyOption ? {} : params;
+  const options = isLegacyOption ? params : { enabled, refetchInterval };
+
   return useQuery({
-    queryKey: transactionKeys.list(),
+    queryKey: transactionKeys.list(actualParams),
     queryFn: async () => {
-      const response = await transactionService.getAll();
+      const response = await transactionService.getAll(actualParams);
       return Array.isArray(response.data?.data)
         ? response.data.data
         : response.data || [];
     },
-    enabled,
+    enabled: options.enabled ?? true,
+    refetchInterval: options.refetchInterval,
   });
 }
 
@@ -54,19 +64,39 @@ export function useTransactionMutations() {
     },
   });
 
-  // 3. UPDATE STATUS JASA CETAK / ORDER
+  // 3. UPDATE STATUS JASA CETAK / ORDER: SIAP DIAMBIL (READY)
   const markReady = useMutation({
     mutationFn: (id) => transactionService.markReady(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      invalidateTransactionsAndProducts();
+      showSuccessToast("Status pesanan diubah: Siap Diambil di Konter.");
+    },
+    onError: (err) => {
+      showErrorToast(err.response?.data?.message || "Gagal mengubah status pesanan.");
     },
   });
 
-  // 4. PENYELESAIAN TRANSAKSI ORDER
+  // 4. PENYELESAIAN TRANSAKSI ORDER (PICK-UP & BAYAR)
   const complete = useMutation({
     mutationFn: ({ id, data }) => transactionService.complete(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      invalidateTransactionsAndProducts();
+      showSuccessToast("Pesanan pre-order berhasil diselesaikan.");
+    },
+    onError: (err) => {
+      showErrorToast(err.response?.data?.message || "Gagal menyelesaikan pesanan.");
+    },
+  });
+
+  // 5. UPDATE STATUS BEBAS (FLEXIBLE STATUS)
+  const updateStatus = useMutation({
+    mutationFn: ({ id, status }) => transactionService.updateStatus(id, status),
+    onSuccess: () => {
+      invalidateTransactionsAndProducts();
+      showSuccessToast("Status transaksi berhasil diperbarui.");
+    },
+    onError: (err) => {
+      showErrorToast(err.response?.data?.message || "Gagal memperbarui status transaksi.");
     },
   });
 
@@ -75,5 +105,6 @@ export function useTransactionMutations() {
     cancel,
     markReady,
     complete,
+    updateStatus,
   };
 }
