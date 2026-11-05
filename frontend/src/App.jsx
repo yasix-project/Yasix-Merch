@@ -29,6 +29,7 @@ import NotFound from "./pages/NotFound";
 import PosTerminal from "./pages/kasir/PosTerminal";
 import RiwayatKasir from "./pages/kasir/RiwayatYasix";
 import AntreanPrint from "./pages/kasir/AntreanPrint";
+import PreOrderKasir from "./pages/kasir/PreOrderKasir";
 import SiswaProfil from "./pages/siswa/SiswaProfil";
 import SiswaPrint from "./pages/siswa/SiswaPrint";
 import SiswaAntreanPrint from "./pages/siswa/AntreanPrint";
@@ -112,6 +113,10 @@ const router = createBrowserRouter([
       {
         path: "pos",
         element: <PosTerminal />,
+      },
+      {
+        path: "pre-order",
+        element: <PreOrderKasir />,
       },
       {
         path: "riwayat",

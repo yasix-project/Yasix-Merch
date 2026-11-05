@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Outlet, useNavigate, NavLink } from "react-router-dom";
 import {
   LogOut,
@@ -10,7 +10,9 @@ import {
   Monitor,
   Receipt,
   Printer,
+  Package,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 import BCYasixLogo from "../components/ui/BcYasixLogo";
 
@@ -19,9 +21,13 @@ import { useShiftStore } from "../store/shiftStore";
 import { formatRupiah } from "../utils/formatters";
 import { useConfirm } from "../hooks/useConfirm";
 import { showSuccessToast, showErrorToast, showWarningToast } from "../utils/toast";
+import { useTransactions } from "../hooks/admin/useTransactions";
+import { playNotificationSound } from "../utils/sound";
+import Button from "../components/ui/Button";
 
 const NAV_ITEMS = [
   { to: "/kasir/pos", label: "POS Terminal", icon: Monitor },
+  { to: "/kasir/pre-order", label: "Pre-Order Siswa", icon: Package, badgeKey: "preOrder" },
   { to: "/kasir/riwayat", label: "Riwayat Kasir", icon: Receipt },
   { to: "/kasir/print", label: "Antrean Cetak", icon: Printer },
 ];
@@ -77,6 +83,98 @@ export default function KasirLayout() {
   const [startCash, setStartCash] = useState("");
   const [actualCash, setActualCash] = useState("");
   const [isClosing, setIsClosing] = useState(false);
+
+  // Polling data transaksi pre-order di level kasir layout
+  const { data: allTransactions = [] } = useTransactions(
+    {},
+    {
+      enabled: Boolean(activeShift),
+      refetchInterval: 5000,
+    },
+  );
+
+  const bookedPreOrders = allTransactions.filter(
+    (tx) =>
+      tx.status === "BOOKED" &&
+      ((tx.invoiceNumber && tx.invoiceNumber.startsWith("ORD-")) ||
+        Boolean(tx.studentId && tx.status !== "COMPLETED")),
+  );
+  const bookedCount = bookedPreOrders.length;
+
+  const prevBookedIds = useRef(new Set());
+  const initialCheckRef = useRef(true);
+
+  // Notifikasi pop-up & suara saat ada order baru masuk dari siswa
+  useEffect(() => {
+    if (!activeShift) return;
+
+    const currentIds = new Set(bookedPreOrders.map((t) => t.id));
+
+    if (!initialCheckRef.current) {
+      const newOrders = bookedPreOrders.filter(
+        (t) => !prevBookedIds.current.has(t.id),
+      );
+      if (newOrders.length > 0) {
+        playNotificationSound("chime");
+        const latest = newOrders[0];
+        toast.custom(
+          (t) => (
+            <div
+              className={`${
+                t.visible ? "animate-in fade-in" : "animate-out fade-out"
+              } max-w-sm w-full bg-white shadow-xl rounded-2xl pointer-events-auto flex p-3.5 border border-blue-200 ring-1 ring-slate-200/50`}
+            >
+              <div className="flex-1 w-0">
+                <div className="flex items-start">
+                  <div className="shrink-0 pt-0.5">
+                    <div className="h-9 w-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                      <Package size={18} />
+                    </div>
+                  </div>
+                  <div className="ml-3 flex-1">
+                    <p className="text-xs font-bold text-slate-900">
+                      Pesanan Pre-Order Baru!
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      <span className="font-semibold text-slate-800">
+                        {latest.student?.name || "Siswa"}
+                      </span>{" "}
+                      ({latest.invoiceNumber})
+                    </p>
+                    <Button
+                      type="button"
+                      size="xs"
+                      variant="primary"
+                      onClick={() => {
+                        toast.dismiss(t.id);
+                        navigate("/kasir/pre-order");
+                      }}
+                      className="mt-2 text-xs font-bold"
+                    >
+                      Buka & Siapkan Pesanan &rarr;
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <div className="flex border-l border-slate-100 pl-2">
+                <button
+                  onClick={() => toast.dismiss(t.id)}
+                  className="p-1 text-slate-400 hover:text-slate-600 rounded-lg text-xs"
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+          ),
+          { duration: 7000 },
+        );
+      }
+    } else {
+      initialCheckRef.current = false;
+    }
+
+    prevBookedIds.current = currentIds;
+  }, [bookedPreOrders, activeShift, navigate]);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -195,22 +293,30 @@ export default function KasirLayout() {
               aria-label="Menu kasir"
               className="hidden items-center gap-1 rounded-full bg-slate-100 p-1 md:flex"
             >
-              {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-medium outline-none transition-all focus-visible:ring-2 focus-visible:ring-blue-600 ${
-                      isActive
-                        ? "bg-white text-slate-900 shadow-[0_1px_3px_rgba(15,23,42,0.12)]"
-                        : "text-slate-500 hover:text-slate-900"
-                    }`
-                  }
-                >
-                  <Icon size={15} strokeWidth={1.75} />
-                  <span>{label}</span>
-                </NavLink>
-              ))}
+              {NAV_ITEMS.map(({ to, label, icon: Icon, badgeKey }) => {
+                const badgeNum = badgeKey === "preOrder" ? bookedCount : 0;
+                return (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    className={({ isActive }) =>
+                      `relative flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-medium outline-none transition-all focus-visible:ring-2 focus-visible:ring-blue-600 ${
+                        isActive
+                          ? "bg-white text-slate-900 shadow-[0_1px_3px_rgba(15,23,42,0.12)]"
+                          : "text-slate-500 hover:text-slate-900"
+                      }`
+                    }
+                  >
+                    <Icon size={15} strokeWidth={1.75} />
+                    <span>{label}</span>
+                    {badgeNum > 0 && (
+                      <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-black text-white shadow-2xs animate-pulse">
+                        {badgeNum}
+                      </span>
+                    )}
+                  </NavLink>
+                );
+              })}
             </nav>
           )}
         </div>
