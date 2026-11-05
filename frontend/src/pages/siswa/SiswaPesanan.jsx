@@ -24,6 +24,7 @@ import { useStudentOrders } from "../../hooks/siswa/useStudentTransactions";
 import { formatRupiah } from "../../utils/formatters";
 import OrderQrModal from "../../components/siswa/OrderQrModal";
 import Button from "../../components/ui/Button";
+import Badge from "../../components/ui/Badge";
 
 export default function SiswaPesanan() {
   const [activeTab, setActiveTab] = useState("PRODUK"); // "PRODUK" | "PRINT"
@@ -138,6 +139,9 @@ export default function SiswaPesanan() {
   const bookedProductCount = productOrders.filter(
     (o) => o.status === "BOOKED",
   ).length;
+  const readyProductCount = productOrders.filter(
+    (o) => o.status === "READY",
+  ).length;
   const pendingPrintCount = printOrders.filter(
     (o) => o.status === "PENDING",
   ).length;
@@ -199,11 +203,15 @@ export default function SiswaPesanan() {
         >
           <ShoppingBag size={15} />
           <span>Belanja Produk</span>
-          {bookedProductCount > 0 && (
+          {readyProductCount > 0 ? (
+            <span className="px-1.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center shadow-2xs animate-pulse">
+              {readyProductCount} Siap
+            </span>
+          ) : bookedProductCount > 0 ? (
             <span className="w-5 h-5 rounded-full bg-accent text-dark text-[10px] font-black flex items-center justify-center shadow-2xs">
               {bookedProductCount}
             </span>
-          )}
+          ) : null}
         </button>
 
         <button
@@ -230,23 +238,39 @@ export default function SiswaPesanan() {
 
       {/* Ringkasan Status Tab Aktif */}
       {activeTab === "PRODUK" && productOrders.length > 0 && (
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="bg-accent/15 border border-accent/30 rounded-xl p-2.5 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock size={16} className="text-accent" />
-              <span className="text-amber-900 font-medium">Menunggu Kasir</span>
+        <div className="grid grid-cols-3 gap-2 text-xs">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <PackageCheck size={15} className="text-emerald-600" />
+              <span className="text-emerald-900 font-semibold text-[11px]">
+                Siap Ambil
+              </span>
             </div>
-            <span className="font-extrabold text-amber-900 bg-accent/25 px-2 py-0.5 rounded-lg">
+            <span className="font-extrabold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded-md text-xs">
+              {readyProductCount}
+            </span>
+          </div>
+
+          <div className="bg-accent/15 border border-accent/30 rounded-xl p-2.5 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Clock size={15} className="text-accent" />
+              <span className="text-amber-900 font-semibold text-[11px]">
+                Menunggu
+              </span>
+            </div>
+            <span className="font-extrabold text-amber-900 bg-accent/25 px-1.5 py-0.5 rounded-md text-xs">
               {bookedProductCount}
             </span>
           </div>
 
           <div className="bg-success/10 border border-success/30 rounded-xl p-2.5 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-success" />
-              <span className="text-emerald-950 font-medium">Selesai</span>
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 size={15} className="text-success" />
+              <span className="text-emerald-950 font-semibold text-[11px]">
+                Selesai
+              </span>
             </div>
-            <span className="font-extrabold text-success bg-success/20 px-2 py-0.5 rounded-lg">
+            <span className="font-extrabold text-success bg-success/20 px-1.5 py-0.5 rounded-md text-xs">
               {productOrders.filter((o) => o.status === "COMPLETED").length}
             </span>
           </div>
@@ -303,7 +327,14 @@ export default function SiswaPesanan() {
           {(activeTab === "PRODUK"
             ? [
                 { key: "ALL", label: "Semua" },
-                { key: "BOOKED", label: "Menunggu Kasir" },
+                {
+                  key: "READY",
+                  label: `Siap Diambil${readyProductCount > 0 ? ` (${readyProductCount})` : ""}`,
+                },
+                {
+                  key: "BOOKED",
+                  label: `Menunggu Kasir${bookedProductCount > 0 ? ` (${bookedProductCount})` : ""}`,
+                },
                 { key: "COMPLETED", label: "Selesai" },
                 { key: "CANCELLED", label: "Dibatalkan" },
               ]
@@ -363,6 +394,7 @@ export default function SiswaPesanan() {
             <div className="space-y-3">
               {filteredProductOrders.map((order) => {
                 const isBooked = order.status === "BOOKED";
+                const isReady = order.status === "READY";
                 const isCompleted = order.status === "COMPLETED";
                 const isCancelled = order.status === "CANCELLED";
                 const items = order.items || [];
@@ -370,7 +402,11 @@ export default function SiswaPesanan() {
                 return (
                   <div
                     key={order.id}
-                    className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs hover:border-slate-300 transition-all space-y-3"
+                    className={`rounded-2xl p-4 border transition-all space-y-3 ${
+                      isReady
+                        ? "bg-emerald-50/40 border-emerald-300 ring-2 ring-emerald-500/15 shadow-sm"
+                        : "bg-white border-slate-200 shadow-2xs hover:border-slate-300"
+                    }`}
                   >
                     {/* Header Kartu: No. Invoice + Badge Status */}
                     <div className="flex items-center justify-between gap-2">
@@ -394,35 +430,42 @@ export default function SiswaPesanan() {
                         </button>
                       </div>
 
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 ${
-                          isCompleted
-                            ? "bg-success/10 text-success border border-success/30"
-                            : isBooked
-                              ? "bg-accent/15 text-amber-800 border border-accent/30"
-                              : "bg-danger/10 text-danger border border-danger/30"
-                        }`}
+                      <Badge
+                        variant={
+                          isReady
+                            ? "success"
+                            : isCompleted
+                              ? "primary"
+                              : isBooked
+                                ? "warning"
+                                : "danger"
+                        }
                       >
-                        {isCompleted ? (
+                        {isReady ? (
                           <>
-                            <CheckCircle2 size={11} />
+                            <PackageCheck size={11} className="mr-1" />
+                            Siap Diambil
+                          </>
+                        ) : isCompleted ? (
+                          <>
+                            <CheckCircle2 size={11} className="mr-1" />
                             Selesai
                           </>
                         ) : isBooked ? (
                           <>
-                            <Clock size={11} className="animate-spin" />
+                            <Clock size={11} className="mr-1 animate-spin" />
                             Menunggu Kasir
                           </>
                         ) : (
                           <>
-                            <XCircle size={11} />
+                            <XCircle size={11} className="mr-1" />
                             Dibatalkan
                           </>
                         )}
-                      </span>
+                      </Badge>
                     </div>
 
-                    {/* Informasi Tanggal & Catatan 1 Jam jika BOOKED */}
+                    {/* Informasi Tanggal & Catatan jika READY / BOOKED */}
                     <div className="flex items-center justify-between text-[11px] text-slate-400">
                       <span>
                         {order.createdAt
@@ -438,12 +481,29 @@ export default function SiswaPesanan() {
                             )
                           : "-"}
                       </span>
-                      {isBooked && (
+                      {isReady ? (
+                        <span className="text-[10px] text-emerald-800 font-bold bg-emerald-100 px-2 py-0.5 rounded-md">
+                          Siap di Konter Kasir
+                        </span>
+                      ) : isBooked ? (
                         <span className="text-[10px] text-amber-800 font-semibold bg-accent/15 px-2 py-0.5 rounded-md">
                           Batas: 1 Jam di Kasir
                         </span>
-                      )}
+                      ) : null}
                     </div>
+
+                    {/* Notifikasi Singkat jika status SIAP DIAMBIL (READY) */}
+                    {isReady && (
+                      <div className="flex items-center gap-2 text-xs text-emerald-900 font-bold bg-emerald-100/70 border border-emerald-200 px-3 py-2 rounded-xl">
+                        <PackageCheck
+                          size={15}
+                          className="text-emerald-700 shrink-0"
+                        />
+                        <span>
+                          Pesanan siap diambil di konter Business Center!
+                        </span>
+                      </div>
+                    )}
 
                     {/* Rincian Barang yang Dipesan */}
                     <div className="bg-slate-50/80 p-2.5 rounded-xl border border-slate-100 text-xs space-y-1.5">
@@ -475,20 +535,28 @@ export default function SiswaPesanan() {
                     {/* Footer Kartu: Tombol Tampilkan QR */}
                     <div className="flex items-center justify-between pt-1">
                       <span className="text-[10px] text-slate-400">
-                        {isBooked
-                          ? "Tunjukkan kode ini ke kasir saat pengambilan"
-                          : "Pesanan telah selesai diproses"}
+                        {isReady
+                          ? "Tunjukkan kode QR ke kasir saat pengambilan"
+                          : isBooked
+                            ? "Tunjukkan kode ini ke kasir saat pengambilan"
+                            : "Pesanan telah selesai diproses"}
                       </span>
 
-                      {isBooked && (
-                        <button
+                      {(isBooked || isReady) && (
+                        <Button
                           type="button"
+                          size="xs"
+                          variant={isReady ? "primary" : "secondary"}
                           onClick={() => setSelectedQrOrder(order)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary font-bold text-xs transition-colors"
+                          className={
+                            isReady
+                              ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                              : ""
+                          }
                         >
                           <QrCode size={13} />
                           <span>Kode QR</span>
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </div>

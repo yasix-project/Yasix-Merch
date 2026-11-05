@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import {
   ShoppingBag,
@@ -6,10 +7,17 @@ import {
   User,
   Sparkles,
   LogOut,
+  PackageCheck,
+  ChevronRight,
 } from "lucide-react";
+import toast from "react-hot-toast";
+
 import { useAuthStore } from "../store/authStore";
 import { useCurrentUser } from "../hooks/useCurrentUser";
 import { useStudentCartStore } from "../store/studentCartStore";
+import { useStudentOrders } from "../hooks/siswa/useStudentTransactions";
+import { playNotificationSound } from "../utils/sound";
+import Button from "../components/ui/Button";
 
 export default function SiswaLayout() {
   const logout = useAuthStore((state) => state.logout);
@@ -22,6 +30,76 @@ export default function SiswaLayout() {
   // Gunakan data live backend atau fallback ke cache lokal
   const user = liveUser || cachedUser;
   const cartCount = useStudentCartStore((state) => state.getTotalItems());
+
+  // Polling data transaksi pesanan siswa secara real-time
+  const { data: myOrders = [] } = useStudentOrders();
+  const readyOrders = myOrders.filter((o) => o.status === "READY");
+  const readyCount = readyOrders.length;
+
+  // Deteksi ketika status pesanan berubah menjadi READY (Siap Diambil)
+  const prevReadyIdsRef = useRef(new Set());
+  const isInitialRef = useRef(true);
+
+  useEffect(() => {
+    const currentReadyIds = new Set(readyOrders.map((o) => o.id));
+
+    if (!isInitialRef.current) {
+      const newlyReady = readyOrders.filter(
+        (o) => !prevReadyIdsRef.current.has(o.id),
+      );
+
+      if (newlyReady.length > 0) {
+        playNotificationSound("ready");
+        const latest = newlyReady[0];
+        toast.custom(
+          (t) => (
+            <div
+              className={`${
+                t.visible ? "animate-in fade-in" : "animate-out fade-out"
+              } max-w-sm w-full bg-emerald-600 text-white shadow-xl rounded-2xl pointer-events-auto p-4 flex items-start gap-3`}
+            >
+              <div className="p-2 rounded-xl bg-white/20 text-white shrink-0">
+                <PackageCheck size={20} />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-black tracking-wide uppercase">
+                  Pesanan Siap Diambil!
+                </p>
+                <p className="text-xs text-emerald-100 mt-0.5">
+                  Pesanan {latest.invoiceNumber} sudah siap di konter Business
+                  Center.
+                </p>
+                <Button
+                  type="button"
+                  size="xs"
+                  variant="outline"
+                  onClick={() => {
+                    toast.dismiss(t.id);
+                    navigate("/siswa/pesanan");
+                  }}
+                  className="mt-2 text-xs font-bold bg-white text-emerald-900 border-none hover:bg-emerald-50 shadow-xs"
+                >
+                  Buka Kode Pengambilan &rarr;
+                </Button>
+              </div>
+              <button
+                type="button"
+                onClick={() => toast.dismiss(t.id)}
+                className="text-white/60 hover:text-white p-1 text-sm font-bold"
+              >
+                &times;
+              </button>
+            </div>
+          ),
+          { duration: 8000 },
+        );
+      }
+    } else {
+      isInitialRef.current = false;
+    }
+
+    prevReadyIdsRef.current = currentReadyIds;
+  }, [readyOrders, navigate]);
 
   const handleLogout = () => {
     logout();
@@ -79,6 +157,35 @@ export default function SiswaLayout() {
           </div>
         </header>
 
+        {/* NOTIFIKASI BANNER: Muncul saat ada pesanan berstatus READY */}
+        {readyCount > 0 && (
+          <div className="bg-emerald-600 text-white px-4 py-2.5 flex items-center justify-between gap-2 shadow-md animate-in slide-in-from-top duration-200">
+            <div className="flex items-center gap-2 text-xs">
+              <span className="p-1.5 rounded-xl bg-white/20 text-white shrink-0 animate-pulse">
+                <PackageCheck size={16} />
+              </span>
+              <div>
+                <span className="font-extrabold block text-xs">
+                  {readyCount} Pesanan Siap Diambil!
+                </span>
+                <span className="text-[10px] text-emerald-100 block">
+                  Pesanan Anda sudah disiapkan kasir di Business Center.
+                </span>
+              </div>
+            </div>
+            <Button
+              type="button"
+              size="xs"
+              variant="outline"
+              onClick={() => navigate("/siswa/pesanan")}
+              className="bg-white text-emerald-950 border-none hover:bg-emerald-50 shrink-0 font-extrabold shadow-xs"
+            >
+              <span>Ambil</span>
+              <ChevronRight size={13} />
+            </Button>
+          </div>
+        )}
+
         {/* Konten Halaman */}
         <main className="flex-1 p-4 pb-24 overflow-y-auto">
           <Outlet />
@@ -112,6 +219,11 @@ export default function SiswaLayout() {
                         {item.to === "/siswa/katalog" && cartCount > 0 && (
                           <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-accent text-dark text-[9px] font-black flex items-center justify-center shadow-2xs">
                             {cartCount > 9 ? "9+" : cartCount}
+                          </span>
+                        )}
+                        {item.to === "/siswa/pesanan" && readyCount > 0 && (
+                          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white text-[9px] font-black flex items-center justify-center shadow-2xs animate-bounce">
+                            {readyCount}
                           </span>
                         )}
                       </div>
