@@ -46,7 +46,7 @@ export default function MonitoringTransaksi() {
     isLoading,
     isError,
     error,
-  } = useTransactions();
+  } = useTransactions({}, { refetchInterval: 5000 });
   const { cancel } = useTransactionMutations();
 
   // Konfigurasi library Cetak (react-to-print)
@@ -77,7 +77,7 @@ export default function MonitoringTransaksi() {
   // Ringkasan untuk StatCard
   const totalOmzet = transactions
     .filter((t) => t.status === "COMPLETED")
-    .reduce((acc, t) => acc + (t.totalAmount || 0), 0);
+    .reduce((acc, t) => acc + Number(t.totalAmount || 0), 0);
 
   const pendingCount = transactions.filter(
     (t) =>
@@ -244,14 +244,16 @@ export default function MonitoringTransaksi() {
           {(t.status === "BOOKED" ||
             t.status === "PENDING_PAYMENT" ||
             t.status === "READY") && (
-            <button
+            <Button
+              size="xs"
+              variant="outline"
               onClick={() => handleCancelTransaction(t)}
               disabled={cancel.isPending}
-              className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+              className="p-1.5 h-7 w-7 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded"
               title="Batalkan Transaksi"
             >
-              <XCircle size={15} />
-            </button>
+              <XCircle size={13} />
+            </Button>
           )}
         </div>
       ),
