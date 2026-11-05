@@ -43,6 +43,22 @@ router.patch(
   transactionController.completePreOrder,
 );
 
+// Tandai pesanan siap diambil di konter (READY)
+router.patch(
+  "/:id/ready",
+  verifyToken,
+  checkRole("ADMIN", "KASIR"),
+  transactionController.markOrderReady,
+);
+
+// Update status transaksi secara dinamis
+router.patch(
+  "/:id/status",
+  verifyToken,
+  checkRole("ADMIN", "KASIR"),
+  transactionController.updateTransactionStatus,
+);
+
 router.patch(
   "/:id/cancel",
   verifyToken,

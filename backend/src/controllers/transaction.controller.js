@@ -123,6 +123,55 @@ const cancelTransaction = async (req, res) => {
   }
 };
 
+const markOrderReady = async (req, res) => {
+  try {
+    const transactionId = req.params.id;
+    const cashierId = req.user.id;
+    const result = await transactionService.markOrderReadyService(
+      transactionId,
+      cashierId,
+    );
+
+    return res.status(200).json({
+      status: "success",
+      message: "Status transaksi berhasil diubah menjadi Siap Diambil (READY).",
+      data: result,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      status: "error",
+      message:
+        error.message ||
+        "Gagal mengubah status transaksi menjadi Siap Diambil.",
+    });
+  }
+};
+
+const updateTransactionStatus = async (req, res) => {
+  try {
+    const transactionId = req.params.id;
+    const cashierId = req.user.id;
+    const { status } = req.body;
+
+    const result = await transactionService.updateTransactionStatusService(
+      transactionId,
+      status,
+      cashierId,
+    );
+
+    return res.status(200).json({
+      status: "success",
+      message: `Status transaksi berhasil diubah menjadi ${status}.`,
+      data: result,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      status: "error",
+      message: error.message || "Gagal memperbarui status transaksi.",
+    });
+  }
+};
+
 module.exports = {
   createTransaction,
   getAllTransactions,
@@ -130,4 +179,6 @@ module.exports = {
   completePreOrder,
   studentPreOrder,
   cancelTransaction,
+  markOrderReady,
+  updateTransactionStatus,
 };

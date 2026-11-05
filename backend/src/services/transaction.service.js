@@ -167,6 +167,9 @@ const getAllTransactionsService = async (user, query = {}) => {
     whereCondition.status = query.status;
   }
 
+  if (query.preOrderOnly === "true") {
+    whereCondition.invoiceNumber = { startsWith: "ORD-" };
+  }
 
   return await prisma.transaction.findMany({
     where: whereCondition,
@@ -177,6 +180,7 @@ const getAllTransactionsService = async (user, query = {}) => {
       student: {
         select: { id: true, name: true, nis: true },
       },
+      voucher: true,
       items: {
         include: {
           product: {
@@ -430,7 +434,10 @@ const completePreOrderService = async (
     }
 
     const totalAmount = Number(transaction.totalAmount);
-    const payAmountNum = Number(payAmount);
+    const payAmountNum =
+      payAmount !== undefined && payAmount !== null && payAmount !== ""
+        ? Number(payAmount)
+        : totalAmount;
 
     if (payAmountNum < totalAmount) {
       throw new Error(`Pembayaran kurang. Total tagihan: Rp ${totalAmount}`);
@@ -465,6 +472,146 @@ const completePreOrderService = async (
   });
 };
 
+// Tandai pesanan siap diambil di konter (READY)
+const markOrderReadyService = async (transactionId, cashierId) => {
+  const transaction = await prisma.transaction.findUnique({
+    where: { id: transactionId },
+    include: { items: true },
+  });
+
+  if (!transaction) {
+    throw new Error("Transaksi pre-order tidak ditemukan.");
+  }
+
+  if (transaction.status === "CANCELLED") {
+    throw new Error("Pesanan ini telah kadaluwarsa/dibatalkan.");
+  }
+
+  if (transaction.status === "COMPLETED") {
+    throw new Error("Pesanan ini sudah selesai.");
+  }
+
+  return await prisma.transaction.update({
+    where: { id: transactionId },
+    data: {
+      status: "READY",
+      ...(cashierId ? { cashierId } : {}),
+    },
+    include: {
+      student: { select: { id: true, name: true, nis: true, email: true } },
+      cashier: { select: { id: true, name: true, email: true } },
+      voucher: true,
+      items: {
+        include: {
+          product: { select: { name: true, barcode: true, imageUrl: true } },
+          printOrder: true,
+        },
+      },
+    },
+  });
+};
+
+// Update status pesanan secara umum (fleksibel)
+const updateTransactionStatusService = async (
+  transactionId,
+  newStatus,
+  cashierId,
+) => {
+  const allowedStatuses = [
+    "PENDING_PAYMENT",
+    "BOOKED",
+    "READY",
+    "COMPLETED",
+    "CANCELLED",
+  ];
+
+  if (!allowedStatuses.includes(newStatus)) {
+    throw new Error(`Status ${newStatus} tidak valid.`);
+  }
+
+  if (newStatus === "CANCELLED") {
+    return await cancelTransactionService(transactionId, { id: cashierId });
+  }
+
+  if (newStatus === "READY") {
+    return await markOrderReadyService(transactionId, cashierId);
+  }
+
+  const transaction = await prisma.transaction.findUnique({
+    where: { id: transactionId },
+    include: { items: true },
+  });
+
+  if (!transaction) {
+    throw new Error("Transaksi tidak ditemukan.");
+  }
+
+  // Jika dari CANCELLED ingin kembali ke BOOKED / READY, pastikan stok dipotong lagi
+  if (
+    transaction.status === "CANCELLED" &&
+    (newStatus === "BOOKED" || newStatus === "READY")
+  ) {
+    return await prisma.$transaction(async (tx) => {
+      for (const item of transaction.items) {
+        if (item.productId) {
+          const product = await tx.product.findUnique({
+            where: { id: item.productId },
+          });
+          if (!product || product.stock < item.quantity) {
+            throw new Error(
+              `Stok produk ${product?.name || item.itemName} tidak mencukupi untuk mengembalikan pesanan.`,
+            );
+          }
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: product.stock - item.quantity },
+          });
+        }
+      }
+
+      return await tx.transaction.update({
+        where: { id: transactionId },
+        data: {
+          status: newStatus,
+          ...(cashierId ? { cashierId } : {}),
+        },
+        include: {
+          student: { select: { id: true, name: true, nis: true, email: true } },
+          cashier: { select: { id: true, name: true, email: true } },
+          voucher: true,
+          items: {
+            include: {
+              product: {
+                select: { name: true, barcode: true, imageUrl: true },
+              },
+              printOrder: true,
+            },
+          },
+        },
+      });
+    });
+  }
+
+  return await prisma.transaction.update({
+    where: { id: transactionId },
+    data: {
+      status: newStatus,
+      ...(cashierId ? { cashierId } : {}),
+    },
+    include: {
+      student: { select: { id: true, name: true, nis: true, email: true } },
+      cashier: { select: { id: true, name: true, email: true } },
+      voucher: true,
+      items: {
+        include: {
+          product: { select: { name: true, barcode: true, imageUrl: true } },
+          printOrder: true,
+        },
+      },
+    },
+  });
+};
+
 module.exports = {
   createTransactionService,
   getAllTransactionsService,
@@ -473,4 +620,6 @@ module.exports = {
   studentPreOrderService,
   checkAndCancelExpiredOrders,
   completePreOrderService,
+  markOrderReadyService,
+  updateTransactionStatusService,
 };
