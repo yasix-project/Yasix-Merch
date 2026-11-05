@@ -24,6 +24,7 @@ import { showSuccessToast, showErrorToast, showWarningToast } from "../utils/toa
 import { useTransactions } from "../hooks/admin/useTransactions";
 import { playNotificationSound } from "../utils/sound";
 import Button from "../components/ui/Button";
+import { shiftService } from "../api/shiftService";
 
 const NAV_ITEMS = [
   { to: "/kasir/pos", label: "POS Terminal", icon: Monitor },
@@ -83,6 +84,38 @@ export default function KasirLayout() {
   const [startCash, setStartCash] = useState("");
   const [actualCash, setActualCash] = useState("");
   const [isClosing, setIsClosing] = useState(false);
+  const [isSubmittingShift, setIsSubmittingShift] = useState(false);
+
+  // Sinkronisasi status shift kasir dari database backend
+  useEffect(() => {
+    let isMounted = true;
+    const syncActiveShift = async () => {
+      try {
+        const res = await shiftService.getActiveShift();
+        const serverShift = res.data?.data;
+        if (!isMounted) return;
+        if (serverShift) {
+          openShift({
+            ...serverShift,
+            cashierId: user?.id,
+            cashierName: user?.name,
+          });
+        } else if (activeShift) {
+          closeShift();
+        }
+      } catch (err) {
+        console.error("Gagal sinkronisasi shift kasir:", err);
+      }
+    };
+
+    if (user) {
+      syncActiveShift();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   // Polling data transaksi pre-order di level kasir layout
   const { data: allTransactions = [] } = useTransactions(
@@ -215,20 +248,33 @@ export default function KasirLayout() {
     }
   };
 
-  const handleOpenShift = (e) => {
+  const handleOpenShift = async (e) => {
     e.preventDefault();
     if (!startCash || Number(startCash) < 0) {
       showErrorToast("Harap masukkan modal awal yang valid.");
       return;
     }
 
-    openShift({
-      id: `SHIFT-${Date.now()}`,
-      startTime: new Date().toISOString(),
-      startCash: Number(startCash),
-    });
-    showSuccessToast("Shift kasir berhasil dibuka.");
-    setStartCash("");
+    setIsSubmittingShift(true);
+    try {
+      const res = await shiftService.startShift({
+        startCash: Number(startCash),
+      });
+      const shiftData = res.data?.data || res.data;
+      openShift({
+        ...shiftData,
+        cashierId: user?.id,
+        cashierName: user?.name,
+      });
+      showSuccessToast("Shift kasir berhasil dibuka.");
+      setStartCash("");
+    } catch (err) {
+      showErrorToast(
+        err.response?.data?.message || "Gagal membuka shift kasir.",
+      );
+    } finally {
+      setIsSubmittingShift(false);
+    }
   };
 
   const handleCloseShift = async (e) => {
@@ -249,16 +295,29 @@ export default function KasirLayout() {
     });
 
     if (isConfirmed) {
-      showSuccessToast(
-        `Shift berhasil ditutup. Total uang fisik tercatat: ${formatRupiah(
-          Number(actualCash),
-        )}`,
-      );
+      setIsSubmittingShift(true);
+      try {
+        await shiftService.endShift({
+          actualCash: Number(actualCash),
+          shiftId: activeShift?.id,
+        });
+        showSuccessToast(
+          `Shift berhasil ditutup. Total uang fisik tercatat: ${formatRupiah(
+            Number(actualCash),
+          )}`,
+        );
 
-      closeShift();
-      setIsClosing(false);
-      setStartCash("");
-      setActualCash("");
+        closeShift();
+        setIsClosing(false);
+        setStartCash("");
+        setActualCash("");
+      } catch (err) {
+        showErrorToast(
+          err.response?.data?.message || "Gagal menutup shift kasir.",
+        );
+      } finally {
+        setIsSubmittingShift(false);
+      }
     }
   };
 
@@ -429,12 +488,13 @@ export default function KasirLayout() {
                 required
               />
 
-              <button
+              <Button
                 type="submit"
-                className="mt-2 h-12 w-full rounded-xl bg-blue-600 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_rgba(37,99,235,0.6)] outline-none transition hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 active:scale-[0.985]"
+                isLoading={isSubmittingShift}
+                className="mt-2 h-12 w-full rounded-xl"
               >
                 Buka shift
-              </button>
+              </Button>
             </form>
           </Modal>
         )}
@@ -479,19 +539,22 @@ export default function KasirLayout() {
               />
 
               <div className="flex gap-3 pt-2">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => setIsClosing(false)}
-                  className="h-12 w-1/2 rounded-xl text-sm font-medium text-slate-600 ring-1 ring-slate-200 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-600"
+                  className="h-12 w-1/2 rounded-xl"
                 >
                   Batal
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className="h-12 w-1/2 rounded-xl bg-slate-900 text-sm font-semibold text-white outline-none transition hover:bg-red-600 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 active:scale-[0.985]"
+                  variant="danger"
+                  isLoading={isSubmittingShift}
+                  className="h-12 w-1/2 rounded-xl"
                 >
                   Akhiri shift
-                </button>
+                </Button>
               </div>
             </form>
           </Modal>

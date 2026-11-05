@@ -8,6 +8,11 @@ const startShiftService = async (cashierId, startCash) => {
       cashierId,
       endTime: null,
     },
+    include: {
+      cashier: {
+        select: { id: true, name: true, email: true },
+      },
+    },
   });
 
   if (activeShift) {
@@ -22,6 +27,11 @@ const startShiftService = async (cashierId, startCash) => {
       startCash: parseFloat(startCash),
       startTime: new Date(),
     },
+    include: {
+      cashier: {
+        select: { id: true, name: true, email: true },
+      },
+    },
   });
 
   return shift;
@@ -34,13 +44,18 @@ const getActiveShiftService = async (cashierId) => {
       cashierId,
       endTime: null,
     },
+    include: {
+      cashier: {
+        select: { id: true, name: true, email: true },
+      },
+    },
   });
 
   if (!activeShift) {
     return null;
   }
 
-  // Hitung total transaksi tunai (CASH) selama shift aktif berjalan
+  // Hitung total transaksi tunai (CASH & COMPLETED) selama shift aktif berjalan
   const totalCashTransactions = await prisma.transaction.aggregate({
     _sum: {
       totalAmount: true,
@@ -48,6 +63,7 @@ const getActiveShiftService = async (cashierId) => {
     where: {
       cashierId,
       paymentMethod: "CASH",
+      status: "COMPLETED",
       createdAt: {
         gte: activeShift.startTime,
       },
@@ -72,15 +88,19 @@ const endShiftService = async (cashierId, actualCash, shiftId = null) => {
   if (shiftId) {
     activeShift = await prisma.cashierShift.findUnique({
       where: { id: shiftId },
+      include: {
+        cashier: {
+          select: { id: true, name: true, email: true },
+        },
+      },
     });
 
     if (!activeShift || activeShift.endTime) {
       throw new Error("Shift tidak ditemukan atau sudah ditutup.");
     }
 
-    // Kita butuh kalkulasi expectedEndCash, panggil getActiveShiftService memakai cashierId milik shift tersebut
     const calculatedShift = await getActiveShiftService(activeShift.cashierId);
-    activeShift.expectedEndCash = calculatedShift.expectedEndCash;
+    activeShift.expectedEndCash = calculatedShift ? calculatedShift.expectedEndCash : Number(activeShift.startCash);
   } else {
     // Jika kasir menutup sendiri, cari shift aktif miliknya
     activeShift = await getActiveShiftService(cashierId);
@@ -90,7 +110,7 @@ const endShiftService = async (cashierId, actualCash, shiftId = null) => {
   }
 
   const actualCashNum = parseFloat(actualCash);
-  const expectedEndCash = activeShift.expectedEndCash;
+  const expectedEndCash = Number(activeShift.expectedEndCash || activeShift.startCash || 0);
   const difference = actualCashNum - expectedEndCash;
 
   const closedShift = await prisma.cashierShift.update({
@@ -101,6 +121,11 @@ const endShiftService = async (cashierId, actualCash, shiftId = null) => {
       difference,
       endTime: new Date(),
     },
+    include: {
+      cashier: {
+        select: { id: true, name: true, email: true },
+      },
+    },
   });
 
   return closedShift;
@@ -108,7 +133,7 @@ const endShiftService = async (cashierId, actualCash, shiftId = null) => {
 
 // 4. Riwayat Shift (Admin / Audit)
 const getAllShiftsService = async () => {
-  return await prisma.cashierShift.findMany({
+  const shifts = await prisma.cashierShift.findMany({
     include: {
       cashier: {
         select: { id: true, name: true, email: true },
@@ -116,6 +141,36 @@ const getAllShiftsService = async () => {
     },
     orderBy: { startTime: "desc" },
   });
+
+  const enrichedShifts = await Promise.all(
+    shifts.map(async (shift) => {
+      if (!shift.endTime) {
+        const totalCashTransactions = await prisma.transaction.aggregate({
+          _sum: {
+            totalAmount: true,
+          },
+          where: {
+            cashierId: shift.cashierId,
+            paymentMethod: "CASH",
+            status: "COMPLETED",
+            createdAt: {
+              gte: shift.startTime,
+            },
+          },
+        });
+        const cashSales = Number(totalCashTransactions._sum.totalAmount || 0);
+        const expectedEndCash = Number(shift.startCash) + cashSales;
+        return {
+          ...shift,
+          cashSales,
+          expectedEndCash,
+        };
+      }
+      return shift;
+    }),
+  );
+
+  return enrichedShifts;
 };
 
 module.exports = {

@@ -7,7 +7,7 @@ export const shiftKeys = {
   list: () => ["shifts"],
 };
 
-export function useShifts({ enabled = true } = {}) {
+export function useShifts({ enabled = true, refetchInterval = 5000 } = {}) {
   return useQuery({
     queryKey: shiftKeys.list(),
     queryFn: async () => {
@@ -17,6 +17,7 @@ export function useShifts({ enabled = true } = {}) {
         : response.data || [];
     },
     enabled,
+    refetchInterval,
   });
 }
 

@@ -176,13 +176,27 @@ export default function MonitoringShift() {
                   </div>
                 </div>
 
-                <div className="bg-slate-50 p-2.5 rounded-lg flex justify-between items-center border border-slate-100">
-                  <span className="text-xs text-slate-500 flex items-center gap-1.5">
-                    <Wallet size={13} /> Modal Laci
-                  </span>
-                  <span className="text-sm font-bold text-dark font-mono">
-                    {formatRupiah(shift.startCash)}
-                  </span>
+                <div className="bg-slate-50 p-2.5 rounded-lg flex flex-col gap-1.5 border border-slate-100 text-xs">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 flex items-center gap-1.5">
+                      <Wallet size={13} /> Modal Awal
+                    </span>
+                    <span className="font-bold text-dark font-mono">
+                      {formatRupiah(shift.startCash)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Penjualan Tunai</span>
+                    <span className="font-bold text-emerald-600 font-mono">
+                      +{formatRupiah(shift.cashSales || 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pt-1 border-t border-slate-200">
+                    <span className="font-medium text-slate-700">Total Kas Sistem</span>
+                    <span className="font-bold text-blue-600 font-mono">
+                      {formatRupiah(shift.expectedEndCash || shift.startCash)}
+                    </span>
+                  </div>
                 </div>
 
                 <Button
