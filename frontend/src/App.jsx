@@ -32,6 +32,7 @@ import AntreanPrint from "./pages/kasir/AntreanPrint";
 import SiswaProfil from "./pages/siswa/SiswaProfil";
 import SiswaPrint from "./pages/siswa/SiswaPrint";
 import SiswaAntreanPrint from "./pages/siswa/AntreanPrint";
+import SiswaKatalog from "./pages/siswa/SiswaKatalog";
 
 // Fallback Halaman 403
 const Unauthorized = () => (
@@ -132,7 +133,11 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="profil" replace />,
+        element: <Navigate to="katalog" replace />,
+      },
+      {
+        path: "katalog",
+        element: <SiswaKatalog />,
       },
       {
         path: "profil",

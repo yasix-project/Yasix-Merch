@@ -3,7 +3,7 @@ const router = express.Router();
 const transactionController = require("../controllers/transaction.controller");
 const { verifyToken, checkRole } = require("../middlewares/auth.middleware");
 
-// Hanya Kasir & Admin yang bisa melakukan Checkout POS
+// Hanya Kasir & Admin yang bisa melakukan Checkout POS Langsung
 router.post(
   "/checkout",
   verifyToken,
@@ -11,19 +11,19 @@ router.post(
   transactionController.createTransaction,
 );
 
-// GET Semua Riwayat Transaksi (Khusus Admin & Kasir)
+// GET Riwayat Transaksi (Admin & Kasir melihat semua; Siswa melihat transaksinya sendiri)
 router.get(
   "/",
   verifyToken,
-  checkRole("ADMIN", "KASIR"),
+  checkRole("ADMIN", "KASIR", "SISWA"),
   transactionController.getAllTransactions,
 );
 
-// GET Detail 1 Transaksi Berdasarkan ID (Untuk Cetak Struk)
+// GET Detail 1 Transaksi Berdasarkan ID (Admin/Kasir, atau Siswa pemilik transaksi)
 router.get(
   "/:id",
   verifyToken,
-  checkRole("ADMIN", "KASIR"),
+  checkRole("ADMIN", "KASIR", "SISWA"),
   transactionController.getTransactionById,
 );
 

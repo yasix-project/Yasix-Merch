@@ -23,7 +23,7 @@ const createTransaction = async (req, res) => {
 
 const getAllTransactions = async (req, res) => {
   try {
-    const transactions = await transactionService.getAllTransactionsService();
+    const transactions = await transactionService.getAllTransactionsService(req.user, req.query);
     return res.status(200).json({
       status: "success",
       data: transactions,
@@ -40,6 +40,7 @@ const getTransactionById = async (req, res) => {
   try {
     const transaction = await transactionService.getTransactionByIdService(
       req.params.id,
+      req.user,
     );
     return res.status(200).json({
       status: "success",

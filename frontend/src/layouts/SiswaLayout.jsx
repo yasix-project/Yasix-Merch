@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import { useCurrentUser } from "../hooks/useCurrentUser";
+import { useStudentCartStore } from "../store/studentCartStore";
 
 export default function SiswaLayout() {
   const logout = useAuthStore((state) => state.logout);
@@ -20,6 +21,7 @@ export default function SiswaLayout() {
 
   // Gunakan data live backend atau fallback ke cache lokal
   const user = liveUser || cachedUser;
+  const cartCount = useStudentCartStore((state) => state.getTotalItems());
 
   const handleLogout = () => {
     logout();
@@ -102,11 +104,16 @@ export default function SiswaLayout() {
                   {({ isActive }) => (
                     <>
                       <div
-                        className={`p-1 rounded-lg transition-colors ${
+                        className={`p-1 rounded-lg transition-colors relative ${
                           isActive ? "bg-primary/10" : "bg-transparent"
                         }`}
                       >
                         <Icon size={19} strokeWidth={isActive ? 2.5 : 2} />
+                        {item.to === "/siswa/katalog" && cartCount > 0 && (
+                          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-accent text-dark text-[9px] font-black flex items-center justify-center shadow-2xs">
+                            {cartCount > 9 ? "9+" : cartCount}
+                          </span>
+                        )}
                       </div>
                       <span className="text-[10px] mt-0.5 tracking-tight">
                         {item.label}

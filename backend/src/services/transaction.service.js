@@ -156,8 +156,20 @@ const createTransactionService = async (cashierId, transactionData) => {
 };
 
 // --- PERBAIKAN 1: GET ALL TRANSACTIONS DENGAN PRINT ORDER ---
-const getAllTransactionsService = async () => {
+const getAllTransactionsService = async (user, query = {}) => {
+  const whereCondition = {};
+
+  if (user?.role === "SISWA" || query.mine === "true") {
+    whereCondition.studentId = user.id;
+  }
+
+  if (query.status && query.status !== "ALL") {
+    whereCondition.status = query.status;
+  }
+
+
   return await prisma.transaction.findMany({
+    where: whereCondition,
     include: {
       cashier: {
         select: { id: true, name: true, email: true },
@@ -168,7 +180,7 @@ const getAllTransactionsService = async () => {
       items: {
         include: {
           product: {
-            select: { name: true, barcode: true },
+            select: { name: true, barcode: true, imageUrl: true },
           },
           // INCLUDE PRINT ORDER DI SINI
           printOrder: true,
@@ -180,7 +192,7 @@ const getAllTransactionsService = async () => {
 };
 
 // --- PERBAIKAN 2: GET TRANSACTION BY ID DENGAN PRINT ORDER ---
-const getTransactionByIdService = async (transactionId) => {
+const getTransactionByIdService = async (transactionId, user) => {
   const transaction = await prisma.transaction.findUnique({
     where: { id: transactionId },
     include: {
@@ -193,7 +205,7 @@ const getTransactionByIdService = async (transactionId) => {
       items: {
         include: {
           product: {
-            select: { name: true, barcode: true },
+            select: { name: true, barcode: true, imageUrl: true },
           },
           // INCLUDE PRINT ORDER DI SINI
           printOrder: true,
@@ -205,6 +217,9 @@ const getTransactionByIdService = async (transactionId) => {
 
   if (!transaction) {
     throw new Error("Transaksi tidak ditemukan.");
+  }
+  if (user && user.role === "SISWA" && transaction.studentId !== user.id) {
+    throw new Error("Akses ditolak ke transaksi ini.");
   }
 
   return transaction;
@@ -350,7 +365,7 @@ const studentPreOrderService = async (studentId, orderData) => {
         expiresAt,
         items: { create: transactionItemsData },
       },
-      include: { items: true },
+      include: { items: { include: { product: true } }, voucher: true },
     });
 
     return preOrder;
@@ -399,7 +414,7 @@ const completePreOrderService = async (
   return await prisma.$transaction(async (tx) => {
     const transaction = await tx.transaction.findUnique({
       where: { id: transactionId },
-      include: { items: true },
+      include: { items: { include: { product: true } }, voucher: true },
     });
 
     if (!transaction) {

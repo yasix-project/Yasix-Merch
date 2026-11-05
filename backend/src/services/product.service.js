@@ -32,6 +32,9 @@ const getAllProductsService = async (query = {}) => {
   if (categoryId) {
     whereCondition.categoryId = categoryId;
   }
+  if (query.isActive !== undefined) {
+    whereCondition.isActive = query.isActive === "true" || query.isActive === true;
+  }
 
   const products = await prisma.product.findMany({
     where: whereCondition,
