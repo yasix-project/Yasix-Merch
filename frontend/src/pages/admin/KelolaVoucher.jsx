@@ -206,36 +206,39 @@ export default function KelolaVoucher() {
           </span>
           <br />
           <span className="text-xs text-slate-500 mt-1 inline-block">
-            {v.name || "Promo Diskon"}
+            {v.student ? `Voucher Siswa (${v.student.name})` : (v.studentId ? "Voucher Poin Siswa" : "Promo Toko / Umum")}
           </span>
         </div>
       ),
     },
     {
-      header: "Nominal Potongan",
+      header: "Potongan (%)",
       cellClassName: "font-mono font-bold text-dark",
       render: (v) => (
         <span className="text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md text-xs font-semibold border border-emerald-200">
-          {v.type === "PERCENTAGE"
-            ? `${v.discount}%`
-            : formatRupiah(v.discount)}
+          {Number(v.discountPct || 0)}%
         </span>
       ),
     },
     {
-      header: "Biaya Tukar Poin",
-      cellClassName: "font-mono font-bold text-dark",
-      render: (v) => (
-        <span className="text-amber-700 bg-amber-50 px-2 py-1 rounded-md text-xs font-semibold border border-amber-200">
-          {(v.pointCost || 0).toLocaleString("id-ID")} Poin
-        </span>
-      ),
+      header: "Maks. Potongan",
+      cellClassName: "font-mono font-semibold text-slate-700 text-xs",
+      render: (v) =>
+        v.maxDiscount && Number(v.maxDiscount) > 0 ? (
+          <span className="text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+            {formatRupiah(v.maxDiscount)}
+          </span>
+        ) : (
+          <span className="text-slate-400 italic">Tanpa Batas</span>
+        ),
     },
     {
       header: "Min. Belanja",
       cellClassName: "font-mono text-slate-600 text-xs",
       render: (v) =>
-        v.minPurchase ? formatRupiah(v.minPurchase) : "Tanpa Minimum",
+        v.minPurchase && Number(v.minPurchase) > 0
+          ? formatRupiah(v.minPurchase)
+          : "Tanpa Minimum",
     },
     {
       header: "Masa Berlaku",
@@ -269,37 +272,43 @@ export default function KelolaVoucher() {
       header: "Aksi",
       className: "text-center",
       render: (v) => (
-        <div className="flex items-center justify-center gap-1">
-          <button
+        <div className="flex items-center justify-center gap-1.5">
+          <Button
+            size="xs"
+            variant="outline"
             onClick={() => handleToggleStatus(v)}
-            className={`p-1.5 rounded transition-colors ${
+            className={`p-1.5 h-7 w-7 rounded ${
               v.isActive
-                ? "text-slate-400 hover:text-amber-600 hover:bg-amber-50"
-                : "text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
+                ? "text-slate-500 hover:text-amber-600 hover:bg-amber-50"
+                : "text-slate-500 hover:text-emerald-600 hover:bg-emerald-50"
             }`}
             title={v.isActive ? "Nonaktifkan Voucher" : "Aktifkan Voucher"}
           >
-            <Power size={15} />
-          </button>
+            <Power size={13} />
+          </Button>
 
-          <button
+          <Button
+            size="xs"
+            variant="outline"
             onClick={() => {
               setEditingVoucher(v);
               setIsModalOpen(true);
             }}
-            className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded transition-colors"
+            className="p-1.5 h-7 w-7 text-slate-500 hover:text-primary hover:bg-primary/10 rounded"
             title="Edit"
           >
-            <Edit3 size={15} />
-          </button>
+            <Edit3 size={13} />
+          </Button>
 
-          <button
+          <Button
+            size="xs"
+            variant="outline"
             onClick={() => handleDeleteVoucher(v)}
-            className="p-1.5 text-slate-400 hover:text-danger hover:bg-danger/10 rounded transition-colors"
+            className="p-1.5 h-7 w-7 text-slate-500 hover:text-danger hover:bg-danger/10 rounded"
             title="Hapus"
           >
-            <Trash2 size={15} />
-          </button>
+            <Trash2 size={13} />
+          </Button>
         </div>
       ),
     },

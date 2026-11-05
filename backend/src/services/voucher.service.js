@@ -104,6 +104,15 @@ const redeemPointsToVoucherService = async (studentId) => {
 // --- ENDPOINT BARU: GET ALL & GET BY ID ---
 const getAllVouchers = async () => {
   return await prisma.voucher.findMany({
+    include: {
+      student: {
+        select: {
+          id: true,
+          name: true,
+          nis: true,
+        },
+      },
+    },
     orderBy: {
       id: "desc",
     },
