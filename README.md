@@ -203,6 +203,7 @@ Gunakan kredensial pengujian berikut untuk mengevaluasi fitur pada masing-masing
 ## 🔗 Tautan Media & Demonstrasi
 
 - **Aplikasi Live Demo:** `https://yasix-merch-gilt.vercel.app/`
+- **Lembar Barcode Pengujian Juri (Buka di HP):** `https://yasix-merch-gilt.vercel.app/demo`
 - **API Server Endpoint:** `https://yasix-merch-production.up.railway.app/`
 - **Video Demonstrasi & Presentasi Produk:** `[ISI_LINK_VIDEO_YOUTUBE_ATAU_DRIVE]`
 

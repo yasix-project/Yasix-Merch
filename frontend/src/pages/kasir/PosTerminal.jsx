@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useReactToPrint } from "react-to-print";
-import { Search, PackageX, Camera } from "lucide-react";
+import { Search, PackageX, Camera, QrCode } from "lucide-react";
 
 import { useProducts } from "../../hooks/admin/useProducts";
 import { useCategories } from "../../hooks/admin/useCategories";
@@ -12,6 +12,7 @@ import { useAuthStore } from "../../store/authStore";
 import ProductCard from "../../components/kasir/ProductCard";
 import PosCart from "../../components/kasir/PosCart";
 import PaymentModal from "../../components/kasir/PaymentModal";
+import ReceiptModal from "../../components/kasir/ReceiptModal";
 import StrukPrinter from "../../components/shared/StrukPrinter";
 import BarcodeScannerModal from "../../components/shared/BarcodeScannerModal";
 import { showSuccessToast, showErrorToast } from "../../utils/toast";
@@ -27,6 +28,8 @@ export default function PosTerminal() {
   const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const [latestTransaction, setLatestTransaction] = useState(null);
   const [printData, setPrintData] = useState([]);
   const strukRef = useRef();
 
@@ -53,22 +56,19 @@ export default function PosTerminal() {
   const handlePrint = useReactToPrint({
     content: () => strukRef.current,
     documentTitle: "Struk_Kasir_Yasix",
-    onAfterPrint: () => {
-      setPrintData([]);
-      clearCart();
-      setMemberCode("");
-      setVerifiedStudent(null);
-      setVoucherCode("");
-      setAppliedVoucher(null);
-      setDiscountAmount(0);
-    },
   });
 
-  useEffect(() => {
-    if (printData.length > 0) {
-      handlePrint();
-    }
-  }, [printData, handlePrint]);
+  const handleCloseReceipt = () => {
+    setIsReceiptModalOpen(false);
+    setLatestTransaction(null);
+    setPrintData([]);
+    clearCart();
+    setMemberCode("");
+    setVerifiedStudent(null);
+    setVoucherCode("");
+    setAppliedVoucher(null);
+    setDiscountAmount(0);
+  };
 
   const filteredProducts = products.filter((item) => {
     if (item.isActive === false) return false;
@@ -146,9 +146,8 @@ export default function PosTerminal() {
           items: savedTransaction.items?.length ? savedTransaction.items : cart,
         };
         setPrintData([transactionForPrint]);
-        setVerifiedStudent(null);
-        setAppliedVoucher(null);
-        setDiscountAmount(0);
+        setLatestTransaction(transactionForPrint);
+        setIsReceiptModalOpen(true);
         showSuccessToast("Transaksi berhasil diproses!");
       },
       onError: (err) => {
@@ -190,6 +189,7 @@ export default function PosTerminal() {
                 autoFocus
               />
             </div>
+
             <button
               type="button"
               onClick={() => setIsBarcodeScannerOpen(true)}
@@ -199,6 +199,17 @@ export default function PosTerminal() {
               <Camera size={16} className="text-blue-600" />
               <span className="hidden sm:inline">Scan Webcam</span>
             </button>
+
+            <a
+              href="/demo"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Buka Lembar Barcode Produk & KTA Siswa untuk diarahkan ke Webcam"
+              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-200 transition-all shrink-0 active:scale-95 shadow-xs"
+            >
+              <QrCode size={15} className="text-emerald-600" />
+              <span className="hidden sm:inline">📱 Barcode HP (/demo)</span>
+            </a>
           </div>
 
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -282,6 +293,14 @@ export default function PosTerminal() {
         totalAmount={finalTotal}
         onProcessPayment={handleProcessPayment}
         isProcessing={createTransaction.isPending}
+      />
+
+      {/* Modal Struk Thermal di Layar Kasir (Penilaian Online) */}
+      <ReceiptModal
+        isOpen={isReceiptModalOpen}
+        onClose={handleCloseReceipt}
+        transaction={latestTransaction}
+        onPrint={handlePrint}
       />
 
       {/* Modal Scan Barcode Produk via Webcam */}
