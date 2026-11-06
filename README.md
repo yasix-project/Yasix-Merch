@@ -151,9 +151,9 @@ Gunakan kredensial berikut untuk melakukan penilaian antarmuka sistem:
 
 | Role Pengguna      | Email / Identifier  | Password               | Lingkup Evaluasi                                                              |
 | :----------------- | :------------------ | :--------------------- | :---------------------------------------------------------------------------- |
-| **ADMINISTRATOR**  | `[ISI_EMAIL_ADMIN]` | `[ISI_PASSWORD_ADMIN]` | Dashboard Metrik Penjualan, Manajemen Stok & Kategori, Monitoring Semua Shift |
-| **KASIR**          | `[ISI_EMAIL_KASIR]` | `[ISI_PASSWORD_KASIR]` | Pembukaan Shift Kasir, Terminal POS Ritel, Cetak Struk, Antrean Print Dokumen |
-| **SISWA (MEMBER)** | `[ISI_EMAIL_SISWA]` | `[ISI_PASSWORD_SISWA]` | Order Cetak PDF Mandiri, Pre-Order Barang, Monitoring Poin Siswa              |
+| **ADMINISTRATOR**  | `admin@smkyadika6.sch.id` | `password123` | Dashboard Metrik Penjualan, Manajemen Stok & Kategori, Monitoring Semua Shift |
+| **KASIR**          | `kasir@smkyadika6.sch.id` | `password123` | Pembukaan Shift Kasir, Terminal POS Ritel, Cetak Struk, Antrean Print Dokumen |
+| **SISWA (MEMBER)** | `siswa@smkyadika6.sch.id` | `password123` | Order Cetak PDF Mandiri, Pre-Order Barang, Monitoring Poin Siswa              |
 
 ---
 
