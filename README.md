@@ -150,7 +150,7 @@ Seluruh endpoint terproteksi mewajibkan header: `Authorization: Bearer <access_t
 Gunakan kredensial pengujian berikut untuk mengevaluasi fitur pada masing-masing tingkatan hak akses:
 
 ### 1. Administrator (Manajemen & Analitik)
-- **Portal Login:** `/admin/login` (atau klik opsi *Login Admin* di halaman login utama)
+- **Portal Login:** `/admin/login` **(ROUTES RAHASIA)**
 - **Nama Pengguna:** `Admin YasixMerch`
 - **Email:** `admin@smkyadika6.sch.id`
 - **Password:** `password123`
