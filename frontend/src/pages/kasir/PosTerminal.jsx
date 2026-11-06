@@ -22,6 +22,8 @@ export default function PosTerminal() {
   const [memberCode, setMemberCode] = useState("");
   const [verifiedStudent, setVerifiedStudent] = useState(null);
   const [voucherCode, setVoucherCode] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
   const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -36,6 +38,18 @@ export default function PosTerminal() {
   const activeShift = useShiftStore((state) => state.activeShift);
   const { cart, addToCart, clearCart, getCartTotal } = usePosStore();
 
+  const subtotal = getCartTotal();
+  const finalTotal = Math.max(0, subtotal - discountAmount);
+
+  // Jika keranjang kosong, reset diskon voucher otomatis
+  useEffect(() => {
+    if (cart.length === 0) {
+      setAppliedVoucher(null);
+      setDiscountAmount(0);
+      setVoucherCode("");
+    }
+  }, [cart.length]);
+
   const handlePrint = useReactToPrint({
     content: () => strukRef.current,
     documentTitle: "Struk_Kasir_Yasix",
@@ -45,6 +59,8 @@ export default function PosTerminal() {
       setMemberCode("");
       setVerifiedStudent(null);
       setVoucherCode("");
+      setAppliedVoucher(null);
+      setDiscountAmount(0);
     },
   });
 
@@ -103,7 +119,7 @@ export default function PosTerminal() {
 
   const handleProcessPayment = async (paymentDetails) => {
     const payload = {
-      paymentMethod: paymentDetails.paymentMethod,
+      paymentMethod: paymentDetails.paymentMethod || "CASH",
       payAmount: Number(paymentDetails.payAmount),
       items: cart.map((item) => ({
         productId: item.productId,
@@ -112,7 +128,11 @@ export default function PosTerminal() {
     };
 
     if (memberCode?.trim()) payload.studentNis = memberCode.trim();
-    if (voucherCode?.trim()) payload.voucherCode = voucherCode.trim();
+    if (appliedVoucher?.id || appliedVoucher?.voucherId) {
+      payload.voucherId = appliedVoucher.id || appliedVoucher.voucherId;
+    } else if (voucherCode?.trim()) {
+      payload.voucherCode = voucherCode.trim();
+    }
     if (activeShift?.id) payload.shiftId = activeShift.id;
 
     createTransaction.mutate(payload, {
@@ -127,6 +147,8 @@ export default function PosTerminal() {
         };
         setPrintData([transactionForPrint]);
         setVerifiedStudent(null);
+        setAppliedVoucher(null);
+        setDiscountAmount(0);
         showSuccessToast("Transaksi berhasil diproses!");
       },
       onError: (err) => {
@@ -139,14 +161,14 @@ export default function PosTerminal() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)] -mt-4 -mx-4 lg:-mx-8 overflow-hidden bg-slate-100">
+    <div className="flex flex-col lg:flex-row h-full -m-4 lg:-m-8 overflow-hidden bg-slate-100">
       <div className="hidden">
         <StrukPrinter ref={strukRef} transactions={printData} />
       </div>
 
       {/* Sisi Kiri: Katalog Produk */}
-      <div className="flex-1 flex flex-col h-full bg-slate-50 border-r border-slate-200">
-        <div className="p-4 bg-white border-b border-slate-200 shadow-sm z-10 space-y-3">
+      <div className="flex-1 flex flex-col h-full min-h-0 bg-slate-50 border-r border-slate-200 overflow-hidden">
+        <div className="p-4 bg-white border-b border-slate-200 shadow-xs z-10 space-y-3 shrink-0">
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search
@@ -184,7 +206,7 @@ export default function PosTerminal() {
               onClick={() => setSelectedCategory("Semua")}
               className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
                 selectedCategory === "Semua"
-                  ? "bg-blue-600 text-white shadow-sm shadow-blue-500/20"
+                  ? "bg-blue-600 text-white shadow-xs shadow-blue-500/20"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
@@ -196,7 +218,7 @@ export default function PosTerminal() {
                 onClick={() => setSelectedCategory(cat.name)}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
                   selectedCategory === cat.name
-                    ? "bg-blue-600 text-white shadow-sm shadow-blue-500/20"
+                    ? "bg-blue-600 text-white shadow-xs shadow-blue-500/20"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -206,7 +228,7 @@ export default function PosTerminal() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4">
           {loadingProducts ? (
             <div className="flex h-full items-center justify-center text-slate-400">
               <span className="animate-pulse font-medium text-sm">
@@ -237,7 +259,7 @@ export default function PosTerminal() {
         </div>
       </div>
 
-      {/* Sisi Kanan: Panel Keranjang */}
+      {/* Sisi Kanan: Panel Keranjang Kasir (Fixed & Scrollable) */}
       <PosCart
         memberCode={memberCode}
         setMemberCode={setMemberCode}
@@ -245,6 +267,10 @@ export default function PosTerminal() {
         setVerifiedStudent={setVerifiedStudent}
         voucherCode={voucherCode}
         setVoucherCode={setVoucherCode}
+        appliedVoucher={appliedVoucher}
+        setAppliedVoucher={setAppliedVoucher}
+        discountAmount={discountAmount}
+        setDiscountAmount={setDiscountAmount}
         onOpenPayment={() => setIsPaymentModalOpen(true)}
         isProcessing={createTransaction.isPending}
       />
@@ -253,7 +279,7 @@ export default function PosTerminal() {
       <PaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
-        totalAmount={getCartTotal()}
+        totalAmount={finalTotal}
         onProcessPayment={handleProcessPayment}
         isProcessing={createTransaction.isPending}
       />

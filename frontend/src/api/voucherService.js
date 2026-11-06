@@ -5,11 +5,10 @@ export const voucherService = {
   getAll: () => axiosClient.get("/vouchers"),
   getById: (id) => axiosClient.get(`/vouchers/${id}`),
   create: (data) => axiosClient.post("/vouchers", data),
-
-  // Catatan: Jika backend belum ada PUT dan DELETE, nanti tambahkan ya agar tombol edit/hapus berfungsi
+  validate: (code, subtotal) =>
+    axiosClient.post("/vouchers/validate", { code, subtotal }),
   update: (id, data) => axiosClient.put(`/vouchers/${id}`, data),
   delete: (id) => axiosClient.delete(`/vouchers/${id}`),
-
   toggleActive: (id, currentStatus) =>
     axiosClient.put(`/vouchers/${id}`, { isActive: !currentStatus }),
 };
