@@ -12,6 +12,7 @@ import {
   ExternalLink,
   ChevronRight,
   SunMedium,
+  Layers,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import BarcodeSVG from "../../components/shared/BarcodeSVG";
@@ -106,6 +107,7 @@ const DEMO_VOUCHERS = [
 
 export default function DemoBarcodeSheet() {
   const [copiedCode, setCopiedCode] = useState(null);
+  const [displayMode, setDisplayMode] = useState("QR"); // "QR" | "1D" | "BOTH"
 
   const handleCopy = (code) => {
     navigator.clipboard.writeText(code);
@@ -149,29 +151,63 @@ export default function DemoBarcodeSheet() {
             <span>Petunjuk Pengujian Juri Online</span>
           </div>
           <p className="text-xs text-slate-300 leading-relaxed">
-            Buka halaman ini pada smartphone Anda, naikkan kecerahan layar ke{" "}
-            <span className="text-amber-400 font-bold">80%+</span>, lalu arahkan
-            barcode produk atau QR member di bawah ke hadapan webcam laptop
-            kasir dengan jarak <strong>15 - 25 cm</strong>.
+            Buka halaman ini di HP Anda. Karena kamera laptop memiliki resolusi
+            berbeda-beda, gunakan format <strong>QR Code (Sangat Cepat)</strong>{" "}
+            atau <strong>Barcode 1D (Garis)</strong> di bawah, lalu arahkan layar HP
+            ke depan webcam laptop kasir.
           </p>
         </div>
 
         {/* ======================================================== */}
-        {/* BAGIAN 1: BARCODE PRODUK RETAIL (EAN-13 / CODE-128)      */}
+        {/* BAGIAN 1: PILIHAN FORMAT SCAN PRODUK                     */}
         {/* ======================================================== */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
+        <section className="space-y-3.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-500/20 text-blue-400 text-xs font-bold">
                 1
               </span>
               <h2 className="text-sm font-bold text-white tracking-wide">
-                Barcode Produk Retail (Barang)
+                Katalog Produk Kasir ({DEMO_PRODUCTS.length} Barang)
               </h2>
             </div>
-            <span className="text-[11px] text-slate-400">
-              {DEMO_PRODUCTS.length} Barang
-            </span>
+
+            {/* Tab Pilihan Format Scan */}
+            <div className="flex p-1 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setDisplayMode("QR")}
+                className={`px-2.5 py-1 rounded-lg transition ${
+                  displayMode === "QR"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                QR Code (Instan)
+              </button>
+              <button
+                type="button"
+                onClick={() => setDisplayMode("1D")}
+                className={`px-2.5 py-1 rounded-lg transition ${
+                  displayMode === "1D"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Barcode 1D
+              </button>
+              <button
+                type="button"
+                onClick={() => setDisplayMode("BOTH")}
+                className={`px-2.5 py-1 rounded-lg transition ${
+                  displayMode === "BOTH"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Keduanya
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -194,24 +230,59 @@ export default function DemoBarcodeSheet() {
                     </h3>
                   </div>
 
-                  {/* Visual Barcode SVG Jernih */}
-                  <div className="bg-white p-2.5 rounded-xl flex flex-col items-center justify-center shadow-inner overflow-hidden">
-                    <BarcodeSVG
-                      value={p.barcode}
-                      height={48}
-                      barWidth={1.8}
-                      showText={true}
-                    />
+                  {/* Visual Barcode: QR Code / 1D Barcode / Keduanya */}
+                  <div className="bg-white p-3 rounded-xl flex flex-col items-center justify-center shadow-inner overflow-hidden min-h-[140px]">
+                    {displayMode === "QR" && (
+                      <div className="flex flex-col items-center animate-in fade-in duration-200">
+                        <QRCodeSVG
+                          value={p.barcode}
+                          size={110}
+                          level="M"
+                          includeMargin={false}
+                        />
+                        <span className="font-mono text-[10px] font-bold text-slate-800 mt-2 tracking-wider">
+                          {p.barcode}
+                        </span>
+                      </div>
+                    )}
+
+                    {displayMode === "1D" && (
+                      <div className="flex flex-col items-center animate-in fade-in duration-200 py-1">
+                        <BarcodeSVG
+                          value={p.barcode}
+                          height={50}
+                          barWidth={1.8}
+                          showText={true}
+                        />
+                      </div>
+                    )}
+
+                    {displayMode === "BOTH" && (
+                      <div className="flex flex-col items-center gap-3 w-full py-1 animate-in fade-in duration-200">
+                        <QRCodeSVG
+                          value={p.barcode}
+                          size={90}
+                          level="M"
+                          includeMargin={false}
+                        />
+                        <BarcodeSVG
+                          value={p.barcode}
+                          height={38}
+                          barWidth={1.4}
+                          showText={true}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between pt-1">
-                    <span className="font-mono text-[10px] text-slate-400 font-semibold">
-                      {p.barcode}
+                    <span className="font-mono text-[10.5px] text-slate-400 font-semibold">
+                      SKU: {p.barcode}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleCopy(p.barcode)}
-                      className={`text-[10.5px] font-bold px-2 py-1 rounded-lg transition flex items-center gap-1 ${
+                      className={`text-[10.5px] font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1 ${
                         isCopied
                           ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                           : "bg-slate-700 hover:bg-slate-600 text-slate-200"

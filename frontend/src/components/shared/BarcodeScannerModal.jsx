@@ -20,7 +20,7 @@ export default function BarcodeScannerModal({
   onClose,
   onScan,
   title = "Scan Barcode Produk",
-  description = "Arahkan barcode produk atau kode QR member ke depan webcam laptop Anda.",
+  description = "Arahkan barcode 1D produk atau QR Code ke hadapan webcam laptop Anda.",
   continuous = true, // true untuk scan barang berturut-turut di kasir
 }) {
   const [scannerError, setScannerError] = useState("");
@@ -52,7 +52,7 @@ export default function BarcodeScannerModal({
 
         if (isMounted) {
           setCameras(devices);
-          const defaultCamId = devices[devices.length - 1].id; // Biasanya kamera belakang jika di mobile
+          const defaultCamId = devices[devices.length - 1].id; // Kamera utama
           setSelectedCameraId(defaultCamId);
           await initCamera(defaultCamId);
         }
@@ -66,7 +66,6 @@ export default function BarcodeScannerModal({
       }
     };
 
-    // Beri sedikit delay agar DOM container #barcode-reader siap dirender
     const timer = setTimeout(() => {
       startScanner();
     }, 200);
@@ -82,6 +81,8 @@ export default function BarcodeScannerModal({
     try {
       await stopScanner();
 
+      // Gunakan BarcodeDetector native jika didukung browser (Chrome/Edge/Android)
+      // untuk pemindaian barcode 1D berkecepatan tinggi
       const html5QrCode = new Html5Qrcode("barcode-scanner-view", {
         formatsToSupport: [
           Html5QrcodeSupportedFormats.QR_CODE,
@@ -92,15 +93,23 @@ export default function BarcodeScannerModal({
           Html5QrcodeSupportedFormats.UPC_A,
           Html5QrcodeSupportedFormats.UPC_E,
         ],
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true,
+        },
         verbose: false,
       });
 
       scannerRef.current = html5QrCode;
 
+      // Area pemindaian dinamis luas agar barcode 1D horizontal tidak terpotong
       const config = {
-        fps: 15,
-        qrbox: { width: 280, height: 180 },
-        aspectRatio: 1.333,
+        fps: 20,
+        qrbox: (viewfinderWidth, viewfinderHeight) => {
+          const width = Math.floor(Math.min(viewfinderWidth * 0.9, 360));
+          const height = Math.floor(Math.min(viewfinderHeight * 0.65, 220));
+          return { width, height };
+        },
+        aspectRatio: 1.333333,
       };
 
       await html5QrCode.start(
@@ -206,13 +215,13 @@ export default function BarcodeScannerModal({
             </div>
           )}
 
-          {/* Laser Guide Line Animasi */}
+          {/* Laser Guide Line Animasi Lebar */}
           {isCameraActive && (
-            <div className="pointer-events-none absolute inset-x-8 top-1/2 -translate-y-1/2 flex items-center justify-center">
-              <div className="w-full h-44 border-2 border-dashed border-blue-400/70 rounded-2xl relative shadow-[0_0_20px_rgba(59,130,246,0.3)]">
-                <div className="absolute inset-x-0 top-1/2 h-0.5 bg-red-500/90 shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-pulse" />
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-blue-600 text-white rounded text-[10px] font-bold uppercase tracking-wider">
-                  Pas-kan Barcode Di Sini
+            <div className="pointer-events-none absolute inset-x-4 top-1/2 -translate-y-1/2 flex items-center justify-center">
+              <div className="w-full max-w-[340px] h-36 border-2 border-dashed border-blue-400/80 rounded-2xl relative shadow-[0_0_24px_rgba(59,130,246,0.35)]">
+                <div className="absolute inset-x-0 top-1/2 h-0.5 bg-red-500/90 shadow-[0_0_10px_rgba(239,68,68,0.9)] animate-pulse" />
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-blue-600 text-white rounded text-[10px] font-bold uppercase tracking-wider shadow-xs">
+                  Arahkan Barcode / QR Di Sini
                 </span>
               </div>
             </div>
@@ -239,7 +248,7 @@ export default function BarcodeScannerModal({
           </div>
         )}
 
-        {/* Pilihan Kamera Jika Lebih Dari 1 (misal ada Webcam Eksternal & Internal) */}
+        {/* Pilihan Kamera Jika Lebih Dari 1 */}
         {cameras.length > 1 && (
           <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
             <span className="font-medium">Pilih Kamera:</span>
@@ -260,7 +269,7 @@ export default function BarcodeScannerModal({
         <div className="flex items-center justify-between pt-2 border-t border-slate-100">
           <span className="text-[11px] text-slate-400">
             {continuous
-              ? "Mode cepat: scan berturut-turut tanpa menutup kamera."
+              ? "Mode kasir: scan terus menerus tanpa menutup modal."
               : "Kamera akan menutup otomatis setelah berhasil scan."}
           </span>
           <Button variant="secondary" size="sm" onClick={onClose}>
