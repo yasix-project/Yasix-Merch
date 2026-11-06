@@ -48,10 +48,13 @@ Untuk hasil tercepat, gratis, dan stabil:
 3. Klik service repository tersebut untuk membuka pengaturannya:
    - Masuk ke tab **"Settings"**:
      - Cari bagian **"Root Directory"** -> Klik **Edit** -> Ubah menjadi `/backend`.
+     - Bagian **"Build Command"** -> Set ke: `npx prisma generate` *(atau biarkan membaca railway.json)*.
+     - Bagian **"Pre-deploy Command"** -> Set ke: `npx prisma migrate deploy` *(PENTING: Dijalankan sebelum start di lingkungan yang sudah terhubung jaringan private database)*.
+     - Bagian **"Start Command"** -> Set ke: `node index.js`.
    - Masuk ke tab **"Variables"** -> Tambahkan environment variables berikut:
      - `PORT`: `5000`
      - `NODE_ENV`: `production`
-     - `DATABASE_URL`: Klik **Add Reference** dan pilih `${{MySQL.DATABASE_URL}}` (Railway otomatis menghubungkan backend ke MySQL via jaringan internal).
+     - `DATABASE_URL`: Masukkan URL internal MySQL Anda, atau klik **Add Reference** dan pilih `${{MySQL.DATABASE_URL}}` (misal: `mysql://root:PASSWORD@mysql.railway.internal:3306/railway`).
      - `JWT_SECRET`: `super_secret_jwt_key_gtnic_2026_yasix`
      - `JWT_EXPIRES_IN`: `1d`
    - Masuk ke tab **"Volumes"** (Sangat Penting):
@@ -62,8 +65,8 @@ Untuk hasil tercepat, gratis, dan stabil:
      - Pada bagian **Public Networking**, klik **"Generate Domain"**.
      - Salin domain yang dibuat, contoh: `https://yasix-backend-production.up.railway.app`.
 
-### C. Menjalankan Migrasi Skema & Seeding Data Awal
-Backend sudah dikonfigurasi untuk otomatis menjalankan `prisma migrate deploy` saat pertama kali menyala. Untuk mengisi akun demo juri dan data awal:
+### C. Menjalankan Seeding Data Awal (Akun Demo Juri)
+Setelah migrasi skema berhasil dijalankan lewat Pre-deploy command:
 1. Di service backend Railway, buka tab **"Deployments"** -> klik ikon **"..."** pada deployment aktif -> pilih **"Terminal"** (atau via Railway CLI).
 2. Jalankan perintah seeding:
    ```bash
@@ -116,9 +119,9 @@ Berikan URL Vercel kepada juri beserta kredensial berikut (sesuai data seed data
 
 ## ❓ FAQ & Solusi Kendala Umum
 
-1. **Muncul error CORS di konsol browser?**
+1. **Muncul error `P1001: Can't reach database server` saat build image?**
+   - Host privat `mysql.railway.internal` belum aktif/terhubung pada tahap *build time*. Pastikan `npx prisma migrate deploy` **TIDAK** dijalankan di Build Command, melainkan di **Pre-deploy Command** (atau gunakan file `backend/railway.json`).
+2. **Muncul error CORS di konsol browser?**
    - Backend Express telah dipasangi middleware `cors()` yang mengizinkan semua origin, sehingga frontend Vercel dapat berkomunikasi tanpa terblokir. Pastikan format URL di `VITE_API_BASE_URL` lengkap dengan `https://` dan `/api/v1`.
-2. **Koneksi database Railway ditolak?**
-   - Pastikan backend menggunakan Reference Variable `${{MySQL.DATABASE_URL}}` dari service MySQL di project yang sama.
 3. **Apakah kredit Railway gratis cukup untuk lomba?**
    - Ya, Railway menyediakan trial credit $5/bulan yang lebih dari cukup untuk menjalankan backend dan MySQL selama periode penilaian lomba GTNIC 2026.

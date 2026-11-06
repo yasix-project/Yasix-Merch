@@ -9,10 +9,10 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install dependencies (termasuk devDependencies sementara untuk prisma generate)
+# Install dependencies
 RUN npm install
 
-# Generate Prisma Client
+# Generate Prisma Client (build-time, tidak membutuhkan koneksi database)
 RUN npx prisma generate
 
 # Copy source code
@@ -24,5 +24,5 @@ RUN mkdir -p uploads/products uploads/documents
 # Expose port backend
 EXPOSE 5000
 
-# Perintah menjalankan migrasi skema dan server Express
-CMD ["sh", "-c", "npx prisma migrate deploy && node index.js"]
+# Perintah menjalankan server Express
+CMD ["node", "index.js"]
