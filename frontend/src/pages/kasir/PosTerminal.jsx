@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useReactToPrint } from "react-to-print";
-import { Search, PackageX } from "lucide-react";
+import { Search, PackageX, Camera } from "lucide-react";
 
 import { useProducts } from "../../hooks/admin/useProducts";
 import { useCategories } from "../../hooks/admin/useCategories";
@@ -13,13 +13,16 @@ import ProductCard from "../../components/kasir/ProductCard";
 import PosCart from "../../components/kasir/PosCart";
 import PaymentModal from "../../components/kasir/PaymentModal";
 import StrukPrinter from "../../components/shared/StrukPrinter";
+import BarcodeScannerModal from "../../components/shared/BarcodeScannerModal";
 import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
 export default function PosTerminal() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   const [memberCode, setMemberCode] = useState("");
+  const [verifiedStudent, setVerifiedStudent] = useState(null);
   const [voucherCode, setVoucherCode] = useState("");
+  const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [printData, setPrintData] = useState([]);
@@ -40,6 +43,7 @@ export default function PosTerminal() {
       setPrintData([]);
       clearCart();
       setMemberCode("");
+      setVerifiedStudent(null);
       setVoucherCode("");
     },
   });
@@ -72,6 +76,31 @@ export default function PosTerminal() {
     });
   };
 
+  const handleBarcodeScan = (scannedCode) => {
+    if (!scannedCode) return;
+    const cleanCode = scannedCode.trim();
+
+    // Temukan produk berdasarkan barcode atau ID
+    const product = products.find(
+      (p) =>
+        p.isActive !== false &&
+        (p.barcode === cleanCode ||
+          p.id === cleanCode ||
+          p.name?.toLowerCase() === cleanCode.toLowerCase())
+    );
+
+    if (product) {
+      if (product.stock <= 0) {
+        showErrorToast(`Stok ${product.name} telah habis!`);
+        return;
+      }
+      handleAddToCart(product);
+      showSuccessToast(`+1 ${product.name} dimasukkan ke keranjang`);
+    } else {
+      showErrorToast(`Produk dengan barcode/kode "${cleanCode}" tidak ditemukan.`);
+    }
+  };
+
   const handleProcessPayment = async (paymentDetails) => {
     const payload = {
       paymentMethod: paymentDetails.paymentMethod,
@@ -93,9 +122,11 @@ export default function PosTerminal() {
         const transactionForPrint = {
           ...savedTransaction,
           cashier: savedTransaction.cashier || { name: user?.name || "Kasir" },
+          student: savedTransaction.student || verifiedStudent || null,
           items: savedTransaction.items?.length ? savedTransaction.items : cart,
         };
         setPrintData([transactionForPrint]);
+        setVerifiedStudent(null);
         showSuccessToast("Transaksi berhasil diproses!");
       },
       onError: (err) => {
@@ -116,19 +147,36 @@ export default function PosTerminal() {
       {/* Sisi Kiri: Katalog Produk */}
       <div className="flex-1 flex flex-col h-full bg-slate-50 border-r border-slate-200">
         <div className="p-4 bg-white border-b border-slate-200 shadow-sm z-10 space-y-3">
-          <div className="relative">
-            <Search
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Cari nama produk atau Scan Barcode..."
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium outline-hidden"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              autoFocus
-            />
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder="Cari nama produk, SKU, atau Scan Barcode (Enter)..."
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium outline-hidden"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && searchQuery.trim()) {
+                    handleBarcodeScan(searchQuery.trim());
+                    setSearchQuery("");
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsBarcodeScannerOpen(true)}
+              title="Scan Barcode via Webcam"
+              className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs rounded-xl border border-blue-200 transition-all shrink-0 active:scale-95 shadow-xs"
+            >
+              <Camera size={16} className="text-blue-600" />
+              <span className="hidden sm:inline">Scan Webcam</span>
+            </button>
           </div>
 
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -193,6 +241,8 @@ export default function PosTerminal() {
       <PosCart
         memberCode={memberCode}
         setMemberCode={setMemberCode}
+        verifiedStudent={verifiedStudent}
+        setVerifiedStudent={setVerifiedStudent}
         voucherCode={voucherCode}
         setVoucherCode={setVoucherCode}
         onOpenPayment={() => setIsPaymentModalOpen(true)}
@@ -206,6 +256,16 @@ export default function PosTerminal() {
         totalAmount={getCartTotal()}
         onProcessPayment={handleProcessPayment}
         isProcessing={createTransaction.isPending}
+      />
+
+      {/* Modal Scan Barcode Produk via Webcam */}
+      <BarcodeScannerModal
+        isOpen={isBarcodeScannerOpen}
+        onClose={() => setIsBarcodeScannerOpen(false)}
+        onScan={handleBarcodeScan}
+        title="Scan Barcode Produk (Webcam)"
+        description="Arahkan barcode produk ke webcam laptop. Scanner akan otomatis mendeteksi dan memasukkan produk ke keranjang kasir."
+        continuous={true}
       />
     </div>
   );

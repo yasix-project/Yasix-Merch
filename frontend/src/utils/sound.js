@@ -61,3 +61,40 @@ export const playNotificationSound = (type = "chime") => {
     // Abaikan jika browser membatasi autoplay audio sebelum gesture pengguna
   }
 };
+
+/**
+ * Nada beep instan khas alat scanner barcode kasir (supermarket scanner)
+ */
+export const playBarcodeBeep = () => {
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    const ctx = new AudioContextClass();
+    if (ctx.state === "suspended") {
+      ctx.resume();
+    }
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(1760, now); // Nada tinggi A6
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.12);
+
+    // Getar haptic (jika perangkat mendukung)
+    if (navigator?.vibrate) {
+      navigator.vibrate(80);
+    }
+  } catch (err) {
+    // Abaikan error audio
+  }
+};

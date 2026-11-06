@@ -18,8 +18,10 @@ Pada periode krusial (jam istirahat, pergantian jam pelajaran, dan menjelang bat
 
 **YasixMerch** dirancang sebagai ekosistem kasir modern berbasis web yang mengintegrasikan penjualan ritel dan jasa percetakan mandiri dalam satu platform:
 
-- **Terminal POS Kasir Ergonomis:** Dilengkapi _quick cash suggestions_, pencarian barcode kilat, integrasi diskon/voucher, dan cetak struk thermal otomatis via _react-to-print_.
-- **Manajemen Shift Kasir Ketat:** Sistem penguncian layar sebelum kasir memasukkan modal awal (_Start Cash_) serta formulir rekonsiliasi kas fisik (_Actual Cash_) saat menutup sesi jaga kasir.
+- **Terminal POS Kasir Ergonomis:** Dilengkapi *quick cash suggestions*, pencarian barcode kilat, integrasi diskon/voucher, dan cetak struk thermal otomatis via *react-to-print*.
+- **Scanner Barcode & QR via Webcam (Pure Web API):** Tidak memerlukan scanner barcode USB fisik eksternal. Kasir cukup mengarahkan barcode produk 1D (EAN-13, Code-128) atau kartu pelajar/QR member ke webcam laptop. Dilengkapi suara *beep* supermarket dan *cooldown* cerdas.
+- **Kartu Pelajar & Loyalty Point Siswa:** Integrasi identitas siswa (NIS/QR) saat transaksi kasir memberikan poin loyalitas otomatis (+1 poin per Rp 10.000).
+- **Manajemen Shift Kasir Ketat:** Sistem penguncian layar sebelum kasir memasukkan modal awal (*Start Cash*) serta formulir rekonsiliasi kas fisik (*Actual Cash*) saat menutup sesi jaga kasir.
 - **Antrean Cetak Mandiri (Self-Service Document Queue):** Siswa dapat mengunggah file PDF melalui portal mereka. Sistem otomatis membaca jumlah halaman secara server-side menggunakan pustaka `pdf-lib`, mengkalkulasi tarif cetak (warna vs hitam-putih), dan menempatkan pesanan pada antrean digital kasir tanpa perlu flashdisk.
 - **Pre-order Siswa:** Memungkinkan siswa memesan barang di awal dan kasir tinggal memproses penyerahan barang di konter pengambilan.
 
@@ -30,12 +32,14 @@ Pada periode krusial (jam istirahat, pergantian jam pelajaran, dan menjelang bat
 - **Frontend:**
   - **Core:** React, Vite
   - **Styling:** Tailwind CSS, Lucide React Icons
+  - **Scanner Engine:** `html5-qrcode` (Mendukung EAN-13, EAN-8, Code-128, UPC, dan QR Code)
+  - **Audio & Haptic Feedback:** Web Audio API (`playBarcodeBeep`) & Vibration API
   - **State Management:** Zustand (Auth Session, Cart Store, dan LocalShift Persistence)
   - **Data Fetching & Cache:** TanStack Query (React Query)
   - **Printing Engine:** `react-to-print` (Thermal Receipt Direct Output)
 - **Backend:**
   - **Runtime & Framework:** Node.js, Express.js (REST API Architecture)
-  - **Database & ORM:** PostgreSQL / MySQL, Prisma ORM
+  - **Database & ORM:** MySQL (Railway), Prisma ORM
   - **Document Parsing Engine:** `pdf-lib` (Ekstraksi Halaman PDF Server-side)
   - **Keamanan & Middleware:** JSON Web Token (JWT), Bcrypt, Express Rate Limiter, Multer File Filter
 
@@ -47,13 +51,14 @@ Pada periode krusial (jam istirahat, pergantian jam pelajaran, dan menjelang bat
 ├── backend/
 │   ├── prisma/
 │   │   ├── schema.prisma         # Skema database & relasi relasional
+│   │   ├── seed.js               # Mockup data realistis (Users, Barcode EAN-13, Transaksi)
 │   │   └── migrations/           # Riwayat migrasi skema database
 │   ├── src/
 │   │   ├── config/               # Prisma client & konfigurasi server
 │   │   ├── controllers/          # Business logic handlers
 │   │   ├── middlewares/          # JWT Auth, Role-Based Access Control, Multer, Rate Limiter
 │   │   ├── routes/               # Deklarasi router API Express
-│   │   └── services/             # Abstraksi kalkulasi PDF & print logic
+│   │   └── services/             # Abstraksi kalkulasi PDF, transaksi, dan resolusi member
 │   ├── uploads/                  # Media penyimpanan gambar produk & dokumen PDF
 │   ├── package.json
 │   └── server.js
@@ -61,12 +66,12 @@ Pada periode krusial (jam istirahat, pergantian jam pelajaran, dan menjelang bat
 ├── frontend/
 │   ├── src/
 │   │   ├── api/                  # Axios client & service call definitions
-│   │   ├── components/           # Komponen UI modular (Buttons, Tables, Cart, Modals)
+│   │   ├── components/           # Komponen UI modular (Buttons, Tables, Cart, Modals, Scanner)
 │   │   ├── hooks/                # Custom React Query hooks
 │   │   ├── layouts/              # AdminLayout & KasirLayout (Shift-Locked)
 │   │   ├── pages/                # Modul Kasir POS, Riwayat Transaksi, Antrean Print, Admin
 │   │   ├── store/                # Zustand stores (useAuthStore, usePosStore, useShiftStore)
-│   │   └── utils/                # Formatter mata uang Rupiah & tanggal
+│   │   └── utils/                # Formatter Rupiah, Tanggal, Image URL, Audio Beep Scanner
 │   ├── package.json
 │   └── vite.config.js
 │
@@ -137,6 +142,7 @@ Seluruh endpoint terproteksi mewajibkan header: `Authorization: Bearer <access_t
 | Method  | Endpoint               | Hak Akses        | Deskripsi                                                  |
 | :------ | :--------------------- | :--------------- | :--------------------------------------------------------- |
 | `GET`   | `/students`            | `ADMIN`, `KASIR` | Menampilkan seluruh direktori siswa / member               |
+| `GET`   | `/students/:id`        | Protected        | Cari siswa berdasarkan ID, NIS, atau QR Member             |
 | `PATCH` | `/students/:id/points` | `ADMIN`, `KASIR` | Tambah atau kurangi poin loyalitas siswa                   |
 | `GET`   | `/vouchers`            | Protected        | Daftar kupon voucher promo yang aktif                      |
 | `POST`  | `/vouchers/validate`   | Protected        | Validasi keabsahan kupon diskon saat checkout kasir        |
@@ -158,16 +164,18 @@ Gunakan kredensial pengujian berikut untuk mengevaluasi fitur pada masing-masing
   - 📊 **Dashboard Analitik:** Monitoring omzet harian, grafik transaksi ritel & print, serta metrik performa.
   - 📦 **Master Produk & Kategori:** Menambah dan mengedit produk, kalkulasi margin otomatis, batas minimum stok, dan unggah foto produk.
   - 👥 **Kelola Siswa & Loyalitas:** Direktori siswa/member dan pengelolaan saldo poin.
-  - 🎟️ **Manajemen Voucher:** Pembuatan kode promo diskon nominal/persentase.
+  - 🎟️ **Manajemen Voucher:** Pembuatan kode promo diskon nominal/persentase (`YASIXHEMAT5`, `GTNIC2026`).
   - 🕒 **Audit Shift Kasir:** Rekapitulasi modal awal (*start cash*) vs setoran kas fisik (*actual cash*) dari setiap kasir.
   - 🧾 **Monitoring Transaksi:** Audit seluruh riwayat penjualan dan status pesanan *pre-order*.
 
 ### 2. Kasir (Terminal POS & Operasional)
 - **Portal Login:** `/login`
-- **Nama Pengguna:** `Kasir Shift 1`
+- **Nama Pengguna:** `Siti Rahmawati (Kasir Shift 1)`
 - **Email:** `kasir@smkyadika6.sch.id`
 - **Password:** `password123`
 - **Fitur Utama yang Dapat Diuji:**
+  - 📷 **Scanner Barcode & QR via Webcam Laptop:** Klik tombol **"Scan Webcam"** untuk mendeteksi barcode produk 1D (EAN-13, Code-128) dan QR Code member secara langsung tanpa scanner USB eksternal (dilengkapi audio beep supermarket).
+  - 💳 **Scan Kartu Pelajar & Member Siswa:** Scan QR Member atau masukkan NIS siswa (`20261001` s/d `20261005`) untuk verifikasi nama dan penambahan loyalty point otomatis (+1 poin per Rp 10.000).
   - 🔐 **Buka Shift Kasir:** Input modal awal laci (*Start Cash*) untuk membuka proteksi layar kasir.
   - 🛒 **Terminal POS Ritel:** Pencarian barcode instan, tombol nominal cepat (*quick cash*), dan kalkulasi kembalian.
   - 🖨️ **Cetak Struk Thermal:** Pencetakan struk transaksi langsung via format thermal 58mm/80mm.
@@ -177,12 +185,13 @@ Gunakan kredensial pengujian berikut untuk mengevaluasi fitur pada masing-masing
 
 ### 3. Siswa (Member & Pemesanan Mandiri)
 - **Portal Login:** `/login`
-- **Nama Pengguna:** `Siswa Demo`
-- **Email:** `siswa@smkyadika6.sch.id`
-- **Password:** `password123`
-- **NIS:** `20261001`
-- **QR Code Member:** `MEMBER-20261001`
-- **Saldo Poin Awal:** `50 Poin`
+- **Password (Semua Akun):** `password123`
+- **Daftar Akun Siswa Pengujian:**
+  1. **Budi Pratama (XII RPL 1):** `siswa@smkyadika6.sch.id` | NIS: `20261001` | QR: `MEMBER-20261001` | 145 Poin
+  2. **Aditya Wardhana (XII TKJ 2):** `aditya@smkyadika6.sch.id` | NIS: `20261002` | QR: `MEMBER-20261002` | 90 Poin
+  3. **Siti Nurhaliza (XI DKV 1):** `siti.dkv@smkyadika6.sch.id` | NIS: `20261003` | QR: `MEMBER-20261003` | 230 Poin
+  4. **Farhan Kurniawan (XI AKL):** `farhan.akl@smkyadika6.sch.id` | NIS: `20261004` | QR: `MEMBER-20261004` | 55 Poin
+  5. **Zahra Aulia (X MPLB):** `zahra.mplb@smkyadika6.sch.id` | NIS: `20261005` | QR: `MEMBER-20261005` | 20 Poin
 - **Fitur Utama yang Dapat Diuji:**
   - 🛍️ **Katalog Ritel & Pre-order:** Melihat etalase ATK/merchandise sekolah dan melakukan pemesanan awal (*booking*).
   - 📑 **Self-Service Print Queue:** Unggah berkas PDF tugas, sistem menghitung otomatis jumlah halaman warna vs hitam putih via `pdf-lib` dan menghasilkan estimasi harga instan.

@@ -1,8 +1,16 @@
 const prisma = require("../config/prisma");
 
 const createTransactionService = async (cashierId, transactionData) => {
-  const { studentId, voucherId, paymentMethod, payAmount, items } =
-    transactionData;
+  const {
+    studentId,
+    studentNis,
+    memberCode,
+    voucherId,
+    voucherCode,
+    paymentMethod,
+    payAmount,
+    items,
+  } = transactionData;
 
   if (!items || items.length === 0) {
     throw new Error("Detail barang transaksi tidak boleh kosong.");
@@ -10,6 +18,40 @@ const createTransactionService = async (cashierId, transactionData) => {
 
   // Menggunakan Prisma $transaction untuk menjaga atomisitas data
   return await prisma.$transaction(async (tx) => {
+    // Resolusi akun siswa dari ID, NIS, atau QR Code Member
+    let resolvedStudentId = studentId;
+    const identifier = (studentNis || memberCode || "").trim();
+    if (!resolvedStudentId && identifier) {
+      const student = await tx.user.findFirst({
+        where: {
+          role: "SISWA",
+          OR: [
+            { id: identifier },
+            { nis: identifier },
+            { qrCodeMember: identifier },
+          ],
+        },
+      });
+      if (student) {
+        resolvedStudentId = student.id;
+      }
+    }
+
+    // Resolusi Voucher dari Voucher Code jika voucherId tidak disediakan
+    let resolvedVoucherId = voucherId;
+    if (!resolvedVoucherId && voucherCode?.trim()) {
+      const vCode = voucherCode.trim().toUpperCase();
+      const voucher = await tx.voucher.findFirst({
+        where: {
+          code: vCode,
+          isActive: true,
+        },
+      });
+      if (voucher) {
+        resolvedVoucherId = voucher.id;
+      }
+    }
+
     let subtotal = 0;
     const transactionItemsData = [];
 
@@ -87,9 +129,9 @@ const createTransactionService = async (cashierId, transactionData) => {
 
     // 2. Kalkulasi Diskone & Voucher
     let discountAmount = 0;
-    if (voucherId) {
+    if (resolvedVoucherId) {
       const voucher = await tx.voucher.findUnique({
-        where: { id: voucherId },
+        where: { id: resolvedVoucherId },
       });
 
       if (
@@ -123,8 +165,8 @@ const createTransactionService = async (cashierId, transactionData) => {
       data: {
         invoiceNumber,
         cashierId,
-        studentId: studentId || null,
-        voucherId: voucherId || null,
+        studentId: resolvedStudentId || null,
+        voucherId: resolvedVoucherId || null,
         subtotal,
         discountAmount,
         totalAmount,
@@ -137,15 +179,18 @@ const createTransactionService = async (cashierId, transactionData) => {
       },
       include: {
         items: true,
+        student: {
+          select: { id: true, name: true, nis: true, points: true },
+        },
       },
     });
 
     // 4. Tambah Poin ke Siswa (1 Poin per Kelipatan Rp 10.000)
-    if (studentId) {
+    if (resolvedStudentId) {
       const earnedPoints = Math.floor(totalAmount / 10000);
       if (earnedPoints > 0) {
         await tx.user.update({
-          where: { id: studentId },
+          where: { id: resolvedStudentId },
           data: { points: { increment: earnedPoints } },
         });
       }

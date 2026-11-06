@@ -1,22 +1,37 @@
-import { ShoppingBag, CreditCard, Trash2, Loader2 } from "lucide-react";
+import { useState } from "react";
+import {
+  ShoppingBag,
+  CreditCard,
+  Trash2,
+  Loader2,
+  Camera,
+  CheckCircle2,
+  X,
+  UserCheck,
+} from "lucide-react";
 import CartItem from "./CartItem";
 import { formatRupiah } from "../../utils/formatters";
 import { usePosStore } from "../../store/posStore";
+import { studentService } from "../../api/studentService";
+import BarcodeScannerModal from "../shared/BarcodeScannerModal";
+import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
 const inputClass =
-  "w-full rounded-xl bg-slate-50 py-2.5 pl-3.5 pr-20 text-[13px] text-slate-800 ring-1 ring-slate-200 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-blue-600";
-
-const inlineBtnClass =
-  "absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg px-3 py-1.5 text-xs font-semibold text-blue-600 outline-none transition hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-600";
+  "w-full rounded-xl bg-slate-50 py-2.5 pl-3.5 pr-24 text-[13px] text-slate-800 ring-1 ring-slate-200 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-blue-600";
 
 export default function PosCart({
   memberCode,
   setMemberCode,
+  verifiedStudent,
+  setVerifiedStudent,
   voucherCode,
   setVoucherCode,
   onOpenPayment,
   isProcessing,
 }) {
+  const [isMemberScannerOpen, setIsMemberScannerOpen] = useState(false);
+  const [isCheckingMember, setIsCheckingMember] = useState(false);
+
   const {
     cart,
     addToCart,
@@ -37,6 +52,45 @@ export default function PosCart({
       price: item.price,
       name: item.itemName,
     });
+  };
+
+  const handleCheckMember = async (codeToCheck) => {
+    const code = (codeToCheck || memberCode || "").trim();
+    if (!code) {
+      showErrorToast("Masukkan NIS atau Scan QR Member terlebih dahulu");
+      return;
+    }
+
+    try {
+      setIsCheckingMember(true);
+      const res = await studentService.getById(code);
+      const student = res?.data?.data || res?.data || res;
+      if (student && student.name) {
+        setVerifiedStudent(student);
+        setMemberCode(student.nis || code);
+        showSuccessToast(
+          `Member: ${student.name} (${student.points || 0} Poin)`
+        );
+      } else {
+        showErrorToast("Data siswa/member tidak ditemukan.");
+        setVerifiedStudent(null);
+      }
+    } catch (err) {
+      showErrorToast(
+        err?.response?.data?.message ||
+          "Data siswa/member dengan NIS atau QR tersebut tidak ditemukan."
+      );
+      setVerifiedStudent(null);
+    } finally {
+      setIsCheckingMember(false);
+    }
+  };
+
+  const handleMemberScan = (scannedCode) => {
+    const code = (scannedCode || "").trim();
+    if (!code) return;
+    setMemberCode(code);
+    handleCheckMember(code);
   };
 
   return (
@@ -91,20 +145,80 @@ export default function PosCart({
       <div className="border-t border-slate-200/80 bg-white px-5 pb-5 pt-4">
         {/* Member & voucher */}
         <div className="space-y-2">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Scan NIS atau kode member"
-              value={memberCode}
-              onChange={(e) => setMemberCode(e.target.value)}
-              aria-label="Kode member"
-              className={inputClass}
-            />
-            <button type="button" className={inlineBtnClass}>
-              Cek
-            </button>
+          {/* Input Member + Tombol Webcam Scanner */}
+          <div>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Scan NIS atau QR member"
+                value={memberCode}
+                onChange={(e) => setMemberCode(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleCheckMember();
+                  }
+                }}
+                aria-label="Kode member"
+                className={inputClass}
+              />
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setIsMemberScannerOpen(true)}
+                  title="Scan QR Member / Kartu Siswa via Webcam"
+                  className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50 transition"
+                >
+                  <Camera size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCheckMember()}
+                  disabled={isCheckingMember}
+                  className="rounded-lg px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 transition disabled:opacity-50"
+                >
+                  {isCheckingMember ? (
+                    <Loader2 size={13} className="animate-spin" />
+                  ) : (
+                    "Cek"
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Badge Member Terverifikasi */}
+            {verifiedStudent && (
+              <div className="mt-1.5 flex items-center justify-between p-2.5 bg-blue-50 border border-blue-200 rounded-xl animate-in fade-in duration-150">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-blue-600 shrink-0" />
+                  <div>
+                    <p className="font-bold text-slate-800 text-xs">
+                      {verifiedStudent.name}
+                    </p>
+                    <p className="text-[10px] text-slate-500">
+                      NIS: {verifiedStudent.nis || "-"} •{" "}
+                      <span className="text-blue-700 font-bold">
+                        {verifiedStudent.points || 0} Poin Loyalty
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setVerifiedStudent(null);
+                    setMemberCode("");
+                  }}
+                  className="text-slate-400 hover:text-red-500 p-1 transition"
+                  title="Batalkan Member"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
           </div>
 
+          {/* Input Voucher Diskon */}
           <div className="relative">
             <input
               type="text"
@@ -112,9 +226,17 @@ export default function PosCart({
               value={voucherCode}
               onChange={(e) => setVoucherCode(e.target.value)}
               aria-label="Kode voucher"
-              className={`${inputClass} uppercase placeholder:normal-case`}
+              className="w-full rounded-xl bg-slate-50 py-2.5 pl-3.5 pr-20 text-[13px] text-slate-800 ring-1 ring-slate-200 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-blue-600 uppercase placeholder:normal-case"
             />
-            <button type="button" className={inlineBtnClass}>
+            <button
+              type="button"
+              onClick={() => {
+                if (voucherCode.trim()) {
+                  showSuccessToast(`Voucher ${voucherCode.toUpperCase()} siap digunakan`);
+                }
+              }}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg px-3 py-1.5 text-xs font-semibold text-blue-600 outline-none transition hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-600"
+            >
               Gunakan
             </button>
           </div>
@@ -177,6 +299,16 @@ export default function PosCart({
           </button>
         </div>
       </div>
+
+      {/* Modal Scanner QR/NIS Siswa via Webcam */}
+      <BarcodeScannerModal
+        isOpen={isMemberScannerOpen}
+        onClose={() => setIsMemberScannerOpen(false)}
+        onScan={handleMemberScan}
+        title="Scan Kartu Pelajar / QR Member"
+        description="Arahkan Barcode NIS pada kartu pelajar atau QR Member Siswa ke depan webcam laptop."
+        continuous={false}
+      />
     </aside>
   );
 }
