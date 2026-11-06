@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Home, Compass } from "lucide-react";
 
 import Button from "../components/ui/Button";
-import BCYasixLogo from "../components/ui/BcYasixLogo"; // Sesuaikan path jika berbeda
+import YasixLogo from "../components/ui/YasixLogo";
 
 export default function NotFound() {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ export default function NotFound() {
       <div className="relative z-10 flex flex-col items-center text-center max-w-lg w-full">
         {/* Logo */}
         <div className="mb-10 transform hover:scale-105 transition-transform duration-300">
-          <BCYasixLogo variant="full" theme="light" size={48} />
+          <YasixLogo variant="full" theme="light" size={48} />
         </div>
 
         {/* Ilustrasi 404 */}

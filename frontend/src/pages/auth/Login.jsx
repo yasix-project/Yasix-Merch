@@ -14,7 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 
-import BCYasixLogo from "../../components/ui/BcYasixLogo";
+import YasixLogo from "../../components/ui/YasixLogo";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import { useAuthMutations } from "../../hooks/admin/useAuth";
@@ -135,7 +135,7 @@ export default function Login() {
           <div className="space-y-8 relative z-10">
             {/* Logo Utama & Badge */}
             <div className="flex items-center justify-between gap-3">
-              <BCYasixLogo variant="full" theme="dark" size={44} />
+              <YasixLogo variant="full" theme="dark" size={44} />
               <span className="bg-blue-500/20 border border-blue-500/30 rounded-full px-3 py-1 text-[10px] font-extrabold text-blue-400 tracking-wider uppercase">
                 Portal Utama
               </span>
@@ -188,7 +188,7 @@ export default function Login() {
           {/* Header Form */}
           <div className="flex items-center gap-4 mb-10">
             <div className="bg-slate-800 p-2.5 rounded-xl border border-slate-700 shadow-inner">
-              <BCYasixLogo variant="icon" size={48} className="shrink-0" />
+              <YasixLogo variant="icon" size={48} className="shrink-0" />
             </div>
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-white">

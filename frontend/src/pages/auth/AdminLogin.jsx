@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { Lock, Mail, ShieldAlert, ArrowRight, Loader2 } from "lucide-react";
 
 import Input from "../../components/ui/Input";
-import BCYasixLogo from "../../components/ui/BcYasixLogo";
+import YasixLogo from "../../components/ui/YasixLogo";
 import { useAuthMutations } from "../../hooks/admin/useAuth";
 import { useAuthStore } from "../../store/authStore";
 
@@ -135,7 +135,7 @@ export default function AdminLogin() {
       <div className="relative z-10 w-full max-w-sm px-6 py-10 mx-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl">
         <div className="flex flex-col items-center mb-8">
           <div className="bg-white p-3 rounded-2xl shadow-lg mb-5 inline-flex ring-4 ring-white/10">
-            <BCYasixLogo variant="icon" size={42} />
+            <YasixLogo variant="icon" size={42} />
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">
             Admin Portal
