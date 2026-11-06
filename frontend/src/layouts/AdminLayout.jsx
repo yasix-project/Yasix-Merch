@@ -16,7 +16,7 @@ import {
   Menu, // [BARU] tombol hamburger (mobile)
   X, // [BARU] tombol tutup drawer (mobile)
 } from "lucide-react";
-import BCYasixLogo from "../components/ui/BcYasixLogo";
+import YasixLogo from "../components/ui/YasixLogo";
 import LogoYadika from "../assets/yadika-seeklogo.png";
 import { useAuthStore } from "../store/authStore";
 
@@ -135,9 +135,9 @@ export default function AdminLayout() {
             }`}
           >
             {mini ? (
-              <BCYasixLogo variant="icon" theme="dark" size={40} />
+              <YasixLogo variant="icon" theme="dark" size={40} />
             ) : (
-              <BCYasixLogo
+              <YasixLogo
                 variant="full"
                 theme="dark"
                 size={40}
@@ -259,7 +259,7 @@ export default function AdminLayout() {
           >
             <Menu size={22} />
           </button>
-          <BCYasixLogo variant="full" theme="dark" size={32} tagline={false} />
+          <YasixLogo variant="full" theme="dark" size={32} tagline={false} />
         </header>
 
         <main className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6 md:p-8">

@@ -8,7 +8,7 @@ import { useId } from "react";
  * size    : tinggi ikon dalam px (tulisan menyesuaikan otomatis)
  * tagline : tampilkan "SMK YADIKA 6 JATIWARINGIN" di bawah nama (hanya variant "full")
  */
-export default function BCYasixLogo({
+export default function YasixLogo({
   variant = "full",
   theme = "light",
   size = 48,
