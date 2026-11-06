@@ -193,8 +193,8 @@ Gunakan kredensial pengujian berikut untuk mengevaluasi fitur pada masing-masing
 
 ## 🔗 Tautan Media & Demonstrasi
 
-- **Aplikasi Live Demo:** `[ISI_URL_DEPLOYMENT_FRONTEND]`
-- **API Server Endpoint:** `[ISI_URL_DEPLOYMENT_BACKEND]`
+- **Aplikasi Live Demo:** `https://yasix-merch-gilt.vercel.app/`
+- **API Server Endpoint:** `https://yasix-merch-production.up.railway.app/`
 - **Video Demonstrasi & Presentasi Produk:** `[ISI_LINK_VIDEO_YOUTUBE_ATAU_DRIVE]`
 
 ---
