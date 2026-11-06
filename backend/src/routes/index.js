@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const prisma = require("../config/prisma");
+const { exec } = require("child_process");
 
 const authRoutes = require("./auth.routes");
 const productRoutes = require("./product.routes");
@@ -41,8 +42,29 @@ router.get("/health", async (req, res) => {
   }
 });
 
-// Sub-Routers
+// Endpoint On-Demand Seeding Database (Bisa diakses via GET atau POST)
+router.all("/seed", async (req, res) => {
+  exec("node prisma/seed.js", (error, stdout, stderr) => {
+    if (error) {
+      console.error("Gagal menjalankan seed via API endpoint:", error);
+      return res.status(500).json({
+        status: "error",
+        message: "Gagal mengeksekusi seed data.",
+        error: error.message,
+        stderr,
+      });
+    }
 
+    return res.status(200).json({
+      status: "success",
+      message: "Seed data realistis YasixMerch berhasil dieksekusi ke Database!",
+      output: stdout,
+      timestamp: new Date().toISOString(),
+    });
+  });
+});
+
+// Sub-Routers
 router.use("/shifts", shiftRoutes);
 router.use("/auth", authRoutes);
 router.use("/products", productRoutes);

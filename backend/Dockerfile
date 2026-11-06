@@ -24,5 +24,5 @@ RUN mkdir -p uploads/products uploads/documents
 # Expose port backend
 EXPOSE 5000
 
-# Perintah menjalankan server Express
-CMD ["node", "index.js"]
+# Perintah menjalankan migrasi, seed data, dan server Express secara berurutan
+CMD ["sh", "-c", "npx prisma migrate deploy && node prisma/seed.js && node index.js"]
