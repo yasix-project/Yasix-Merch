@@ -18,6 +18,7 @@ import {
   useValidateVoucher,
 } from "../../hooks/siswa/useStudentTransactions";
 import { formatRupiah } from "../../utils/formatters";
+import { resolveFileUrl } from "../../utils/imageUrl";
 import { showSuccessToast, showErrorToast } from "../../utils/toast";
 import Button from "../ui/Button";
 
@@ -154,9 +155,7 @@ export default function CartDrawerModal({ isOpen, onClose, onOrderSuccess }) {
             </div>
           ) : (
             cart.map((item) => {
-              const fileUrl = item.product?.imageUrl
-                ? `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${item.product.imageUrl}`
-                : null;
+              const fileUrl = resolveFileUrl(item.product?.imageUrl);
 
               return (
                 <div

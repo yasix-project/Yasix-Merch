@@ -22,6 +22,7 @@ import {
 import axiosClient from "../../api/axiosClient";
 import { useStudentOrders } from "../../hooks/siswa/useStudentTransactions";
 import { formatRupiah } from "../../utils/formatters";
+import { resolveFileUrl } from "../../utils/imageUrl";
 import OrderQrModal from "../../components/siswa/OrderQrModal";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
@@ -599,9 +600,7 @@ export default function SiswaPesanan() {
           ) : (
             <div className="space-y-3">
               {filteredPrintOrders.map((order) => {
-                const fileUrl = order.fileUrl
-                  ? `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/${order.fileUrl.replace(/\\/g, "/")}`
-                  : null;
+                const fileUrl = resolveFileUrl(order.fileUrl);
                 const isCompleted = order.status === "COMPLETED";
 
                 return (

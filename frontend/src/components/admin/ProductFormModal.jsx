@@ -13,6 +13,7 @@ import { productService } from "../../api/productService";
 import { categoryKeys } from "../../hooks/admin/useCategories";
 import { formatRupiah } from "../../utils/formatters";
 import { showWarningToast } from "../../utils/toast";
+import { resolveFileUrl } from "../../utils/imageUrl";
 
 const productSchema = z.object({
   name: z.string().min(3, { message: "Nama produk minimal 3 karakter." }),
@@ -113,12 +114,7 @@ export default function ProductFormModal({
 
       // Tampilkan gambar lama jika ada
       if (initialData.imageUrl) {
-        const backendUrl = "http://localhost:5000";
-        setPreviewUrl(
-          initialData.imageUrl.startsWith("http")
-            ? initialData.imageUrl
-            : `${backendUrl}${initialData.imageUrl}`,
-        );
+        setPreviewUrl(resolveFileUrl(initialData.imageUrl));
       } else {
         setPreviewUrl(null);
       }

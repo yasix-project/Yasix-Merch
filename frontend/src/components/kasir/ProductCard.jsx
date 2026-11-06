@@ -1,24 +1,16 @@
 import { useState } from "react";
 import { ImageOff, Plus } from "lucide-react";
 import { formatRupiah } from "../../utils/formatters";
+import { resolveFileUrl } from "../../utils/imageUrl";
 
-const BACKEND_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  import.meta.env.VITE_API_BASE_URL?.replace("/api/v1", "") ||
-  "http://localhost:5000";
 
-const resolveImageUrl = (path) => {
-  if (!path) return null;
-  if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  return `${BACKEND_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
-};
 
 export default function ProductCard({ product, onAddToCart }) {
   const [imgFailed, setImgFailed] = useState(false);
 
   const isOutOfStock = product.stock <= 0;
   const isLowStock = !isOutOfStock && product.stock <= (product.minStock ?? 10);
-  const fullImageUrl = resolveImageUrl(product.imageUrl);
+  const fullImageUrl = resolveFileUrl(product.imageUrl);
   const showImage = fullImageUrl && !imgFailed;
 
   const handleActivate = () => {

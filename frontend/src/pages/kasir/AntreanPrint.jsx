@@ -24,23 +24,9 @@ import {
   usePrintMutations,
 } from "../../hooks/kasir/usePrintOrders";
 import { formatRupiah, formatDate } from "../../utils/formatters";
+import { resolveFileUrl } from "../../utils/imageUrl";
 
-const BACKEND_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  import.meta.env.VITE_API_BASE_URL?.replace("/api/v1", "") ||
-  "http://localhost:5000";
 
-const resolveDocumentUrl = (filePath) => {
-  if (!filePath) return "#";
-  if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
-    return filePath;
-  }
-  // Menghapus prefix path backend jika berbentuk absolute path
-  const normalizedPath = filePath
-    .replace(/\\/g, "/")
-    .replace(/^.*uploads\//, "uploads/");
-  return `${BACKEND_BASE_URL}/${normalizedPath}`;
-};
 
 export default function AntreanPrint() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -228,7 +214,7 @@ export default function AntreanPrint() {
       header: "Aksi Cetak",
       className: "text-right",
       render: (o) => {
-        const fileUrl = resolveDocumentUrl(o.fileUrl);
+        const fileUrl = resolveFileUrl(o.fileUrl);
         const isPending = o.status === "PENDING";
         const isReady = o.status === "READY";
 

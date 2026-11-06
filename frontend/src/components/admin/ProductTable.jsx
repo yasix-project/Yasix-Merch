@@ -12,6 +12,7 @@ import {
 import Badge from "../ui/Badge";
 import Table from "../ui/Table";
 import { formatRupiah, formatDate } from "../../utils/formatters";
+import { resolveFileUrl } from "../../utils/imageUrl";
 
 export default function ProductTable({
   products = [],
@@ -33,13 +34,12 @@ export default function ProductTable({
           <div className="w-9 h-9 rounded-md bg-slate-100 border border-slate-200 shrink-0 overflow-hidden flex items-center justify-center text-slate-400">
             {p.imageUrl ? (
               <img
-                src={
-                  p.imageUrl.startsWith("http")
-                    ? p.imageUrl
-                    : `http://localhost:5000${p.imageUrl}`
-                }
+                src={resolveFileUrl(p.imageUrl)}
                 alt={p.name}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                }}
               />
             ) : (
               <ImageIcon size={18} />

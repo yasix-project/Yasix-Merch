@@ -16,6 +16,7 @@ import {
 } from "../../hooks/siswa/useStudentTransactions";
 import { useStudentCartStore } from "../../store/studentCartStore";
 import { formatRupiah } from "../../utils/formatters";
+import { resolveFileUrl } from "../../utils/imageUrl";
 import CartDrawerModal from "../../components/siswa/CartDrawerModal";
 import OrderSuccessModal from "../../components/siswa/OrderSuccessModal";
 import Button from "../../components/ui/Button";
@@ -158,9 +159,7 @@ export default function SiswaKatalog() {
             const isOutOfStock = product.stock <= 0;
             const isLowStock = product.stock > 0 && product.stock <= 5;
 
-            const imageUrl = product.imageUrl
-              ? `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${product.imageUrl}`
-              : null;
+            const imageUrl = resolveFileUrl(product.imageUrl);
 
             return (
               <div
