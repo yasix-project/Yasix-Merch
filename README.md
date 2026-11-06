@@ -147,13 +147,47 @@ Seluruh endpoint terproteksi mewajibkan header: `Authorization: Bearer <access_t
 
 ## 🔑 Akun Uji Coba Pengujian (Demo Review)
 
-Gunakan kredensial berikut untuk melakukan penilaian antarmuka sistem:
+Gunakan kredensial pengujian berikut untuk mengevaluasi fitur pada masing-masing tingkatan hak akses:
 
-| Role Pengguna      | Email / Identifier  | Password               | Lingkup Evaluasi                                                              |
-| :----------------- | :------------------ | :--------------------- | :---------------------------------------------------------------------------- |
-| **ADMINISTRATOR**  | `admin@smkyadika6.sch.id` | `password123` | Dashboard Metrik Penjualan, Manajemen Stok & Kategori, Monitoring Semua Shift |
-| **KASIR**          | `kasir@smkyadika6.sch.id` | `password123` | Pembukaan Shift Kasir, Terminal POS Ritel, Cetak Struk, Antrean Print Dokumen |
-| **SISWA (MEMBER)** | `siswa@smkyadika6.sch.id` | `password123` | Order Cetak PDF Mandiri, Pre-Order Barang, Monitoring Poin Siswa              |
+### 1. Administrator (Manajemen & Analitik)
+- **Portal Login:** `/admin/login` (atau klik opsi *Login Admin* di halaman login utama)
+- **Nama Pengguna:** `Admin YasixMerch`
+- **Email:** `admin@smkyadika6.sch.id`
+- **Password:** `password123`
+- **Fitur Utama yang Dapat Diuji:**
+  - 📊 **Dashboard Analitik:** Monitoring omzet harian, grafik transaksi ritel & print, serta metrik performa.
+  - 📦 **Master Produk & Kategori:** Menambah dan mengedit produk, kalkulasi margin otomatis, batas minimum stok, dan unggah foto produk.
+  - 👥 **Kelola Siswa & Loyalitas:** Direktori siswa/member dan pengelolaan saldo poin.
+  - 🎟️ **Manajemen Voucher:** Pembuatan kode promo diskon nominal/persentase.
+  - 🕒 **Audit Shift Kasir:** Rekapitulasi modal awal (*start cash*) vs setoran kas fisik (*actual cash*) dari setiap kasir.
+  - 🧾 **Monitoring Transaksi:** Audit seluruh riwayat penjualan dan status pesanan *pre-order*.
+
+### 2. Kasir (Terminal POS & Operasional)
+- **Portal Login:** `/login`
+- **Nama Pengguna:** `Kasir Shift 1`
+- **Email:** `kasir@smkyadika6.sch.id`
+- **Password:** `password123`
+- **Fitur Utama yang Dapat Diuji:**
+  - 🔐 **Buka Shift Kasir:** Input modal awal laci (*Start Cash*) untuk membuka proteksi layar kasir.
+  - 🛒 **Terminal POS Ritel:** Pencarian barcode instan, tombol nominal cepat (*quick cash*), dan kalkulasi kembalian.
+  - 🖨️ **Cetak Struk Thermal:** Pencetakan struk transaksi langsung via format thermal 58mm/80mm.
+  - 📄 **Antrean Cetak Digital:** Memantau dokumen PDF yang dikirim siswa, validasi kalkulasi lembar & warna, dan eksekusi cetak.
+  - 📦 **Pre-order Pickup:** Konfirmasi penyerahan dan pelunasan barang pesanan siswa di konter.
+  - 🚪 **Tutup Shift Kasir:** Rekonsiliasi kas fisik (*Actual Cash*) untuk mendeteksi selisih kas sebelum berganti giliran jaga.
+
+### 3. Siswa (Member & Pemesanan Mandiri)
+- **Portal Login:** `/login`
+- **Nama Pengguna:** `Siswa Demo`
+- **Email:** `siswa@smkyadika6.sch.id`
+- **Password:** `password123`
+- **NIS:** `20261001`
+- **QR Code Member:** `MEMBER-20261001`
+- **Saldo Poin Awal:** `50 Poin`
+- **Fitur Utama yang Dapat Diuji:**
+  - 🛍️ **Katalog Ritel & Pre-order:** Melihat etalase ATK/merchandise sekolah dan melakukan pemesanan awal (*booking*).
+  - 📑 **Self-Service Print Queue:** Unggah berkas PDF tugas, sistem menghitung otomatis jumlah halaman warna vs hitam putih via `pdf-lib` dan menghasilkan estimasi harga instan.
+  - 📱 **Kartu Member Digital:** Membuka kartu member virtual dengan QR Code untuk discan di meja kasir.
+  - 📜 **Pelacakan Status Pesanan:** Memantau apakah dokumen print sudah siap diambil (*READY*) atau selesai (*COMPLETED*).
 
 ---
 
@@ -170,6 +204,6 @@ Gunakan kredensial berikut untuk melakukan penilaian antarmuka sistem:
 - **Institusi:** SMK Yadika 6
 - **Bidang Inovasi:** Software Engineering & Digital Transformation
 - **Susunan Tim Pengembang:**
-  - `Sep Meyer Vander F.D` — Lead Developer /Backend & Database Engineer
+  - `Sep Meyer Vander F.D` — Lead Developer / Backend & Database Engineer
   - `Miracle Benaya C.T` — Frontend & UI/UX Specialist
-  - `M. Khalil Khairudin` —  Fullstack Engineer
+  - `M. Khalil Khairudin` — Fullstack Engineer
