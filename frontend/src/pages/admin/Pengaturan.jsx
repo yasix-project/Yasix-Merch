@@ -8,6 +8,7 @@ import { User, Award, Save, Loader2, CheckCircle2 } from "lucide-react";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import { useProfile, useProfileMutations } from "../../hooks/admin/useProfile";
+import { useAuthStore } from "../../store/authStore";
 import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
 // Schema Validasi Zod
@@ -23,8 +24,10 @@ const profileSchema = z.object({
 });
 
 export default function Pengaturan() {
-  // 1. Fetch Data User Aktif dari /me
-  const { data: user, isLoading, isError, error } = useProfile();
+  const storeUser = useAuthStore((state) => state.user);
+  // 1. Fetch Data User Aktif dari /me (dengan fallback instan ke store sesi login)
+  const { data: userProfile, isLoading, error } = useProfile();
+  const user = userProfile || storeUser;
 
   const {
     register,
@@ -34,8 +37,8 @@ export default function Pengaturan() {
   } = useForm({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: "",
-      email: "",
+      name: user?.name || "",
+      email: user?.email || "",
       password: "",
     },
   });
@@ -59,8 +62,8 @@ export default function Pengaturan() {
       onSuccess: (res) => {
         showSuccessToast("Profil berhasil diperbarui!");
         reset({
-          name: res.data?.data?.name || user.name,
-          email: res.data?.data?.email || user.email,
+          name: res.data?.data?.name || user?.name || "",
+          email: res.data?.data?.email || user?.email || "",
           password: "",
         });
       },
@@ -70,7 +73,7 @@ export default function Pengaturan() {
     });
   };
 
-  if (isLoading) {
+  if (isLoading && !user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-slate-400">
         <Loader2 size={36} className="animate-spin text-primary mb-3" />
@@ -79,7 +82,7 @@ export default function Pengaturan() {
     );
   }
 
-  if (isError || !user) {
+  if (!user) {
     return (
       <div className="bg-red-50 text-red-600 p-4 rounded-xl text-xs font-medium text-center border border-red-200 max-w-md mx-auto">
         {error?.message || "Gagal memuat informasi akun."}
