@@ -26,11 +26,20 @@ const createVoucher = async (req, res) => {
 const redeemPoints = async (req, res) => {
   try {
     const studentId = req.user.id;
-    const result = await voucherService.redeemPointsToVoucherService(studentId);
+    const { discountPct, maxDiscount, minPurchase } = req.body || {};
+
+    const result = await voucherService.redeemPointsToVoucherService(
+      studentId,
+      {
+        discountPct: discountPct !== undefined ? Number(discountPct) : 10,
+        maxDiscount,
+        minPurchase,
+      },
+    );
 
     return res.status(200).json({
       status: "success",
-      message: "Berhasil menukar 100 poin dengan voucher diskon Rp10.000.",
+      message: `Berhasil menukar 100 poin dengan voucher diskon ${result.voucher?.discountPct || 10}% (maks. Rp10.000).`,
       data: result,
     });
   } catch (error) {
@@ -86,7 +95,6 @@ const updateVoucher = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Cek apakah voucher ada
     const existing = await voucherService.getVoucherById(id);
     if (!existing) {
       return res.status(404).json({
@@ -114,7 +122,6 @@ const deleteVoucher = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Cek apakah voucher ada
     const existing = await voucherService.getVoucherById(id);
     if (!existing) {
       return res.status(404).json({
@@ -143,6 +150,6 @@ module.exports = {
   createVoucher,
   validateVoucher,
   redeemPoints,
-  updateVoucher, // <-- Tambahkan ini
-  deleteVoucher, // <-- Tambahkan ini
+  updateVoucher,
+  deleteVoucher,
 };

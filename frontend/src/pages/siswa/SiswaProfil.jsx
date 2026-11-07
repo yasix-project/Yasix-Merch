@@ -38,20 +38,25 @@ export default function SiswaProfil() {
   const handleRedeem = () => {
     if (!canRedeem) return;
 
-    redeemMutation.mutate(undefined, {
-      onSuccess: (res) => {
-        const voucher = res.data?.data?.voucher || res.data?.data;
-        setRedeemedVoucher(voucher);
-        showSuccessToast(
-          res.data?.message || "Berhasil menukarkan 100 poin menjadi voucher!",
-        );
+    // Kirim payload eksplisit diskon 10% sesuai ketentuan loyalitas siswa
+    redeemMutation.mutate(
+      { discountPct: 10 },
+      {
+        onSuccess: (res) => {
+          const voucher = res.data?.data?.voucher || res.data?.data;
+          setRedeemedVoucher(voucher);
+          showSuccessToast(
+            res.data?.message ||
+              "Berhasil menukarkan 100 poin menjadi voucher diskon 10%!",
+          );
+        },
+        onError: (err) => {
+          const msg =
+            err.response?.data?.message || "Gagal menukarkan poin. Coba lagi.";
+          showErrorToast(msg);
+        },
       },
-      onError: (err) => {
-        const msg =
-          err.response?.data?.message || "Gagal menukarkan poin. Coba lagi.";
-        showErrorToast(msg);
-      },
-    });
+    );
   };
 
   const handleCopyCode = (code) => {
@@ -87,10 +92,10 @@ export default function SiswaProfil() {
             </div>
             <div>
               <h4 className="text-xs font-bold text-slate-900">
-                Tukarkan Poin dengan Diskon
+                Tukarkan Poin dengan Diskon 10%
               </h4>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                Setiap 100 poin dapat ditukar dengan voucher diskon Rp 10.000.
+                Setiap 100 poin dapat ditukar dengan voucher diskon 10% (maks. Rp 10.000).
               </p>
             </div>
           </div>
@@ -133,11 +138,16 @@ export default function SiswaProfil() {
           <div className="p-3 bg-white/90 border border-accent/50 rounded-xl flex items-center justify-between text-xs animate-in fade-in">
             <div>
               <span className="text-[10px] text-slate-400 block font-medium">
-                Voucher Diskon Rp 10.000 Anda:
+                Voucher Diskon {redeemedVoucher.discountPct || 10}% Anda:
               </span>
-              <span className="font-mono font-black text-slate-900 text-sm">
-                {redeemedVoucher.code}
-              </span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="font-mono font-black text-slate-900 text-sm">
+                  {redeemedVoucher.code}
+                </span>
+                <span className="px-1.5 py-0.5 rounded-md bg-accent text-dark text-[9px] font-black uppercase">
+                  {redeemedVoucher.discountPct || 10}% OFF
+                </span>
+              </div>
             </div>
             <button
               type="button"
@@ -218,7 +228,7 @@ export default function SiswaProfil() {
             <p>
               <strong>2. Bagaimana cara menukarkan voucher?</strong>
               <br />
-              Kumpulkan minimal 100 poin, lalu klik tombol <em>Tukar</em> di atas. Kode voucher dapat digunakan saat checkout pre-order barang.
+              Kumpulkan minimal 100 poin, lalu klik tombol <em>Tukar</em> di atas untuk mendapatkan kupon diskon 10% (maksimal potongan Rp 10.000). Kode voucher dapat digunakan saat checkout pre-order barang.
             </p>
             <p>
               <strong>3. Selisih data poin?</strong>

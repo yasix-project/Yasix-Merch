@@ -23,7 +23,9 @@ const validateVoucherService = async (code, subtotal) => {
     );
   }
 
-  let discountAmount = (Number(subtotal) * Number(voucher.discountPct)) / 100;
+  const discountPct = Number(voucher.discountPct || 0);
+  let discountAmount = (Number(subtotal) * discountPct) / 100;
+
   if (voucher.maxDiscount && discountAmount > Number(voucher.maxDiscount)) {
     discountAmount = Number(voucher.maxDiscount);
   }
@@ -31,8 +33,9 @@ const validateVoucherService = async (code, subtotal) => {
   return {
     voucherId: voucher.id,
     code: voucher.code,
-    discountPct: voucher.discountPct,
+    discountPct,
     discountAmount,
+    minPurchase: Number(voucher.minPurchase || 0),
   };
 };
 
@@ -55,8 +58,8 @@ const createVoucherService = async (data) => {
   });
 };
 
-// Penukaran Poin Siswa Menjadi Voucher Diskon (100 Poin = Diskon Rp10.000)
-const redeemPointsToVoucherService = async (studentId) => {
+// Penukaran Poin Siswa Menjadi Voucher Diskon (100 Poin = Diskon 10% maks. Rp10.000)
+const redeemPointsToVoucherService = async (studentId, options = {}) => {
   return await prisma.$transaction(async (tx) => {
     const student = await tx.user.findUnique({ where: { id: studentId } });
 
@@ -82,13 +85,19 @@ const redeemPointsToVoucherService = async (studentId) => {
     const validUntil = new Date();
     validUntil.setDate(validUntil.getDate() + 30); // Berlaku 30 hari
 
+    // Diskon yang dihasilkan berbentuk 10% (bukan 0%)
+    const rawDiscountPct = Number(options?.discountPct);
+    const discountPct = !isNaN(rawDiscountPct) && rawDiscountPct > 0 ? rawDiscountPct : 10;
+    const maxDiscount = Number(options?.maxDiscount ?? 10000);
+    const minPurchase = Number(options?.minPurchase ?? 20000);
+
     const voucher = await tx.voucher.create({
       data: {
         code,
         studentId,
-        discountPct: 0,
-        maxDiscount: 10000,
-        minPurchase: 20000,
+        discountPct, // 10%
+        maxDiscount,
+        minPurchase,
         validUntil,
         isActive: true,
       },
@@ -121,15 +130,13 @@ const getAllVouchers = async () => {
 
 const getVoucherById = async (id) => {
   return await prisma.voucher.findUnique({
-    where: { id }, // Pastikan tipe data id sesuai schema (Int atau String UUID)
+    where: { id },
   });
 };
 
 const updateVoucher = async (id, data) => {
-  // 1. Buat objek kosong untuk menampung data yang valid saja
   const updatePayload = {};
 
-  // 2. Filter & Validasi setiap field
   if (data.code) {
     updatePayload.code = data.code;
   }
@@ -146,21 +153,17 @@ const updateVoucher = async (id, data) => {
     updatePayload.minPurchase = Number(data.minPurchase);
   }
 
-  // 3. Validasi Tanggal (Mencegah "Invalid Date")
   if (data.validUntil) {
     const parsedDate = new Date(data.validUntil);
-    // Cek apakah tanggal valid (bukan NaN)
     if (!isNaN(parsedDate.getTime())) {
       updatePayload.validUntil = parsedDate;
     }
   }
 
-  // 4. Update status aktif jika dikirim dari frontend
   if (data.isActive !== undefined) {
     updatePayload.isActive = data.isActive;
   }
 
-  // 5. Eksekusi ke Prisma dengan payload yang sudah bersih
   return await prisma.voucher.update({
     where: { id },
     data: updatePayload,
@@ -179,6 +182,6 @@ module.exports = {
   validateVoucherService,
   createVoucherService,
   redeemPointsToVoucherService,
-  updateVoucher, // <-- Tambahkan ini
-  deleteVoucher, // <-- Tambahkan ini
+  updateVoucher,
+  deleteVoucher,
 };

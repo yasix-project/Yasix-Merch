@@ -72,12 +72,13 @@ export function useValidateVoucher() {
   });
 }
 
-// 6. Hook Tukar Poin Siswa Menjadi Voucher Diskon
+// 6. Hook Tukar Poin Siswa Menjadi Voucher Diskon (10%)
 export function useRedeemPoints() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => studentTransactionService.redeemPoints(),
+    mutationFn: (payload = { discountPct: 10 }) =>
+      studentTransactionService.redeemPoints(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
     },
