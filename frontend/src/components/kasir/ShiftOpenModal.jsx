@@ -35,18 +35,6 @@ export default function ShiftOpenModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-md overflow-y-auto">
       <div className="animate-in zoom-in-95 my-auto w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.45)] ring-1 ring-slate-200/80 relative">
-        {/* Tombol Logout di Pojok Kanan Atas Modal */}
-        <button
-          type="button"
-          onClick={onLogout}
-          className="absolute right-4 top-4 flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition border border-transparent hover:border-red-100"
-          title="Keluar / Ganti Akun Kasir"
-          aria-label="Keluar sistem"
-        >
-          <LogOut size={15} />
-          <span className="hidden sm:inline">Keluar</span>
-        </button>
-
         <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg">
           <Lock size={24} strokeWidth={2} />
         </div>
@@ -59,12 +47,14 @@ export default function ShiftOpenModal({
         <div className="flex items-center justify-center gap-1.5 mb-3 px-3 py-1 rounded-full bg-slate-100/90 text-slate-600 text-xs font-medium w-fit mx-auto border border-slate-200/60">
           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
           <span>
-            Login sebagai: <strong className="text-slate-900 font-bold">{userName}</strong>
+            Login sebagai:{" "}
+            <strong className="text-slate-900 font-bold">{userName}</strong>
           </span>
         </div>
 
         <p className="mx-auto mb-5 max-w-[320px] text-center text-xs leading-relaxed text-slate-500">
-          Masukkan modal awal berupa uang kecil di laci kasir sebelum memulai sesi transaksi.
+          Masukkan modal awal berupa uang kecil di laci kasir sebelum memulai
+          sesi transaksi.
         </p>
 
         <form onSubmit={onSubmit} className="space-y-4">
