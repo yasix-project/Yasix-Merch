@@ -1,17 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useReactToPrint } from "react-to-print";
 import { useNavigate } from "react-router-dom";
-import {
-  Search,
-  PackageX,
-  Camera,
-  QrCode,
-  AlertTriangle,
-  Keyboard,
-  ShoppingBag,
-  ArrowRight,
-  X,
-} from "lucide-react";
+import { PackageX } from "lucide-react";
 
 import { useProducts } from "../../hooks/admin/useProducts";
 import { useCategories } from "../../hooks/admin/useCategories";
@@ -24,10 +14,12 @@ import ProductCard from "../../components/kasir/ProductCard";
 import PosCart from "../../components/kasir/PosCart";
 import PaymentModal from "../../components/kasir/PaymentModal";
 import ReceiptModal from "../../components/kasir/ReceiptModal";
+import PosProductFilter from "../../components/kasir/PosProductFilter";
+import MobileCartFloatingBar from "../../components/kasir/MobileCartFloatingBar";
+import PosKeyboardShortcuts from "../../components/kasir/PosKeyboardShortcuts";
 import StrukPrinter from "../../components/shared/StrukPrinter";
 import BarcodeScannerModal from "../../components/shared/BarcodeScannerModal";
 import { showSuccessToast, showErrorToast, showWarningToast } from "../../utils/toast";
-import { formatRupiah } from "../../utils/formatters";
 
 export default function PosTerminal() {
   const navigate = useNavigate();
@@ -257,136 +249,23 @@ export default function PosTerminal() {
 
       {/* Sisi Kiri: Katalog Produk */}
       <div className="flex-1 flex flex-col h-full min-h-0 bg-slate-50 border-r border-slate-200/90 overflow-hidden relative">
-        {/* Top Control Bar Katalog */}
-        <div className="p-3 sm:p-4 bg-white border-b border-slate-200/90 shadow-2xs z-10 space-y-2.5 sm:space-y-3 shrink-0">
-          <div className="flex items-center gap-2">
-            {/* Input Pencarian Produk */}
-            <div className="relative flex-1">
-              <Search
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-                size={17}
-              />
-              <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Cari nama, SKU, atau Barcode..."
-                className="w-full pl-10 pr-16 sm:pr-20 py-2 sm:py-2.5 bg-slate-100/90 border border-slate-200/80 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 transition-all text-xs sm:text-sm font-medium outline-none"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && searchQuery.trim()) {
-                    handleBarcodeScan(searchQuery.trim());
-                    setSearchQuery("");
-                  }
-                }}
-                autoFocus
-              />
-              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200"
-                    title="Hapus pencarian"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-                <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-200/80 px-1.5 py-0.5 rounded border border-slate-300 pointer-events-none hidden sm:inline">
-                  F2
-                </span>
-              </div>
-            </div>
-
-            {/* Tombol Scanner Webcam */}
-            <button
-              type="button"
-              onClick={() => setIsBarcodeScannerOpen(true)}
-              title="Scan Barcode via Webcam [F9]"
-              className="flex items-center gap-1.5 px-3 py-2 sm:py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl border border-blue-200 transition-all shrink-0 active:scale-95 shadow-2xs"
-            >
-              <Camera size={15} className="text-blue-600" />
-              <span className="hidden md:inline">Scan Webcam</span>
-              <span className="text-[10px] font-mono text-blue-600 bg-blue-100 px-1 py-0.5 rounded font-bold hidden sm:inline">
-                F9
-              </span>
-            </button>
-
-            {/* Tombol Demo Barcode HP */}
-            <a
-              href="/demo"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Buka Lembar Barcode Produk & KTA Siswa untuk diarahkan ke Webcam"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-2 sm:py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-200 transition-all shrink-0 active:scale-95 shadow-2xs"
-            >
-              <QrCode size={15} className="text-emerald-600" />
-              <span className="hidden xl:inline">📱 Barcode HP (/demo)</span>
-              <span className="xl:hidden">📱 Barcode</span>
-            </a>
-
-            {/* Tombol Keranjang Mobile di Header */}
-            <button
-              type="button"
-              onClick={() => setIsMobileCartOpen(true)}
-              className="lg:hidden relative flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition shrink-0 active:scale-95 border border-slate-200/80"
-              title="Lihat Keranjang Belanja"
-            >
-              <ShoppingBag size={18} />
-              {cart.length > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 text-[9px] font-black text-white px-1 shadow-xs animate-pulse">
-                  {totalCartItems}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Baris Kategori Produk (Horizontal Touch Scroll) */}
-          <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            <button
-              onClick={() => setSelectedCategory("Semua")}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                selectedCategory === "Semua"
-                  ? "bg-blue-600 text-white shadow-xs shadow-blue-500/30 ring-2 ring-blue-600/20"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200/80"
-              }`}
-            >
-              Semua Produk
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.name)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                  selectedCategory === cat.name
-                    ? "bg-blue-600 text-white shadow-xs shadow-blue-500/30 ring-2 ring-blue-600/20"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200/80"
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-
-          {/* Banner Peringatan Stok Menipis */}
-          {lowStockProducts.length > 0 && showLowStockBanner && (
-            <div className="flex items-center justify-between px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 animate-in fade-in">
-              <div className="flex items-center gap-2">
-                <AlertTriangle size={14} className="text-amber-600 shrink-0" />
-                <span className="text-[11px] sm:text-xs">
-                  <strong>Peringatan Kasir:</strong> Ada {lowStockProducts.length} produk dengan stok menipis (≤ 5 pcs).
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowLowStockBanner(false)}
-                className="text-[11px] text-amber-700 hover:text-amber-950 font-bold ml-2 underline cursor-pointer"
-              >
-                Tutup
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Top Control Bar Katalog (Modular Component) */}
+        <PosProductFilter
+          searchInputRef={searchInputRef}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onSearchEnter={handleBarcodeScan}
+          onOpenScanner={() => setIsBarcodeScannerOpen(true)}
+          cartCount={cart.length}
+          totalCartItems={totalCartItems}
+          onOpenMobileCart={() => setIsMobileCartOpen(true)}
+          categories={categories}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          lowStockCount={lowStockProducts.length}
+          showLowStockBanner={showLowStockBanner}
+          onDismissLowStockBanner={() => setShowLowStockBanner(false)}
+        />
 
         {/* Grid Katalog Produk */}
         <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 pb-24 lg:pb-4 [scrollbar-width:thin]">
@@ -419,76 +298,18 @@ export default function PosTerminal() {
           )}
         </div>
 
-        {/* Bar Shortcut Keyboard Enterprise Kasir (Desktop Only) */}
-        <div className="hidden sm:flex px-4 py-2 bg-white border-t border-slate-200/80 items-center justify-between text-[11px] text-slate-500 shrink-0 shadow-2xs">
-          <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide py-0.5">
-            <span className="flex items-center gap-1 font-bold text-slate-700">
-              <Keyboard size={13} className="text-slate-400" /> Kasir Cepat:
-            </span>
-            <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 font-mono text-[10px] font-bold text-slate-700 shadow-2xs">
-                F2
-              </kbd>
-              <span>Cari</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 font-mono text-[10px] font-bold text-slate-700 shadow-2xs">
-                F4
-              </kbd>
-              <span>Bayar</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 font-mono text-[10px] font-bold text-slate-700 shadow-2xs">
-                F9
-              </kbd>
-              <span>Scan Barcode</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 font-mono text-[10px] font-bold text-slate-700 shadow-2xs">
-                Esc
-              </kbd>
-              <span>Tutup Modal</span>
-            </span>
-          </div>
-          <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full hidden md:inline">
-            ● Retail POS Aktif
-          </span>
-        </div>
+        {/* Bar Shortcut Keyboard Enterprise Kasir (Modular Component) */}
+        <PosKeyboardShortcuts />
       </div>
 
-      {/* Floating Mobile Cart Bar (Hanya tampil di Mobile saat ada barang di keranjang) */}
-      {cart.length > 0 && !isMobileCartOpen && (
-        <div className="lg:hidden fixed bottom-20 left-3 right-3 sm:left-4 sm:right-4 z-30 animate-in slide-in-from-bottom-3 duration-200">
-          <div className="flex items-center justify-between rounded-2xl bg-slate-900/95 p-3 text-white shadow-xl backdrop-blur-md border border-slate-700/80 ring-1 ring-white/10">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="relative shrink-0">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white font-bold shadow-md shadow-blue-600/30">
-                  <ShoppingBag size={18} />
-                </span>
-                <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-400 text-slate-950 text-[10px] font-black px-1 shadow-xs">
-                  {totalCartItems}
-                </span>
-              </div>
-              <div className="truncate">
-                <p className="text-[11px] text-slate-400 font-medium leading-tight">
-                  {cart.length} Item • {totalCartItems} Pcs
-                </p>
-                <p className="text-base font-black text-white tracking-tight truncate leading-tight mt-0.5">
-                  {formatRupiah(finalTotal)}
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsMobileCartOpen(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:scale-95 px-3.5 py-2.5 text-xs font-bold text-white transition shadow-md shadow-blue-600/30 shrink-0"
-            >
-              <span>Keranjang & Bayar</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Floating Mobile Cart Bar (Modular Component) */}
+      <MobileCartFloatingBar
+        isVisible={!isMobileCartOpen}
+        cartLength={cart.length}
+        totalCartItems={totalCartItems}
+        finalTotal={finalTotal}
+        onOpenMobileCart={() => setIsMobileCartOpen(true)}
+      />
 
       {/* Sisi Kanan: Panel Keranjang Kasir (Side-by-side di Desktop, Drawer di Mobile) */}
       <PosCart
