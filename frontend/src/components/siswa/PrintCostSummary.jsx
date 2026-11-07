@@ -1,45 +1,10 @@
 import { Loader2 } from "lucide-react";
 import { formatRupiah } from "../../utils/formatters";
+import { parsePrintSpecs } from "../../utils/printSpecs";
 
 export default function PrintCostSummary({ estimate, isEstimating }) {
-  // Ambil specs/config/options/details jika kembalian berupa objek konfigurasi cetak
-  const specs =
-    (typeof estimate?.specs === "object" && estimate?.specs) ||
-    (typeof estimate?.config === "object" && estimate?.config) ||
-    (typeof estimate?.options === "object" && estimate?.options) ||
-    (typeof estimate?.details === "object" && estimate?.details) ||
-    (typeof estimate?.totalPages === "object" && estimate?.totalPages) ||
-    (typeof estimate?.pageCount === "object" && estimate?.pageCount) ||
-    null;
-
-  const rawPages =
-    specs?.totalPages ??
-    (typeof estimate?.totalPages === "number" || typeof estimate?.totalPages === "string"
-      ? estimate.totalPages
-      : estimate?.pages ?? estimate?.pageCount ?? 0);
-
-  const totalPages =
-    typeof rawPages === "object" && rawPages !== null
-      ? rawPages.totalPages || 1
-      : Number(rawPages) || 0;
-
-  const isColor =
-    specs?.isColor ??
-    estimate?.isColor ??
-    (estimate?.colorType === "COLOR");
-
-  const paperSize =
-    specs?.paperSize ||
-    estimate?.paperSize ||
-    "A4";
-
-  const copies = specs?.copies || estimate?.copies || 1;
-
-  const pricePerPage =
-    estimate?.pricePerPage ?? (isColor ? 1000 : 500);
-
-  const totalPrice =
-    estimate?.totalPrice ?? totalPages * pricePerPage * copies;
+  const { totalPages, isColor, paperSize, copies, pricePerPage, totalPrice } =
+    parsePrintSpecs(estimate);
 
   return (
     <div className="bg-dark text-bright rounded-2xl p-4 space-y-2.5 shadow-md border border-cyan/20">
