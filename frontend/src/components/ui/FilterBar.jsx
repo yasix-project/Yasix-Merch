@@ -5,6 +5,7 @@ export default function FilterBar({
   searchPlaceholder = "Cari...",
   searchValue = "",
   onSearchChange,
+  onKeyDown,
   filterTabs = [], // Format: [{ label: "Semua", value: "all" }, ...]
   activeTab,
   onTabChange,
@@ -23,6 +24,7 @@ export default function FilterBar({
           placeholder={searchPlaceholder}
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
+          onKeyDown={onKeyDown}
           className="w-full pl-10 pr-9 py-2.5 text-xs font-medium text-dark placeholder:text-slate-400 bg-white border border-slate-200 rounded-xl outline-none hover:border-primary/40 focus:border-primary focus:ring-4 focus:ring-primary/15 transition-all"
         />
         {searchValue && (
