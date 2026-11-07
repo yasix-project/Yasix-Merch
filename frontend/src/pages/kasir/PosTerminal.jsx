@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useReactToPrint } from "react-to-print";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   PackageX,
@@ -29,6 +30,7 @@ import { showSuccessToast, showErrorToast, showWarningToast } from "../../utils/
 import { formatRupiah } from "../../utils/formatters";
 
 export default function PosTerminal() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   const [memberCode, setMemberCode] = useState("");
@@ -175,6 +177,13 @@ export default function PosTerminal() {
   const handleBarcodeScan = (scannedCode) => {
     if (!scannedCode) return;
     const cleanCode = scannedCode.trim();
+
+    // Jika yang di-scan adalah Barcode/QR Invoice Pesanan Pre-Order (ORD-...)
+    if (cleanCode.toUpperCase().startsWith("ORD-")) {
+      showSuccessToast(`Mendeteksi pesanan pre-order: ${cleanCode}. Membuka antrean pesanan...`);
+      navigate(`/kasir/pre-order?scan=${encodeURIComponent(cleanCode)}`);
+      return;
+    }
 
     // Temukan produk berdasarkan barcode atau ID
     const product = products.find(
