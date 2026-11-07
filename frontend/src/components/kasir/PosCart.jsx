@@ -376,7 +376,10 @@ export default function PosCart({
             ) : (
               <>
                 <CreditCard size={15} strokeWidth={2} />
-                Proses Pembayaran
+                <span>Proses Pembayaran</span>
+                <kbd className="text-[10px] font-mono bg-white/25 px-1.5 py-0.5 rounded font-bold ml-1">
+                  F4
+                </kbd>
               </>
             )}
           </button>
