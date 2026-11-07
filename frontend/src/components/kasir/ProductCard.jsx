@@ -3,23 +3,17 @@ import { ImageOff, Plus } from "lucide-react";
 import { formatRupiah } from "../../utils/formatters";
 import { resolveFileUrl } from "../../utils/imageUrl";
 
-
-
 export default function ProductCard({ product, onAddToCart }) {
   const [imgFailed, setImgFailed] = useState(false);
 
   const isOutOfStock = product.stock <= 0;
-  const isLowStock = !isOutOfStock && product.stock <= (product.minStock ?? 10);
+  const isLowStock = !isOutOfStock && product.stock <= (product.minStock ?? 5);
   const fullImageUrl = resolveFileUrl(product.imageUrl);
   const showImage = fullImageUrl && !imgFailed;
 
   const handleActivate = () => {
     if (!isOutOfStock) onAddToCart(product);
   };
-
-  const stockTone = isLowStock
-    ? { dot: "bg-amber-500", text: "text-amber-700" }
-    : { dot: "bg-emerald-500", text: "text-slate-600" };
 
   return (
     <div
@@ -36,14 +30,14 @@ export default function ProductCard({ product, onAddToCart }) {
           handleActivate();
         }
       }}
-      className={`group relative flex flex-col rounded-[20px] bg-white p-2.5 ring-1 select-none outline-none transition-all duration-300 focus-visible:ring-2 focus-visible:ring-blue-600 ${
+      className={`group relative flex flex-col rounded-2xl sm:rounded-[22px] bg-white p-2 sm:p-2.5 ring-1 select-none outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-blue-600 ${
         isOutOfStock
-          ? "ring-slate-200 cursor-not-allowed"
-          : "ring-slate-200/80 cursor-pointer shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:-translate-y-0.5 hover:ring-slate-300 hover:shadow-[0_14px_28px_-14px_rgba(15,23,42,0.28)] active:translate-y-0 active:scale-[0.985]"
+          ? "ring-slate-200/90 cursor-not-allowed bg-slate-50/60 opacity-75"
+          : "ring-slate-200/80 cursor-pointer shadow-xs hover:-translate-y-0.5 hover:ring-blue-300/80 hover:shadow-md hover:shadow-slate-200/60 active:translate-y-0 active:scale-[0.98]"
       }`}
     >
-      {/* Gambar produk */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Gambar Produk */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200/70">
         {showImage ? (
           <img
             src={fullImageUrl}
@@ -51,7 +45,7 @@ export default function ProductCard({ product, onAddToCart }) {
             loading="lazy"
             onError={() => setImgFailed(true)}
             className={`h-full w-full object-cover transition-transform duration-500 ease-out ${
-              isOutOfStock ? "grayscale opacity-60" : "group-hover:scale-[1.06]"
+              isOutOfStock ? "grayscale opacity-50" : "group-hover:scale-105"
             }`}
           />
         ) : (
@@ -60,58 +54,72 @@ export default function ProductCard({ product, onAddToCart }) {
           </div>
         )}
 
-        {/* Indikator stok melayang di atas gambar */}
-        <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2 py-1 text-[10.5px] font-medium shadow-sm backdrop-blur-md">
+        {/* Indikator Stok Badge */}
+        <span
+          className={`absolute left-1.5 sm:left-2 top-1.5 sm:top-2 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 sm:py-1 text-[10px] sm:text-[10.5px] font-bold shadow-xs backdrop-blur-md ${
+            isOutOfStock
+              ? "bg-red-500 text-white"
+              : isLowStock
+              ? "bg-amber-500 text-white"
+              : "bg-white/95 text-slate-700 border border-slate-200/60"
+          }`}
+        >
           <span
             className={`h-1.5 w-1.5 rounded-full ${
-              isOutOfStock ? "bg-red-500" : stockTone.dot
+              isOutOfStock
+                ? "bg-white"
+                : isLowStock
+                ? "bg-white animate-ping"
+                : "bg-emerald-500"
             }`}
           />
-          <span className={isOutOfStock ? "text-red-600" : stockTone.text}>
+          <span>
             {isOutOfStock
               ? "Habis"
               : isLowStock
-                ? `Sisa ${product.stock}`
-                : `${product.stock} tersedia`}
+              ? `Sisa ${product.stock}`
+              : `${product.stock} pcs`}
           </span>
         </span>
       </div>
 
-      {/* Informasi produk */}
-      <div className="flex flex-1 flex-col px-1 pb-0.5 pt-3">
-        <p className="truncate text-[11px] font-medium tracking-wide text-slate-400">
+      {/* Informasi Produk */}
+      <div className="flex flex-1 flex-col px-1 pb-0.5 pt-2 sm:pt-2.5">
+        <p className="truncate text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-slate-400">
           {product.category?.name || "Umum"}
         </p>
 
         <h3
-          className={`mt-0.5 line-clamp-2 min-h-[2.5rem] text-[13px] font-semibold leading-5 ${
-            isOutOfStock ? "text-slate-400" : "text-slate-800"
+          className={`mt-0.5 line-clamp-2 min-h-[2.2rem] sm:min-h-[2.5rem] text-xs sm:text-[13px] font-bold leading-snug sm:leading-5 ${
+            isOutOfStock ? "text-slate-400" : "text-slate-800 group-hover:text-blue-700 transition-colors"
           }`}
         >
           {product.name}
         </h3>
 
         {product.barcode && (
-          <p className="mt-1 truncate font-mono text-[10px] text-slate-400">
+          <p className="mt-0.5 truncate font-mono text-[9.5px] sm:text-[10px] text-slate-400">
             {product.barcode}
           </p>
         )}
 
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <span
-            className={`text-[15px] font-bold tabular-nums tracking-tight ${
-              isOutOfStock ? "text-slate-400" : "text-slate-900"
-            }`}
-          >
-            {formatRupiah(Number(product.sellingPrice))}
-          </span>
+        <div className="mt-2.5 sm:mt-3 flex items-center justify-between gap-1.5 pt-1 border-t border-slate-100">
+          <div>
+            <span
+              className={`text-sm sm:text-base font-black tabular-nums tracking-tight ${
+                isOutOfStock ? "text-slate-400 line-through" : "text-slate-900"
+              }`}
+            >
+              {formatRupiah(Number(product.sellingPrice))}
+            </span>
+          </div>
 
           {!isOutOfStock && (
             <span
               aria-hidden="true"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white shadow-sm transition-all duration-300 group-hover:bg-blue-600 group-hover:rotate-90"
+              className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-slate-900 text-white shadow-xs transition-all duration-200 group-hover:bg-blue-600 group-hover:scale-105 active:scale-95"
             >
-              <Plus size={16} strokeWidth={2.25} />
+              <Plus size={15} strokeWidth={2.5} />
             </span>
           )}
         </div>
