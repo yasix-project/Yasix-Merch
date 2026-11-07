@@ -59,7 +59,7 @@ export function useCreatePreOrder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["myProductOrders"] });
       queryClient.invalidateQueries({ queryKey: ["katalogProducts"] });
-      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
     },
   });
 }
@@ -69,5 +69,17 @@ export function useValidateVoucher() {
   return useMutation({
     mutationFn: ({ code, subtotal }) =>
       studentTransactionService.validateVoucher(code, subtotal),
+  });
+}
+
+// 6. Hook Tukar Poin Siswa Menjadi Voucher Diskon
+export function useRedeemPoints() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => studentTransactionService.redeemPoints(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+    },
   });
 }

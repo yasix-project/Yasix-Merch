@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import {
   ShoppingBag,
   Printer,
@@ -19,9 +18,10 @@ import {
   PackageCheck,
   XCircle,
 } from "lucide-react";
-import axiosClient from "../../api/axiosClient";
 import { useStudentOrders } from "../../hooks/siswa/useStudentTransactions";
+import { useStudentPrintOrders } from "../../hooks/siswa/useStudentPrint";
 import { formatRupiah } from "../../utils/formatters";
+import { parsePrintSpecs } from "../../utils/printSpecs";
 import { resolveFileUrl } from "../../utils/imageUrl";
 import OrderQrModal from "../../components/siswa/OrderQrModal";
 import Button from "../../components/ui/Button";
@@ -48,14 +48,7 @@ export default function SiswaPesanan() {
     isLoading: loadingPrintOrders,
     isFetching: fetchingPrintOrders,
     refetch: refetchPrintOrders,
-  } = useQuery({
-    queryKey: ["myPrintOrders"],
-    queryFn: async () => {
-      const res = await axiosClient.get("/print/orders?mine=true");
-      return res.data?.data || res.data || [];
-    },
-    refetchInterval: 5000,
-  });
+  } = useStudentPrintOrders();
 
   const handleCopy = (text, id) => {
     if (!text) return;
@@ -66,41 +59,17 @@ export default function SiswaPesanan() {
 
   // Helper untuk merender spesifikasi cetak PDF
   const renderPrintSpecs = (order) => {
-    const specs =
-      (typeof order.specs === "object" && order.specs) ||
-      (typeof order.options === "object" && order.options) ||
-      (typeof order.config === "object" && order.config) ||
-      (typeof order.details === "object" && order.details) ||
-      null;
-
-    const rawPages =
-      specs?.totalPages ??
-      (typeof order.pageCount === "number" || typeof order.pageCount === "string"
-        ? order.pageCount
-        : typeof order.totalPages === "number" || typeof order.totalPages === "string"
-          ? order.totalPages
-          : 1);
-
-    const pages =
-      typeof rawPages === "object" && rawPages !== null
-        ? rawPages.totalPages || 1
-        : Number(rawPages) || 1;
-
-    const isColor =
-      specs?.isColor ??
-      (order.colorType === "COLOR" || order.isColor === true);
-
-    const paper = specs?.paperSize || order.paperSize || "A4";
-    const copies = specs?.copies || order.copies || 1;
+    const { totalPages, isColor, paperSize, copies, finishing } =
+      parsePrintSpecs(order);
 
     return (
       <div className="text-xs space-y-0.5">
         <span className="font-bold text-slate-800 block">
-          {pages} Halaman ({paper})
+          {totalPages} Halaman ({paperSize})
         </span>
         <span className="text-slate-500 block text-[11px]">
           {isColor ? "Warna" : "Hitam Putih"} • {copies} Rangkap
-          {order.finishing ? ` • ${order.finishing}` : ""}
+          {finishing ? ` • ${finishing}` : ""}
         </span>
       </div>
     );

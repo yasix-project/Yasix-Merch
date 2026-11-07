@@ -16,4 +16,12 @@ export const studentPrintService = {
     });
     return res.data?.data || res.data;
   },
+
+  // Ambil daftar antrean & riwayat order cetak milik siswa
+  getMyOrders: async (params = {}) => {
+    const res = await axiosClient.get("/print/orders", {
+      params: { ...params, mine: true },
+    });
+    return res.data?.data || res.data || [];
+  },
 };

@@ -1,7 +1,7 @@
 import { Printer, AlertCircle, Loader2, Sparkles } from "lucide-react";
 import Button from "../../components/ui/Button";
 
-import { useStudentPrint } from "../../hooks/useStudentPrint";
+import { useStudentPrint } from "../../hooks/siswa/useStudentPrint";
 import PrintSuccessTicket from "../../components/siswa/PrintSuccessTicket";
 import PrintFileUploader from "../../components/siswa/PrintFileUploader";
 import PrintConfigOptions from "../../components/siswa/PrintConfigOptions";
