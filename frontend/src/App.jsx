@@ -32,7 +32,7 @@ import AntreanPrint from "./pages/kasir/AntreanPrint";
 import PreOrderKasir from "./pages/kasir/PreOrderKasir";
 import SiswaProfil from "./pages/siswa/SiswaProfil";
 import SiswaPrint from "./pages/siswa/SiswaPrint";
-import SiswaAntreanPrint from "./pages/siswa/AntreanPrint";
+import SiswaPesanan from "./pages/siswa/SiswaPesanan";
 import SiswaKatalog from "./pages/siswa/SiswaKatalog";
 import DemoBarcodeSheet from "./pages/demo/DemoBarcodeSheet";
 
@@ -159,7 +159,7 @@ const router = createBrowserRouter([
       },
       {
         path: "pesanan",
-        element: <SiswaAntreanPrint />,
+        element: <SiswaPesanan />,
       },
     ],
   },
