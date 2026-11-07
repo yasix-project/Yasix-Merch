@@ -18,7 +18,8 @@ import Table from "../../components/ui/Table";
 import FilterBar from "../../components/ui/FilterBar";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
-import Modal from "../../components/ui/Modal";
+import PrintQueueStatsCards from "../../components/kasir/PrintQueueStatsCards";
+import PrintStatusModal from "../../components/kasir/PrintStatusModal";
 import {
   usePrintOrders,
   usePrintMutations,
@@ -320,64 +321,13 @@ export default function AntreanPrint() {
         </div>
       </div>
 
-      {/* Baris Ringkasan Kartu Metrik */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-              Total Masuk
-            </p>
-            <p className="text-2xl font-black text-slate-900 mt-0.5">
-              {totalOrders}
-            </p>
-          </div>
-          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
-            <FileText size={18} />
-          </div>
-        </div>
-
-        <div className="bg-amber-50/60 p-4 rounded-2xl border border-amber-200/80 shadow-2xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-semibold text-amber-900 uppercase tracking-wider">
-              Menunggu Cetak
-            </p>
-            <p className="text-2xl font-black text-amber-900 mt-0.5">
-              {pendingOrders}
-            </p>
-          </div>
-          <div className="p-2.5 bg-amber-100/80 text-amber-700 rounded-xl">
-            <Clock size={18} />
-          </div>
-        </div>
-
-        <div className="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200/80 shadow-2xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-semibold text-emerald-900 uppercase tracking-wider">
-              Siap Diambil
-            </p>
-            <p className="text-2xl font-black text-emerald-900 mt-0.5">
-              {readyOrders}
-            </p>
-          </div>
-          <div className="p-2.5 bg-emerald-100/80 text-emerald-700 rounded-xl">
-            <PackageCheck size={18} />
-          </div>
-        </div>
-
-        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-              Selesai Dicetak
-            </p>
-            <p className="text-2xl font-black text-slate-700 mt-0.5">
-              {completedOrders}
-            </p>
-          </div>
-          <div className="p-2.5 bg-slate-200/60 text-slate-600 rounded-xl">
-            <FileCheck size={18} />
-          </div>
-        </div>
-      </div>
+      {/* Baris Ringkasan Kartu Metrik (Modular Component) */}
+      <PrintQueueStatsCards
+        totalOrders={totalOrders}
+        pendingOrders={pendingOrders}
+        readyOrders={readyOrders}
+        completedOrders={completedOrders}
+      />
 
       {/* Filter & Pencarian */}
       <FilterBar
@@ -406,159 +356,12 @@ export default function AntreanPrint() {
         emptyMessage="Tidak ada antrean cetak dokumen yang ditemukan."
       />
 
-      {/* Modal Ubah Status Antrean Print */}
-      {selectedOrderForStatus && (
-        <Modal
-          isOpen={Boolean(selectedOrderForStatus)}
-          onClose={() => setSelectedOrderForStatus(null)}
-          title="Ubah Status Order Cetak"
-        >
-          <div className="space-y-4 text-xs">
-            {/* Rincian Order */}
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">Nomor Order</span>
-                <span className="font-mono font-bold text-slate-900">
-                  {selectedOrderForStatus.orderNumber}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">Nama File</span>
-                <span
-                  className="font-medium text-slate-800 truncate max-w-[200px]"
-                  title={selectedOrderForStatus.fileName}
-                >
-                  {selectedOrderForStatus.fileName}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">Pemesan</span>
-                <span className="font-bold text-slate-900">
-                  {selectedOrderForStatus.student?.name || "Siswa Umum"} (NIS:{" "}
-                  {selectedOrderForStatus.student?.nis || "-"})
-                </span>
-              </div>
-              <div className="flex items-center justify-between pt-1 border-t border-slate-200">
-                <span className="text-slate-500">Status Saat Ini</span>
-                <Badge
-                  variant={
-                    selectedOrderForStatus.status === "READY"
-                      ? "success"
-                      : selectedOrderForStatus.status === "PENDING"
-                        ? "warning"
-                        : selectedOrderForStatus.status === "COMPLETED"
-                          ? "primary"
-                          : "danger"
-                  }
-                >
-                  {selectedOrderForStatus.status}
-                </Badge>
-              </div>
-            </div>
-
-            {/* Tombol Pilihan Status */}
-            <div className="space-y-2">
-              <span className="font-bold text-slate-800 block text-xs">
-                Pilih Status Baru:
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  size="sm"
-                  variant={
-                    selectedOrderForStatus.status === "PENDING"
-                      ? "amber"
-                      : "outline"
-                  }
-                  onClick={() => {
-                    handleUpdateStatus(selectedOrderForStatus.id, "PENDING");
-                    setSelectedOrderForStatus(null);
-                  }}
-                  className="justify-start gap-1.5"
-                >
-                  <Clock size={13} className="text-amber-600" />
-                  <span>Menunggu</span>
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant={
-                    selectedOrderForStatus.status === "PROCESSING"
-                      ? "primary"
-                      : "outline"
-                  }
-                  onClick={() => {
-                    handleUpdateStatus(selectedOrderForStatus.id, "PROCESSING");
-                    setSelectedOrderForStatus(null);
-                  }}
-                  className="justify-start gap-1.5"
-                >
-                  <RefreshCw size={13} className="text-blue-500" />
-                  <span>Sedang Dicetak</span>
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant={
-                    selectedOrderForStatus.status === "READY"
-                      ? "primary"
-                      : "outline"
-                  }
-                  onClick={() => {
-                    handleUpdateStatus(selectedOrderForStatus.id, "READY");
-                    setSelectedOrderForStatus(null);
-                  }}
-                  className="justify-start gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
-                >
-                  <PackageCheck size={13} />
-                  <span>Siap Diambil</span>
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant={
-                    selectedOrderForStatus.status === "COMPLETED"
-                      ? "primary"
-                      : "outline"
-                  }
-                  onClick={() => {
-                    handleUpdateStatus(selectedOrderForStatus.id, "COMPLETED");
-                    setSelectedOrderForStatus(null);
-                  }}
-                  className="justify-start gap-1.5"
-                >
-                  <CheckCircle2 size={13} className="text-emerald-500" />
-                  <span>Selesai</span>
-                </Button>
-              </div>
-
-              <div className="pt-2">
-                <Button
-                  size="sm"
-                  variant="danger"
-                  onClick={() => {
-                    handleUpdateStatus(selectedOrderForStatus.id, "CANCELLED");
-                    setSelectedOrderForStatus(null);
-                  }}
-                  className="w-full gap-1.5"
-                >
-                  <XCircle size={13} />
-                  <span>Batalkan Order Cetak</span>
-                </Button>
-              </div>
-            </div>
-
-            <div className="pt-2 border-t border-slate-100 flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSelectedOrderForStatus(null)}
-              >
-                Tutup
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
+      {/* Modal Ubah Status Antrean Print (Modular Component) */}
+      <PrintStatusModal
+        selectedOrder={selectedOrderForStatus}
+        onClose={() => setSelectedOrderForStatus(null)}
+        onUpdateStatus={handleUpdateStatus}
+      />
     </div>
   );
 }
