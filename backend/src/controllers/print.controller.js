@@ -10,11 +10,15 @@ const estimatePrintCost = async (req, res) => {
     }
 
     const totalPages = await printService.countPdfPagesService(req.file.path);
-    const { isColor, copies, paperSize } = req.body;
+    const { isColor, colorType, copies, paperSize, selectedPages, finishing } =
+      req.body;
 
-    const estimate = await printService.calculatePrintCostService({
+    const estimate = printService.calculatePrintCostService({
       totalPages,
-      isColor: isColor === "true" || isColor === true,
+      selectedPages,
+      finishing,
+      isColor:
+        isColor === "true" || isColor === true || colorType === "COLOR",
       copies: parseInt(copies) || 1,
       paperSize: paperSize || "A4",
     });

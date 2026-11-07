@@ -4,10 +4,13 @@ import {
   PackageCheck,
   CheckCircle2,
   XCircle,
+  BookOpen,
+  Printer,
 } from "lucide-react";
 import Modal from "../ui/Modal";
 import Badge from "../ui/Badge";
 import Button from "../ui/Button";
+import { parsePrintSpecs, parseOrderPageNotes } from "../../utils/printSpecs";
 
 export default function PrintStatusModal({
   selectedOrder,
@@ -15,6 +18,9 @@ export default function PrintStatusModal({
   onUpdateStatus,
 }) {
   if (!selectedOrder) return null;
+
+  const specs = parsePrintSpecs(selectedOrder);
+  const pageNotes = parseOrderPageNotes(selectedOrder.notes);
 
   return (
     <Modal
@@ -24,7 +30,7 @@ export default function PrintStatusModal({
     >
       <div className="space-y-4 text-xs">
         {/* Rincian Order */}
-        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-1.5">
+        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-slate-500">Nomor Order</span>
             <span className="font-mono font-bold text-slate-900">
@@ -47,6 +53,46 @@ export default function PrintStatusModal({
               {selectedOrder.student?.nis || "-"})
             </span>
           </div>
+
+          {/* Spesifikasi Dokumen & Jilid */}
+          <div className="pt-2 border-t border-slate-200 space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Jumlah Halaman:</span>
+              <span className="font-bold text-slate-800">
+                {specs.effectivePageCount || specs.totalPages} Hal ({specs.paperSize}) •{" "}
+                {specs.isColor ? "Warna" : "B/W"}
+              </span>
+            </div>
+            {specs.finishing && (
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Jilid / Finishing:</span>
+                <span className="font-bold text-purple-700 flex items-center gap-1">
+                  <BookOpen size={11} />
+                  {specs.finishing}
+                </span>
+              </div>
+            )}
+            {pageNotes.isCustom && (
+              <div className="bg-white p-2 rounded-xl border border-slate-200 mt-1 space-y-0.5">
+                <div className="flex items-center justify-between text-emerald-700 font-bold">
+                  <span className="flex items-center gap-1">
+                    <Printer size={12} />
+                    Cetak Hal:
+                  </span>
+                  <span className="font-mono bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                    {pageNotes.printPages}
+                  </span>
+                </div>
+                {pageNotes.skipPages && (
+                  <div className="flex items-center justify-between text-[10px] text-rose-600">
+                    <span>Lewati:</span>
+                    <span className="font-mono">Hal {pageNotes.skipPages}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="flex items-center justify-between pt-1 border-t border-slate-200">
             <span className="text-slate-500">Status Saat Ini</span>
             <Badge
@@ -101,24 +147,24 @@ export default function PrintStatusModal({
               }}
               className="justify-start gap-1.5"
             >
-              <RefreshCw size={13} className="text-blue-500" />
-              <span>Sedang Dicetak</span>
+              <RefreshCw size={13} className="text-blue-600" />
+              <span>Diproses</span>
             </Button>
 
             <Button
               size="sm"
               variant={
                 selectedOrder.status === "READY"
-                  ? "primary"
+                  ? "success"
                   : "outline"
               }
               onClick={() => {
                 onUpdateStatus(selectedOrder.id, "READY");
                 onClose();
               }}
-              className="justify-start gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="justify-start gap-1.5"
             >
-              <PackageCheck size={13} />
+              <PackageCheck size={13} className="text-emerald-600" />
               <span>Siap Diambil</span>
             </Button>
 
@@ -135,35 +181,30 @@ export default function PrintStatusModal({
               }}
               className="justify-start gap-1.5"
             >
-              <CheckCircle2 size={13} className="text-emerald-500" />
+              <CheckCircle2 size={13} className="text-blue-600" />
               <span>Selesai</span>
             </Button>
           </div>
 
-          <div className="pt-2">
+          {/* Opsi Batalkan */}
+          <div className="pt-2 border-t border-slate-200">
             <Button
               size="sm"
-              variant="danger"
+              variant={
+                selectedOrder.status === "CANCELLED"
+                  ? "danger"
+                  : "outline"
+              }
               onClick={() => {
                 onUpdateStatus(selectedOrder.id, "CANCELLED");
                 onClose();
               }}
-              className="w-full gap-1.5"
+              className="w-full justify-center gap-1.5 text-rose-600 hover:bg-rose-50 hover:border-rose-300"
             >
               <XCircle size={13} />
-              <span>Batalkan Order Cetak</span>
+              <span>Batalkan Pesanan Cetak</span>
             </Button>
           </div>
-        </div>
-
-        <div className="pt-2 border-t border-slate-100 flex justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onClose}
-          >
-            Tutup
-          </Button>
         </div>
       </div>
     </Modal>

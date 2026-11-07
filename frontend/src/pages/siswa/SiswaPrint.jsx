@@ -13,17 +13,23 @@ export default function SiswaPrint() {
     colorType,
     paperSize,
     finishing,
-    notes,
+    copies,
+    docTotalPages,
+    selectedPages,
     estimate,
     isEstimating,
     isSubmitting,
     errorMessage,
     successOrder,
     setFinishing,
-    setNotes,
+    setCopies,
     handleFileSelect,
     handleColorChange,
     handlePaperChange,
+    togglePage,
+    selectAllPages,
+    selectOddPages,
+    selectEvenPages,
     resetFile,
     submitOrder,
   } = useStudentPrint();
@@ -37,8 +43,7 @@ export default function SiswaPrint() {
           Print Mandiri Siswa
         </h2>
         <p className="text-xs text-slate-500 mt-0.5">
-          Unggah dokumen PDF, atur preferensi cetak, dan ambil langsung di
-          konter kasir[cite: 1].
+          Unggah dokumen PDF, tentukan halaman yang ingin dicetak, pilih jilid, dan ambil langsung di konter kasir.
         </p>
       </div>
 
@@ -65,11 +70,17 @@ export default function SiswaPrint() {
           colorType={colorType}
           paperSize={paperSize}
           finishing={finishing}
-          notes={notes}
+          copies={copies}
+          docTotalPages={docTotalPages}
+          selectedPages={selectedPages}
           onColorChange={handleColorChange}
           onPaperChange={handlePaperChange}
           onFinishingChange={setFinishing}
-          onNotesChange={setNotes}
+          onCopiesChange={setCopies}
+          onTogglePage={togglePage}
+          onSelectAllPages={selectAllPages}
+          onSelectOddPages={selectOddPages}
+          onSelectEvenPages={selectEvenPages}
         />
 
         {file && (
@@ -78,7 +89,7 @@ export default function SiswaPrint() {
 
         <Button
           type="submit"
-          disabled={!file || isEstimating || isSubmitting}
+          disabled={!file || isEstimating || isSubmitting || selectedPages.length === 0}
           className="w-full py-3.5 text-sm font-bold bg-primary hover:bg-primary-hover shadow-md shadow-primary/25 rounded-2xl flex items-center justify-center gap-2"
         >
           {isSubmitting ? (
@@ -89,7 +100,7 @@ export default function SiswaPrint() {
           ) : (
             <>
               <Sparkles size={16} />
-              Kirim Antrean Cetak
+              Kirim Antrean Cetak ({selectedPages.length || 0} Halaman)
             </>
           )}
         </Button>

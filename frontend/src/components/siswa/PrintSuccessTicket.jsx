@@ -13,7 +13,8 @@ export default function PrintSuccessTicket({ order }) {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
-  const { totalPages, isColor, paperSize, copies } = parsePrintSpecs(order);
+  const { effectivePageCount, totalPages, isColor, paperSize, copies, finishing } =
+    parsePrintSpecs(order);
 
   return (
     <div className="bg-success/10 border border-success/30 rounded-2xl p-4 text-emerald-950 shadow-sm space-y-3">
@@ -52,23 +53,31 @@ export default function PrintSuccessTicket({ order }) {
         </button>
       </div>
 
-      {/* Rincian Singkat File & Biaya */}
-      <div className="bg-success/10 rounded-xl p-2.5 text-xs space-y-1.5">
+      {/* Rincian Singkat File, Halaman & Biaya */}
+      <div className="bg-white/80 rounded-xl p-2.5 text-xs space-y-1.5 border border-success/20">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-slate-600 flex items-center gap-1 truncate max-w-[180px]">
+          <span className="text-slate-700 flex items-center gap-1 font-medium truncate max-w-[180px]">
             <FileText size={13} className="shrink-0 text-success" />
             {order?.fileName || "Dokumen Cetak"}
           </span>
           <div className="text-xs text-right space-y-0.5 shrink-0">
             <span className="font-bold text-slate-800 block">
-              {totalPages} Halaman ({paperSize})
+              {effectivePageCount || totalPages} Halaman ({paperSize})
             </span>
             <span className="text-slate-600 block text-[11px]">
               {isColor ? "Warna" : "Hitam Putih"} • {copies} Rangkap
+              {finishing ? ` • ${finishing}` : ""}
             </span>
           </div>
         </div>
-        <div className="flex justify-between items-center pt-1 border-t border-success/20">
+
+        {order?.notes && (
+          <div className="text-[11px] font-mono text-emerald-800 bg-emerald-50 rounded-lg px-2 py-1 border border-emerald-200">
+            {order.notes}
+          </div>
+        )}
+
+        <div className="flex justify-between items-center pt-1.5 border-t border-success/20">
           <span className="text-slate-600">Total Tagihan Kasir:</span>
           <span className="font-extrabold text-sm text-success">
             {formatRupiah(order?.totalPrice || 0)}

@@ -12,6 +12,10 @@ import {
   PackageCheck,
   XCircle,
   MoreHorizontal,
+  Copy,
+  Check,
+  Scissors,
+  BookOpen,
 } from "lucide-react";
 
 import Table from "../../components/ui/Table";
@@ -26,12 +30,12 @@ import {
 } from "../../hooks/kasir/usePrintOrders";
 import { formatRupiah, formatDate } from "../../utils/formatters";
 import { resolveFileUrl } from "../../utils/imageUrl";
-
-
+import { parsePrintSpecs, parseOrderPageNotes } from "../../utils/printSpecs";
 
 export default function AntreanPrint() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [copiedPagesId, setCopiedPagesId] = useState(null);
 
   const {
     data: orders = [],
@@ -41,6 +45,13 @@ export default function AntreanPrint() {
     refetch,
     isFetching,
   } = usePrintOrders();
+
+  const handleCopyPages = (pagesStr, orderId) => {
+    if (!pagesStr) return;
+    navigator.clipboard.writeText(pagesStr);
+    setCopiedPagesId(orderId);
+    setTimeout(() => setCopiedPagesId(null), 2000);
+  };
 
   // Filter Dokumen
   const filteredOrders = orders.filter((order) => {
@@ -104,57 +115,85 @@ export default function AntreanPrint() {
     {
       header: "Spesifikasi Dokumen",
       render: (o) => {
-        const specs =
-          (typeof o.specs === "object" && o.specs) ||
-          (typeof o.config === "object" && o.config) ||
-          (typeof o.options === "object" && o.options) ||
-          (typeof o.details === "object" && o.details) ||
-          (typeof o.totalPages === "object" && o.totalPages) ||
-          (typeof o.pageCount === "object" && o.pageCount) ||
-          null;
-
-        const rawPages =
-          specs?.totalPages ??
-          (typeof o.pageCount === "number" || typeof o.pageCount === "string"
-            ? o.pageCount
-            : typeof o.totalPages === "number" || typeof o.totalPages === "string"
-              ? o.totalPages
-              : 1);
-
-        const pages =
-          typeof rawPages === "object" && rawPages !== null
-            ? rawPages.totalPages || 1
-            : Number(rawPages) || 1;
-
-        const isColor =
-          specs?.isColor ??
-          (o.colorType === "COLOR" || o.isColor === true);
-
-        const paperSize = specs?.paperSize || o.paperSize || "A4";
-        const copies = specs?.copies || o.copies || 1;
+        const specs = parsePrintSpecs(o);
+        const pageNotes = parseOrderPageNotes(o.notes);
 
         return (
-          <div className="space-y-1">
+          <div className="space-y-1.5 max-w-xs">
+            {/* Nama File */}
             <div className="flex items-center gap-1.5 font-medium text-xs text-slate-800">
               <FileText size={14} className="text-blue-500 shrink-0" />
-              <span className="truncate max-w-[180px]" title={o.fileName}>
+              <span className="truncate max-w-[200px]" title={o.fileName}>
                 {o.fileName || "Dokumen Cetak"}
               </span>
             </div>
+
+            {/* Total Halaman Cetak & Kertas */}
             <div className="text-xs space-y-0.5">
-              <span className="font-bold text-slate-800 block">
-                {pages} Halaman ({paperSize})
-              </span>
-              <span className="text-slate-500 block text-[11px]">
-                {isColor ? "Warna" : "Hitam Putih"} • {copies} Rangkap
-                {o.finishing ? ` • ${o.finishing}` : ""}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-slate-900">
+                  {specs.effectivePageCount || specs.totalPages} Hal ({specs.paperSize})
+                </span>
+                <span className="text-slate-500 text-[11px]">
+                  • {specs.isColor ? "Warna" : "Hitam Putih"} • {specs.copies} Rangkap
+                </span>
+              </div>
             </div>
-            {o.notes && (
-              <p className="text-[10px] italic text-slate-500 bg-amber-50/70 border border-amber-200/60 rounded px-1.5 py-0.5 mt-1">
-                "{o.notes}"
-              </p>
+
+            {/* Opsi Jilid / Finishing */}
+            {specs.finishing && specs.finishing !== "Tanpa Jilid (Stapler)" && (
+              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-bold">
+                <BookOpen size={11} className="shrink-0" />
+                <span>{specs.finishing}</span>
+              </div>
             )}
+
+            {/* Instruksi Halaman yang Dicetak vs Dilewati */}
+            {pageNotes.isCustom ? (
+              <div className="space-y-1 bg-slate-50 p-2 rounded-xl border border-slate-200 text-[11px]">
+                {/* Halaman yang dicetak */}
+                <div className="flex items-center justify-between gap-1.5">
+                  <span className="font-semibold text-emerald-700 flex items-center gap-1">
+                    <Printer size={12} className="text-emerald-600" />
+                    Cetak Hal:
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <span className="font-mono font-bold text-emerald-800 bg-emerald-100/70 px-1.5 py-0.5 rounded border border-emerald-300">
+                      {pageNotes.printPages}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyPages(pageNotes.printPages, o.id)}
+                      className="p-1 rounded bg-white hover:bg-slate-100 text-slate-500 border border-slate-200 transition-colors"
+                      title="Salin nomor halaman ke clipboard untuk paste di printer dialog"
+                    >
+                      {copiedPagesId === o.id ? (
+                        <Check size={11} className="text-emerald-600" />
+                      ) : (
+                        <Copy size={11} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Halaman yang dilewati */}
+                {pageNotes.skipPages && (
+                  <div className="flex items-center justify-between text-[10px] text-rose-600 pt-0.5 border-t border-slate-200/60">
+                    <span className="flex items-center gap-1 font-medium">
+                      <Scissors size={10} className="text-rose-500" />
+                      Lewati:
+                    </span>
+                    <span className="font-mono font-semibold bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
+                      Hal {pageNotes.skipPages}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : o.notes ? (
+              <p className="text-[10px] italic text-slate-600 bg-slate-100/80 border border-slate-200 rounded px-2 py-0.5">
+                {o.notes}
+              </p>
+            ) : null}
           </div>
         );
       },
@@ -299,29 +338,29 @@ export default function AntreanPrint() {
             <Printer className="text-blue-600" size={22} />
             Antrean Cetak Dokumen
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Daftar pesanan print mandiri dari siswa YasixMerch.
+          <p className="text-xs text-slate-500 mt-1">
+            Kelola dan cetak dokumen PDF yang dikirim mandiri oleh siswa secara teratur.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Button
+            variant="outline"
             size="sm"
-            variant="secondary"
             onClick={() => refetch()}
             disabled={isFetching}
-            className="text-xs border border-slate-200 bg-white hover:bg-slate-50"
+            className="text-xs gap-1.5"
           >
             <RefreshCw
               size={13}
-              className={`mr-1.5 text-slate-600 ${isFetching ? "animate-spin" : ""}`}
+              className={isFetching ? "animate-spin" : ""}
             />
-            Refresh Antrean
+            <span>Segarkan</span>
           </Button>
         </div>
       </div>
 
-      {/* Baris Ringkasan Kartu Metrik (Modular Component) */}
+      {/* Kartu Metrik Ringkasan Antrean */}
       <PrintQueueStatsCards
         totalOrders={totalOrders}
         pendingOrders={pendingOrders}
@@ -329,34 +368,38 @@ export default function AntreanPrint() {
         completedOrders={completedOrders}
       />
 
-      {/* Filter & Pencarian */}
+      {/* Toolbar Filter dan Pencarian */}
       <FilterBar
-        searchPlaceholder="Cari No. Order (PO-...), Nama Siswa, NIS, atau Nama File..."
-        searchValue={searchQuery}
+        searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        filterTabs={[
-          { label: `Semua (${totalOrders})`, value: "ALL" },
-          { label: `Menunggu (${pendingOrders})`, value: "PENDING" },
-          { label: `Siap (${readyOrders})`, value: "READY" },
-          { label: `Selesai (${completedOrders})`, value: "COMPLETED" },
+        searchPlaceholder="Cari nomor order, nama siswa, NIS, atau nama file..."
+        statusFilter={statusFilter}
+        onStatusChange={setStatusFilter}
+        statusOptions={[
+          { label: "Semua Status", value: "ALL" },
+          { label: "Menunggu", value: "PENDING" },
+          { label: "Diproses", value: "PROCESSING" },
+          { label: "Siap Diambil", value: "READY" },
+          { label: "Selesai", value: "COMPLETED" },
           { label: "Dibatalkan", value: "CANCELLED" },
         ]}
-        activeTab={statusFilter}
-        onTabChange={setStatusFilter}
       />
 
-      {/* Tabel Data */}
+      {/* Tabel Antrean Dokumen */}
       <Table
         columns={columns}
         data={filteredOrders}
-        keyField="id"
         isLoading={isLoading}
         isError={isError}
         errorMessage={error?.message}
-        emptyMessage="Tidak ada antrean cetak dokumen yang ditemukan."
+        emptyMessage={
+          searchQuery || statusFilter !== "ALL"
+            ? "Tidak ada dokumen cetak yang cocok dengan filter pencarian."
+            : "Belum ada antrean cetak dokumen yang masuk saat ini."
+        }
       />
 
-      {/* Modal Ubah Status Antrean Print (Modular Component) */}
+      {/* Modal Ubah Status Detail */}
       <PrintStatusModal
         selectedOrder={selectedOrderForStatus}
         onClose={() => setSelectedOrderForStatus(null)}
