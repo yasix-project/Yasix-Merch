@@ -105,6 +105,21 @@ const DEMO_VOUCHERS = [
   },
 ];
 
+const DEMO_ORDERS = [
+  {
+    invoiceNumber: "ORD-20261107-001",
+    customer: "Budi Pratama (XII RPL 1)",
+    items: "2x Buku Tulis Sidu, 1x Pensil 2B Faber-Castell",
+    total: 13000,
+  },
+  {
+    invoiceNumber: "ORD-20261107-002",
+    customer: "Siti Nurhaliza (XI DKV 1)",
+    items: "1x Tote Bag Kanvas Karya KIK DKV",
+    total: 35000,
+  },
+];
+
 export default function DemoBarcodeSheet() {
   const [copiedCode, setCopiedCode] = useState(null);
   const [displayMode, setDisplayMode] = useState("QR"); // "QR" | "1D" | "BOTH"
@@ -430,6 +445,76 @@ export default function DemoBarcodeSheet() {
                     }`}
                   >
                     {isCopied ? "Tersalin" : "Salin Kode"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ======================================================== */}
+        {/* BAGIAN 4: QR CODE PRE-ORDER SISWA (PENGUJIAN KASIR)     */}
+        {/* ======================================================== */}
+        <section className="space-y-3 pt-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-500/20 text-indigo-400 text-xs font-bold">
+                4
+              </span>
+              <h2 className="text-sm font-bold text-white tracking-wide">
+                QR Code Pesanan Pre-Order Siswa ({DEMO_ORDERS.length} Invoice Demo)
+              </h2>
+            </div>
+            <a
+              href="/kasir/pre-order"
+              className="text-[11px] text-indigo-400 hover:text-indigo-300 font-bold underline"
+            >
+              Buka Pre-Order Kasir &rarr;
+            </a>
+          </div>
+
+          <p className="text-[11px] text-slate-400">
+            Arahkan QR Code berikut ke webcam di menu <strong>Pre-Order Kasir</strong> untuk mengonfirmasi orderan dan mengupdate statusnya.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {DEMO_ORDERS.map((ord) => {
+              const isCopied = copiedCode === ord.invoiceNumber;
+              return (
+                <div
+                  key={ord.invoiceNumber}
+                  className="bg-slate-800/90 border border-indigo-500/30 rounded-2xl p-4 flex flex-col items-center text-center space-y-3 shadow-sm"
+                >
+                  <div className="bg-white p-3 rounded-xl shadow-xs">
+                    <QRCodeSVG
+                      value={ord.invoiceNumber}
+                      size={130}
+                      level="M"
+                      includeMargin={false}
+                    />
+                  </div>
+
+                  <div className="space-y-1 w-full">
+                    <span className="font-mono font-bold text-indigo-300 text-xs block">
+                      {ord.invoiceNumber}
+                    </span>
+                    <p className="text-xs font-bold text-white">{ord.customer}</p>
+                    <p className="text-[10px] text-slate-400">{ord.items}</p>
+                    <p className="text-xs font-extrabold text-emerald-400">
+                      Total: {formatRupiah(ord.total)}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(ord.invoiceNumber)}
+                    className={`w-full py-2 text-xs font-bold rounded-xl transition ${
+                      isCopied
+                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                        : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs"
+                    }`}
+                  >
+                    {isCopied ? "Nomor Invoice Tersalin" : "Salin No. Invoice"}
                   </button>
                 </div>
               );
