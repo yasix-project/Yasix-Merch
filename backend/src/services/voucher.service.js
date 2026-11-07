@@ -6,15 +6,28 @@ const validateVoucherService = async (code, subtotal) => {
   });
 
   if (!voucher) {
-    throw new Error("Kode voucher tidak ditemukan.");
+    throw new Error("Kode voucher tidak ditemukan atau sudah pernah digunakan.");
   }
 
   if (!voucher.isActive) {
-    throw new Error("Voucher sudah tidak aktif.");
+    throw new Error("Voucher sudah tidak aktif atau sudah pernah digunakan.");
   }
 
   if (new Date(voucher.validUntil) < new Date()) {
     throw new Error("Voucher telah kadaluwarsa.");
+  }
+
+  // Cek apakah voucher sedang aktif digunakan di pesanan BOOKED
+  const pendingTransaction = await prisma.transaction.findFirst({
+    where: {
+      voucherId: voucher.id,
+      status: "BOOKED",
+    },
+  });
+  if (pendingTransaction) {
+    throw new Error(
+      "Voucher ini sedang digunakan pada pesanan yang belum selesai diambil.",
+    );
   }
 
   if (Number(subtotal) < Number(voucher.minPurchase)) {

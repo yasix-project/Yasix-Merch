@@ -196,6 +196,25 @@ const createTransactionService = async (cashierId, transactionData) => {
       }
     }
 
+    // 5. Aturan Sekali Pakai: Hapus Voucher Poin Siswa dari Database setelah Transaksi Selesai
+    if (resolvedVoucherId) {
+      const voucher = await tx.voucher.findUnique({
+        where: { id: resolvedVoucherId },
+      });
+      if (
+        voucher &&
+        (voucher.studentId || voucher.code.startsWith("REDEEM-"))
+      ) {
+        await tx.transaction.update({
+          where: { id: newTransaction.id },
+          data: { voucherId: null },
+        });
+        await tx.voucher.delete({
+          where: { id: resolvedVoucherId },
+        });
+      }
+    }
+
     return newTransaction;
   });
 };
@@ -335,6 +354,14 @@ const cancelTransactionService = async (transactionId, user) => {
       }
     }
 
+    // Jika pesanan yang dibatalkan mengunci voucher, aktifkan kembali vouchernya
+    if (existingTransaction.voucherId) {
+      await tx.voucher.updateMany({
+        where: { id: existingTransaction.voucherId },
+        data: { isActive: true },
+      });
+    }
+
     return cancelledTransaction;
   });
 
@@ -384,17 +411,40 @@ const studentPreOrderService = async (studentId, orderData) => {
     if (voucherId) {
       const voucher = await tx.voucher.findUnique({ where: { id: voucherId } });
       if (
-        voucher &&
-        voucher.isActive &&
-        new Date(voucher.validUntil) >= new Date()
+        !voucher ||
+        !voucher.isActive ||
+        new Date(voucher.validUntil) < new Date()
       ) {
-        discountAmount = (subtotal * Number(voucher.discountPct)) / 100;
-        if (
-          voucher.maxDiscount &&
-          discountAmount > Number(voucher.maxDiscount)
-        ) {
-          discountAmount = Number(voucher.maxDiscount);
-        }
+        throw new Error("Voucher tidak valid atau sudah kadaluwarsa.");
+      }
+
+      // Pastikan voucher tidak sedang aktif digunakan pada pesanan BOOKED lain
+      const pendingTx = await tx.transaction.findFirst({
+        where: {
+          voucherId,
+          status: "BOOKED",
+        },
+      });
+      if (pendingTx) {
+        throw new Error(
+          "Voucher ini sedang digunakan pada pesanan lain yang belum selesai diambil.",
+        );
+      }
+
+      discountAmount = (subtotal * Number(voucher.discountPct)) / 100;
+      if (
+        voucher.maxDiscount &&
+        discountAmount > Number(voucher.maxDiscount)
+      ) {
+        discountAmount = Number(voucher.maxDiscount);
+      }
+
+      // Kunci sementara voucher poin siswa agar tidak dapat dipakai ganda selama menunggu diambil
+      if (voucher.studentId || voucher.code.startsWith("REDEEM-")) {
+        await tx.voucher.update({
+          where: { id: voucherId },
+          data: { isActive: false },
+        });
       }
     }
 
@@ -448,6 +498,14 @@ const checkAndCancelExpiredOrders = async () => {
         where: { id: tx.id },
         data: { status: "CANCELLED" },
       });
+
+      // Jika pesanan kadaluwarsa mengunci voucher, aktifkan kembali
+      if (tx.voucherId) {
+        await prismaTx.voucher.updateMany({
+          where: { id: tx.voucherId },
+          data: { isActive: true },
+        });
+      }
     });
   }
 };
@@ -509,6 +567,25 @@ const completePreOrderService = async (
         await tx.user.update({
           where: { id: transaction.studentId },
           data: { points: { increment: earnedPoints } },
+        });
+      }
+    }
+
+    // Aturan Sekali Pakai: Hapus Voucher Poin Siswa dari Database setelah Transaksi Selesai
+    if (transaction.voucherId) {
+      const voucher = await tx.voucher.findUnique({
+        where: { id: transaction.voucherId },
+      });
+      if (
+        voucher &&
+        (voucher.studentId || voucher.code.startsWith("REDEEM-"))
+      ) {
+        await tx.transaction.update({
+          where: { id: transactionId },
+          data: { voucherId: null },
+        });
+        await tx.voucher.delete({
+          where: { id: voucher.id },
         });
       }
     }
@@ -635,6 +712,22 @@ const updateTransactionStatusService = async (
         },
       });
     });
+  }
+
+  // Aturan Sekali Pakai: Hapus Voucher Poin Siswa dari Database jika status COMPLETED
+  if (newStatus === "COMPLETED" && transaction.voucherId) {
+    const voucher = await prisma.voucher.findUnique({
+      where: { id: transaction.voucherId },
+    });
+    if (voucher && (voucher.studentId || voucher.code.startsWith("REDEEM-"))) {
+      await prisma.transaction.update({
+        where: { id: transactionId },
+        data: { voucherId: null },
+      });
+      await prisma.voucher.delete({
+        where: { id: voucher.id },
+      });
+    }
   }
 
   return await prisma.transaction.update({
