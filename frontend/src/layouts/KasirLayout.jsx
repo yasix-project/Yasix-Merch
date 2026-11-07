@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Outlet, useNavigate, NavLink } from "react-router-dom";
+import { Outlet, useNavigate, NavLink, useLocation } from "react-router-dom";
 import {
   LogOut,
   Maximize,
@@ -27,22 +27,22 @@ import Button from "../components/ui/Button";
 import { shiftService } from "../api/shiftService";
 
 const NAV_ITEMS = [
-  { to: "/kasir/pos", label: "POS Terminal", icon: Monitor },
-  { to: "/kasir/pre-order", label: "Pre-Order Siswa", icon: Package, badgeKey: "preOrder" },
-  { to: "/kasir/riwayat", label: "Riwayat Kasir", icon: Receipt },
-  { to: "/kasir/print", label: "Antrean Cetak", icon: Printer },
+  { to: "/kasir/pos", label: "POS Terminal", shortLabel: "POS", icon: Monitor },
+  { to: "/kasir/pre-order", label: "Pre-Order Siswa", shortLabel: "Pre-Order", icon: Package, badgeKey: "preOrder" },
+  { to: "/kasir/riwayat", label: "Riwayat Kasir", shortLabel: "Riwayat", icon: Receipt },
+  { to: "/kasir/print", label: "Antrean Cetak", shortLabel: "Cetak", icon: Printer },
 ];
 
 const formatClock = (date) =>
   date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
 
 const iconBtn =
-  "flex h-10 w-10 items-center justify-center rounded-full text-slate-500 outline-none transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-600";
+  "flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-slate-500 outline-none transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-600";
 
 function CashField({ label, icon: Icon, ...props }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-medium text-slate-600">
+      <span className="mb-1.5 block text-xs font-semibold text-slate-700">
         {label}
       </span>
       <div className="relative">
@@ -52,7 +52,7 @@ function CashField({ label, icon: Icon, ...props }) {
         />
         <input
           {...props}
-          className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10"
+          className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 placeholder:font-normal focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10"
         />
       </div>
     </label>
@@ -61,8 +61,8 @@ function CashField({ label, icon: Icon, ...props }) {
 
 function Modal({ children }) {
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/45 p-4 backdrop-blur-md">
-      <div className="animate-in zoom-in-95 w-full max-w-md rounded-3xl bg-white p-8 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.45)] ring-1 ring-slate-200/70">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-md overflow-y-auto">
+      <div className="animate-in zoom-in-95 my-auto w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.45)] ring-1 ring-slate-200/80">
         {children}
       </div>
     </div>
@@ -71,6 +71,7 @@ function Modal({ children }) {
 
 export default function KasirLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const confirm = useConfirm();
 
   const user = useAuthStore((state) => state.user);
@@ -85,6 +86,8 @@ export default function KasirLayout() {
   const [actualCash, setActualCash] = useState("");
   const [isClosing, setIsClosing] = useState(false);
   const [isSubmittingShift, setIsSubmittingShift] = useState(false);
+
+  const isPosRoute = location.pathname === "/kasir/pos";
 
   // Sinkronisasi status shift kasir dari database backend
   useEffect(() => {
@@ -332,24 +335,26 @@ export default function KasirLayout() {
   const initial = userName.trim().charAt(0).toUpperCase();
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-slate-50 font-sans">
-      <header className="relative z-40 flex h-16 items-center justify-between gap-4 border-b border-slate-200/80 bg-white px-4 lg:px-8">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-3">
-            <YasixLogo variant="icon" size={34} />
-            <div className="hidden sm:block">
-              <h1 className="text-[15px] font-semibold leading-tight tracking-tight text-slate-900">
+    <div className="relative flex min-h-screen flex-col bg-slate-50 font-sans selection:bg-blue-600 selection:text-white">
+      {/* Header Utama Kasir */}
+      <header className="relative z-40 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-slate-200/90 bg-white px-3 sm:px-4 lg:px-8 shadow-2xs">
+        <div className="flex items-center gap-3 sm:gap-6 min-w-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+            <YasixLogo variant="icon" size={32} />
+            <div>
+              <h1 className="text-sm sm:text-[15px] font-bold leading-tight tracking-tight text-slate-900">
                 Yasix POS
               </h1>
-              <p className="text-[11px] leading-tight text-slate-400">
+              <p className="text-[10px] sm:text-[11px] leading-tight text-slate-400 font-medium">
                 Terminal kasir
               </p>
             </div>
           </div>
 
+          {/* Navigasi Desktop & Tablet (md+) */}
           {activeShift && (
             <nav
-              aria-label="Menu kasir"
+              aria-label="Menu kasir desktop"
               className="hidden items-center gap-1 rounded-full bg-slate-100 p-1 md:flex"
             >
               {NAV_ITEMS.map(({ to, label, icon: Icon, badgeKey }) => {
@@ -359,14 +364,14 @@ export default function KasirLayout() {
                     key={to}
                     to={to}
                     className={({ isActive }) =>
-                      `relative flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-medium outline-none transition-all focus-visible:ring-2 focus-visible:ring-blue-600 ${
+                      `relative flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold outline-none transition-all focus-visible:ring-2 focus-visible:ring-blue-600 ${
                         isActive
-                          ? "bg-white text-slate-900 shadow-[0_1px_3px_rgba(15,23,42,0.12)]"
-                          : "text-slate-500 hover:text-slate-900"
+                          ? "bg-white text-blue-600 shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
                       }`
                     }
                   >
-                    <Icon size={15} strokeWidth={1.75} />
+                    <Icon size={15} strokeWidth={2} />
                     <span>{label}</span>
                     {badgeNum > 0 && (
                       <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-black text-white shadow-2xs animate-pulse">
@@ -380,32 +385,49 @@ export default function KasirLayout() {
           )}
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* Action Bar Kanan */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
+          {/* Status Shift Desktop (Waktu & Jam Buka) */}
           {activeShift && (
-            <div className="mr-2 hidden items-center gap-4 border-r border-slate-200 pr-5 xl:flex">
+            <div className="mr-1 hidden items-center gap-3 border-r border-slate-200 pr-4 xl:flex">
               <div className="text-right">
-                <p className="font-mono text-base font-semibold leading-none tracking-wider text-slate-900 tabular-nums">
+                <p className="font-mono text-sm font-bold leading-none tracking-wider text-slate-900 tabular-nums">
                   {formattedTime}
                 </p>
-                <p className="mt-1.5 flex items-center justify-end gap-1.5 text-[11px] text-slate-500">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  Shift dibuka {formatClock(new Date(activeShift.startTime))}
+                <p className="mt-1 flex items-center justify-end gap-1.5 text-[11px] font-medium text-slate-500">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Mulai {formatClock(new Date(activeShift.startTime))} WIB
                 </p>
               </div>
             </div>
           )}
 
+          {/* Badge Shift Ringkas di Mobile/Tablet */}
           {activeShift && (
             <button
               type="button"
               onClick={() => setIsClosing(true)}
-              className="hidden items-center gap-2 rounded-full px-4 py-2 text-[13px] font-medium text-amber-700 ring-1 ring-amber-200 outline-none transition hover:bg-amber-50 focus-visible:ring-2 focus-visible:ring-amber-500 sm:flex"
+              className="flex xl:hidden items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-800 hover:bg-emerald-100 transition active:scale-95"
+              title="Klik untuk info atau tutup shift kasir"
             >
-              <Wallet size={15} strokeWidth={1.75} />
-              Tutup shift
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Shift Aktif</span>
             </button>
           )}
 
+          {/* Tombol Tutup Shift (Desktop/Tablet) */}
+          {activeShift && (
+            <button
+              type="button"
+              onClick={() => setIsClosing(true)}
+              className="hidden sm:flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold text-amber-800 bg-amber-50/80 hover:bg-amber-100 ring-1 ring-amber-200/80 outline-none transition active:scale-95 focus-visible:ring-2 focus-visible:ring-amber-500"
+            >
+              <Wallet size={14} strokeWidth={2} />
+              <span>Tutup Shift</span>
+            </button>
+          )}
+
+          {/* Fullscreen Button */}
           <button
             type="button"
             onClick={toggleFullScreen}
@@ -414,37 +436,38 @@ export default function KasirLayout() {
             aria-label={isFullscreen ? "Keluar layar penuh" : "Layar penuh"}
           >
             {isFullscreen ? (
-              <Minimize size={18} strokeWidth={1.75} />
+              <Minimize size={17} strokeWidth={2} />
             ) : (
-              <Maximize size={18} strokeWidth={1.75} />
+              <Maximize size={17} strokeWidth={2} />
             )}
           </button>
 
-          {/* Status Koneksi Cloud Railway (Bukti Arsitektur Cloud Live) */}
+          {/* Cloud API Indicator */}
           <div
             title="Backend REST API: Railway Cloud Engine (Live & Connected)"
-            className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 select-none shadow-2xs"
+            className="hidden 2xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 select-none shadow-2xs"
           >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span className="text-[11px] font-mono font-bold text-emerald-700">
-              Cloud API Live
+            <span className="text-[10.5px] font-mono font-bold text-emerald-700">
+              API Live
             </span>
           </div>
 
-          <div className="flex items-center gap-3 border-l border-slate-200 pl-3 sm:pl-4">
+          {/* Identitas Kasir */}
+          <div className="flex items-center gap-2 border-l border-slate-200 pl-2 sm:pl-3">
             <div className="hidden text-right lg:block">
-              <p className="text-[13px] font-semibold leading-tight text-slate-800">
+              <p className="text-xs font-bold leading-tight text-slate-900 truncate max-w-[130px]">
                 {userName}
               </p>
-              <p className="text-[11px] capitalize leading-tight text-slate-400">
+              <p className="text-[10px] capitalize leading-tight text-slate-400 font-medium">
                 {userRole}
               </p>
             </div>
             <div
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white"
+              className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-slate-900 text-xs sm:text-sm font-bold text-white shadow-xs"
               title={userName}
               aria-hidden="true"
             >
@@ -452,41 +475,48 @@ export default function KasirLayout() {
             </div>
           </div>
 
+          {/* Logout */}
           <button
             type="button"
             onClick={handleLogout}
-            className={`${iconBtn} hover:bg-red-50 hover:text-red-500`}
+            className={`${iconBtn} hover:bg-red-50 hover:text-red-600`}
             title="Keluar sistem"
             aria-label="Keluar sistem"
           >
-            <LogOut size={18} strokeWidth={1.75} />
+            <LogOut size={17} strokeWidth={2} />
           </button>
         </div>
       </header>
 
-      <main className="relative flex-1 overflow-hidden p-4 lg:p-8">
+      {/* Konten Halaman */}
+      <main
+        className={`relative flex-1 min-h-0 ${
+          isPosRoute
+            ? "overflow-hidden p-0"
+            : "overflow-y-auto p-3 sm:p-5 lg:p-8 pb-24 md:pb-8"
+        }`}
+      >
         <div
           className={`h-full transition-all duration-300 ${
             !activeShift
-              ? "pointer-events-none select-none opacity-40 blur-sm"
+              ? "pointer-events-none select-none opacity-30 blur-xs"
               : ""
           }`}
         >
           <Outlet />
         </div>
 
-        {/* Buka shift */}
+        {/* Modal Buka Shift */}
         {!activeShift && (
           <Modal>
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white">
-              <Lock size={24} strokeWidth={1.75} />
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg">
+              <Lock size={24} strokeWidth={2} />
             </div>
-            <h2 className="mb-2 text-center text-2xl font-semibold tracking-tight text-slate-900">
-              Buka shift kasir
+            <h2 className="mb-1.5 text-center text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+              Buka Shift Kasir
             </h2>
-            <p className="mx-auto mb-6 max-w-[320px] text-center text-[13px] leading-relaxed text-slate-500">
-              Masukkan modal awal berupa uang kecil di laci kasir sebelum
-              memulai transaksi.
+            <p className="mx-auto mb-5 max-w-[320px] text-center text-xs leading-relaxed text-slate-500">
+              Masukkan modal awal berupa uang kecil di laci kasir sebelum memulai sesi transaksi.
             </p>
 
             <form onSubmit={handleOpenShift} className="space-y-4">
@@ -494,7 +524,7 @@ export default function KasirLayout() {
                 autoFocus
                 type="number"
                 inputMode="numeric"
-                label="Modal awal kasir"
+                label="Modal Awal Kasir (Rp)"
                 placeholder="Contoh: 150000"
                 icon={Wallet}
                 value={startCash}
@@ -505,35 +535,47 @@ export default function KasirLayout() {
               <Button
                 type="submit"
                 isLoading={isSubmittingShift}
-                className="mt-2 h-12 w-full rounded-xl"
+                className="mt-2 h-12 w-full rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/30"
               >
-                Buka shift
+                Buka Shift Sekarang
               </Button>
             </form>
           </Modal>
         )}
 
-        {/* Tutup shift */}
+        {/* Modal Tutup Shift */}
         {isClosing && activeShift && (
           <Modal>
-            <h2 className="mb-2 text-2xl font-semibold tracking-tight text-slate-900">
-              Tutup shift kasir
-            </h2>
-            <p className="mb-6 text-[13px] leading-relaxed text-slate-500">
-              Hitung seluruh uang fisik di laci kasir untuk rekonsiliasi akhir
-              sesi.
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-amber-50 text-amber-700">
+                  <Wallet size={20} />
+                </span>
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">
+                    Tutup Shift Kasir
+                  </h2>
+                  <p className="text-[11px] text-slate-400">
+                    Rekonsiliasi akhir sesi kasir
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <p className="mb-4 text-xs leading-relaxed text-slate-500">
+              Hitung dan masukkan seluruh total fisik uang tunai di laci kasir.
             </p>
 
-            <dl className="mb-5 space-y-2.5 rounded-2xl bg-slate-50 p-4 text-[13px] ring-1 ring-slate-200/70">
+            <dl className="mb-4 space-y-2 rounded-2xl bg-slate-50 p-3.5 text-xs ring-1 ring-slate-200/80">
               <div className="flex items-center justify-between">
-                <dt className="text-slate-500">Modal awal</dt>
-                <dd className="font-semibold tabular-nums text-slate-900">
+                <dt className="text-slate-500 font-medium">Modal Awal Kasir</dt>
+                <dd className="font-bold tabular-nums text-slate-900">
                   {formatRupiah(activeShift.startCash)}
                 </dd>
               </div>
               <div className="flex items-center justify-between">
-                <dt className="text-slate-500">Waktu mulai</dt>
-                <dd className="font-semibold tabular-nums text-slate-900">
+                <dt className="text-slate-500 font-medium">Waktu Sesi Dimulai</dt>
+                <dd className="font-semibold tabular-nums text-slate-800">
                   {formatClock(new Date(activeShift.startTime))} WIB
                 </dd>
               </div>
@@ -544,20 +586,20 @@ export default function KasirLayout() {
                 autoFocus
                 type="number"
                 inputMode="numeric"
-                label="Total uang fisik aktual"
-                placeholder="Nominal hasil hitungan laci"
+                label="Total Uang Fisik Aktual di Laci (Rp)"
+                placeholder="Nominal hasil hitungan fisik laci"
                 icon={CheckCircle2}
                 value={actualCash}
                 onChange={(e) => setActualCash(e.target.value)}
                 required
               />
 
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-2.5 pt-2">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsClosing(false)}
-                  className="h-12 w-1/2 rounded-xl"
+                  className="h-11 flex-1 rounded-xl text-xs font-semibold"
                 >
                   Batal
                 </Button>
@@ -565,15 +607,68 @@ export default function KasirLayout() {
                   type="submit"
                   variant="danger"
                   isLoading={isSubmittingShift}
-                  className="h-12 w-1/2 rounded-xl"
+                  className="h-11 flex-1 rounded-xl text-xs font-bold"
                 >
-                  Akhiri shift
+                  Akhiri Shift
                 </Button>
               </div>
             </form>
           </Modal>
         )}
       </main>
+
+      {/* Navigasi Mobile Bawah (Bottom Bar untuk Layar < md) */}
+      {activeShift && (
+        <nav
+          aria-label="Navigasi Kasir Mobile"
+          className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-around border-t border-slate-200/90 bg-white/95 px-1 backdrop-blur-md md:hidden shadow-[0_-4px_20px_rgba(15,23,42,0.08)]"
+        >
+          {NAV_ITEMS.map(({ to, shortLabel, icon: Icon, badgeKey }) => {
+            const badgeNum = badgeKey === "preOrder" ? bookedCount : 0;
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  `relative flex flex-1 flex-col items-center justify-center py-1 transition-all ${
+                    isActive
+                      ? "text-blue-600 font-bold"
+                      : "text-slate-500 hover:text-slate-800 font-medium"
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <div className="relative">
+                      <Icon size={19} strokeWidth={isActive ? 2.5 : 1.75} />
+                      {badgeNum > 0 && (
+                        <span className="absolute -top-1.5 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-black text-white shadow-2xs animate-pulse">
+                          {badgeNum}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] leading-tight mt-0.5">{shortLabel}</span>
+                    {isActive && (
+                      <span className="h-1 w-3 rounded-full bg-blue-600 mt-0.5" />
+                    )}
+                  </>
+                )}
+              </NavLink>
+            );
+          })}
+
+          {/* Tombol Shift di Mobile Nav */}
+          <button
+            type="button"
+            onClick={() => setIsClosing(true)}
+            className="relative flex flex-1 flex-col items-center justify-center py-1 text-amber-700 hover:text-amber-800 font-medium transition-all"
+            title="Tutup Shift Kasir"
+          >
+            <Wallet size={19} strokeWidth={1.75} />
+            <span className="text-[10px] leading-tight mt-0.5">Shift</span>
+          </button>
+        </nav>
+      )}
     </div>
   );
 }
