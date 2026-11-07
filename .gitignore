@@ -5,3 +5,6 @@ postman/
 # Mengabaikan file environment Postman yang berada di luar folder
 *.postman_environment.json
 *.postman_secret.json
+
+# Dokumen internal tim (proposal & skrip video GTNIC lokal)
+docs/
