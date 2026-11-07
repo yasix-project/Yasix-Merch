@@ -23,6 +23,8 @@ import Badge from "../../components/ui/Badge";
 import StrukPrinter from "../../components/shared/StrukPrinter";
 import BarcodeScannerModal from "../../components/shared/BarcodeScannerModal";
 import OrderConfirmModal from "../../components/kasir/OrderConfirmModal";
+import PreOrderStatsCards from "../../components/kasir/PreOrderStatsCards";
+import PreOrderHeaderActions from "../../components/kasir/PreOrderHeaderActions";
 import { useConfirm } from "../../hooks/useConfirm";
 import {
   useTransactions,
@@ -547,91 +549,21 @@ export default function PreOrderKasir() {
           </div>
         </div>
 
-        {/* Action Controls Kanan */}
-        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-          {/* Tombol Buka Scanner Barcode / QR Order Siswa */}
-          <Button
-            size="sm"
-            variant="primary"
-            onClick={() => setIsBarcodeScannerOpen(true)}
-            className="text-xs font-bold gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/30 active:scale-95 text-white"
-            title="Scan Barcode / QR Code Pesanan Siswa [F9]"
-          >
-            <Camera size={15} />
-            <span>Scan Barcode Order</span>
-            <kbd className="hidden sm:inline text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-mono font-bold">
-              F9
-            </kbd>
-          </Button>
-
-          {/* Tombol Demo Barcode HP */}
-          <a
-            href="/demo"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Buka Lembar Barcode Produk, Siswa & Orderan di HP (/demo)"
-            className="hidden md:flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-200 transition-all shrink-0 active:scale-95 shadow-2xs"
-          >
-            <QrCode size={14} className="text-emerald-600" />
-            <span>📱 Barcode HP (/demo)</span>
-          </a>
-
-          {/* Tombol Sinkronisasi / Refresh */}
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => refetch()}
-            disabled={isFetching}
-            className="text-xs font-bold gap-1.5 rounded-xl border-slate-200 bg-white hover:bg-slate-50"
-          >
-            <RefreshCw
-              size={13}
-              className={isFetching ? "animate-spin text-blue-600" : ""}
-            />
-            <span className="hidden sm:inline">Segarkan</span>
-          </Button>
-        </div>
+        {/* Action Controls Kanan (Modular Component) */}
+        <PreOrderHeaderActions
+          onOpenScanner={() => setIsBarcodeScannerOpen(true)}
+          onRefresh={() => refetch()}
+          isFetching={isFetching}
+        />
       </div>
 
-      {/* Baris Ringkasan Kartu Metrik */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-          <span className="text-xs font-medium text-slate-500">
-            Total Pre-Order
-          </span>
-          <p className="text-2xl font-black text-slate-900">{totalCount}</p>
-        </div>
-
-        <div className="bg-amber-50/60 p-4 rounded-2xl border border-amber-200/80 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-amber-900">
-              Menunggu Diproses
-            </span>
-            <Clock size={16} className="text-amber-600" />
-          </div>
-          <p className="text-2xl font-black text-amber-900">{bookedCount}</p>
-        </div>
-
-        <div className="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200/80 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-emerald-900">
-              Siap Diambil
-            </span>
-            <PackageCheck size={16} className="text-emerald-600" />
-          </div>
-          <p className="text-2xl font-black text-emerald-900">{readyCount}</p>
-        </div>
-
-        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">
-              Selesai Diambil
-            </span>
-            <CheckCircle2 size={16} className="text-slate-400" />
-          </div>
-          <p className="text-2xl font-black text-slate-700">{completedCount}</p>
-        </div>
-      </div>
+      {/* Baris Ringkasan Kartu Metrik (Modular Component) */}
+      <PreOrderStatsCards
+        totalCount={totalCount}
+        bookedCount={bookedCount}
+        readyCount={readyCount}
+        completedCount={completedCount}
+      />
 
       {/* Filter Bar & Search */}
       <FilterBar
