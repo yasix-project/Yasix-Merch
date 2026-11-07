@@ -12,7 +12,8 @@ export function useCurrentUser() {
     queryKey: ["auth", "me"],
     queryFn: authService.getMe,
     enabled: !!token, // Hanya panggil jika token login tersedia
-    staleTime: 1000 * 60 * 2, // Data dianggap segar selama 2 menit
+    staleTime: 1000 * 30, // Data dianggap segar selama 30 detik
+    refetchOnWindowFocus: true, // Segarkan saat tab browser aktif kembali
     retry: 1,
   });
 

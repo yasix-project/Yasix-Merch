@@ -23,6 +23,7 @@ const verifyToken = async (req, res, next) => {
         role: true,
         nis: true,
         qrCodeMember: true,
+        points: true,
       },
     });
 
