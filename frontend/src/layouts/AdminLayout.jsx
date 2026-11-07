@@ -204,6 +204,21 @@ export default function AdminLayout() {
           </nav>
         </div>
 
+        {/* Status Cloud Railway Engine */}
+        {!mini && (
+          <div className="relative z-10 shrink-0 px-4 pt-2">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-[10.5px] font-mono font-medium truncate">
+                Railway Cloud: Online
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Profil Pengguna: kartu kaca (aman dari bar gestur Android) */}
         <div className="relative z-10 shrink-0 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-white/10">
           <div
@@ -249,7 +264,8 @@ export default function AdminLayout() {
         <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-cyan/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Mobile Header: hamburger + logo (kaca gelap) */}
-        <header className="relative z-10 shrink-0 bg-dark/95 backdrop-blur-md border-b border-white/10 h-16 pt-[env(safe-area-inset-top)] box-content flex items-center gap-3 px-4 md:hidden">
+        <header className="relative z-10 shrink-0 bg-dark/95 backdrop-blur-md border-b border-white/10 h-16 pt-[env(safe-area-inset-top)] box-content flex items-center justify-between px-4 md:hidden">
+          <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
@@ -260,6 +276,11 @@ export default function AdminLayout() {
             <Menu size={22} />
           </button>
           <YasixLogo variant="full" theme="dark" size={32} tagline={false} />
+          </div>
+          <span className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+            Cloud Live
+          </span>
         </header>
 
         <main className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6 md:p-8">

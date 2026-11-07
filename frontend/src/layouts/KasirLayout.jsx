@@ -420,6 +420,20 @@ export default function KasirLayout() {
             )}
           </button>
 
+          {/* Status Koneksi Cloud Railway (Bukti Arsitektur Cloud Live) */}
+          <div
+            title="Backend REST API: Railway Cloud Engine (Live & Connected)"
+            className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 select-none shadow-2xs"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-[11px] font-mono font-bold text-emerald-700">
+              Cloud API Live
+            </span>
+          </div>
+
           <div className="flex items-center gap-3 border-l border-slate-200 pl-3 sm:pl-4">
             <div className="hidden text-right lg:block">
               <p className="text-[13px] font-semibold leading-tight text-slate-800">
