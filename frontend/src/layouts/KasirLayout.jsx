@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Outlet, useNavigate, NavLink, useLocation } from "react-router-dom";
 import {
   LogOut,
@@ -11,6 +11,10 @@ import {
   Receipt,
   Printer,
   Package,
+  TrendingUp,
+  AlertTriangle,
+  Info,
+  Sparkles,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -87,6 +91,12 @@ export default function KasirLayout() {
   const [isClosing, setIsClosing] = useState(false);
   const [isSubmittingShift, setIsSubmittingShift] = useState(false);
 
+  const [shiftSummary, setShiftSummary] = useState({
+    cashSales: 0,
+    expectedEndCash: 0,
+    isLoading: false,
+  });
+
   const isPosRoute = location.pathname === "/kasir/pos";
 
   // Sinkronisasi status shift kasir dari database backend
@@ -120,6 +130,42 @@ export default function KasirLayout() {
     };
   }, [user]);
 
+  // Ambil rincian rekap terkini shift aktif saat modal tutup shift dibuka atau shift sinkron
+  useEffect(() => {
+    if (!activeShift) return;
+    let isMounted = true;
+    const fetchShiftSummary = async () => {
+      try {
+        setShiftSummary((prev) => ({ ...prev, isLoading: true }));
+        const res = await shiftService.getActiveShift();
+        const serverData = res.data?.data;
+        if (!isMounted) return;
+        if (serverData) {
+          setShiftSummary({
+            cashSales: Number(serverData.cashSales || 0),
+            expectedEndCash: Number(
+              serverData.expectedEndCash ||
+                Number(activeShift.startCash || 0) + Number(serverData.cashSales || 0),
+            ),
+            isLoading: false,
+          });
+        } else {
+          setShiftSummary((prev) => ({ ...prev, isLoading: false }));
+        }
+      } catch (err) {
+        console.error("Gagal sinkronisasi data kas shift:", err);
+        if (isMounted) {
+          setShiftSummary((prev) => ({ ...prev, isLoading: false }));
+        }
+      }
+    };
+
+    fetchShiftSummary();
+    return () => {
+      isMounted = false;
+    };
+  }, [isClosing, activeShift]);
+
   // Polling data transaksi pre-order di level kasir layout
   const { data: allTransactions = [] } = useTransactions(
     {},
@@ -128,6 +174,36 @@ export default function KasirLayout() {
       refetchInterval: 5000,
     },
   );
+
+  // Fallback akumulasi transaksi tunai langsung dari data transaksi polling
+  const calculatedClientCashSales = useMemo(() => {
+    if (!activeShift?.startTime || !allTransactions.length) return 0;
+    const shiftStartTime = new Date(activeShift.startTime).getTime();
+    return allTransactions
+      .filter((tx) => {
+        const isCompleted = tx.status === "COMPLETED";
+        const isCash = tx.paymentMethod === "CASH";
+        const txTime = new Date(tx.createdAt).getTime();
+        const isAfterShiftStart = txTime >= shiftStartTime;
+        const isMyCashier = !user?.id || !tx.cashierId || tx.cashierId === user.id;
+        return isCompleted && isCash && isAfterShiftStart && isMyCashier;
+      })
+      .reduce((sum, tx) => sum + Number(tx.totalAmount || 0), 0);
+  }, [allTransactions, activeShift, user]);
+
+  const effectiveCashSales = Math.max(
+    shiftSummary.cashSales,
+    calculatedClientCashSales,
+  );
+  const effectiveExpectedEndCash =
+    Number(activeShift?.startCash || 0) + effectiveCashSales;
+
+  const actualCashNum = Number(actualCash);
+  const hasEnteredCash =
+    actualCash.trim() !== "" && !isNaN(actualCashNum) && actualCashNum >= 0;
+  const cashDifference = hasEnteredCash
+    ? actualCashNum - effectiveExpectedEndCash
+    : null;
 
   const bookedPreOrders = allTransactions.filter(
     (tx) =>
@@ -287,26 +363,45 @@ export default function KasirLayout() {
       return;
     }
 
+    const actualNum = Number(actualCash);
+    const diff = actualNum - effectiveExpectedEndCash;
+    let diffStatusText = "Uang fisik laci PAS dengan kas sistem (tidak ada selisih).";
+    if (diff < 0) {
+      diffStatusText = `⚠️ SELISIH KURANG: -${formatRupiah(
+        Math.abs(diff),
+      )} (Uang fisik lebih sedikit dari kas sistem).`;
+    } else if (diff > 0) {
+      diffStatusText = `ℹ️ SELISIH LEBIH: +${formatRupiah(
+        diff,
+      )} (Uang fisik melebihi catatan kas sistem).`;
+    }
+
     const isConfirmed = await confirm({
       title: "Tutup Shift Kasir",
-      message: `Apakah Anda yakin ingin mengakhiri sesi shift ini? Total uang fisik tercatat: ${formatRupiah(
-        Number(actualCash),
-      )}.`,
+      message: `Pastikan hitungan fisik laci kasir sudah sesuai sebelum menutup sesi:\n\n• Modal Awal Kasir: ${formatRupiah(
+        activeShift.startCash,
+      )}\n• Kas Bertambah (Tunai): +${formatRupiah(
+        effectiveCashSales,
+      )}\n• Total Kas Sistem: ${formatRupiah(
+        effectiveExpectedEndCash,
+      )}\n• Uang Fisik Aktual: ${formatRupiah(
+        actualNum,
+      )}\n• Rekonsiliasi: ${diffStatusText}`,
       confirmText: "Ya, Tutup Shift",
       cancelText: "Batal",
-      variant: "warning",
+      variant: diff === 0 ? "warning" : "danger",
     });
 
     if (isConfirmed) {
       setIsSubmittingShift(true);
       try {
         await shiftService.endShift({
-          actualCash: Number(actualCash),
+          actualCash: actualNum,
           shiftId: activeShift?.id,
         });
         showSuccessToast(
           `Shift berhasil ditutup. Total uang fisik tercatat: ${formatRupiah(
-            Number(actualCash),
+            actualNum,
           )}`,
         );
 
@@ -580,53 +675,154 @@ export default function KasirLayout() {
         {/* Modal Tutup Shift */}
         {isClosing && activeShift && (
           <Modal>
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <span className="p-2 rounded-xl bg-amber-50 text-amber-700">
+            <div className="flex items-center justify-between mb-3.5 pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2.5 rounded-2xl bg-amber-50 text-amber-700 ring-1 ring-amber-200/60">
                   <Wallet size={20} />
                 </span>
                 <div>
-                  <h2 className="text-lg font-bold text-slate-900">
+                  <h2 className="text-lg font-bold text-slate-900 leading-tight">
                     Tutup Shift Kasir
                   </h2>
                   <p className="text-[11px] text-slate-400">
-                    Rekonsiliasi akhir sesi kasir
+                    Rekonsiliasi akhir sesi & perhitungan kas fisik
                   </p>
                 </div>
               </div>
             </div>
 
-            <p className="mb-4 text-xs leading-relaxed text-slate-500">
-              Hitung dan masukkan seluruh total fisik uang tunai di laci kasir.
-            </p>
+            {/* Banner Catatan Kas Sistem (Pengingat Kas Bertambah & Total) */}
+            <div className="mb-4 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/90 to-indigo-50/60 p-3.5 shadow-xs">
+              <div className="flex items-start gap-2.5">
+                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
+                  <TrendingUp size={15} strokeWidth={2.5} />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
+                    <h4 className="text-xs font-bold text-blue-950 uppercase tracking-wider">
+                      Catatan Kas Sistem
+                    </h4>
+                    {shiftSummary.isLoading && (
+                      <span className="text-[10px] text-blue-600 font-semibold animate-pulse">
+                        Sinkronisasi...
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-slate-600 leading-relaxed">
+                    Selama shift ini berlangsung, kas sistem telah bertambah sebesar{" "}
+                    <strong className="text-emerald-700 font-bold">
+                      +{formatRupiah(effectiveCashSales)}
+                    </strong>{" "}
+                    dari transaksi tunai berhasil.
+                  </p>
 
-            <dl className="mb-4 space-y-2 rounded-2xl bg-slate-50 p-3.5 text-xs ring-1 ring-slate-200/80">
+                  {/* Kotak Highlight Total Kas Sistem */}
+                  <div className="mt-2.5 flex items-center justify-between rounded-xl bg-white/95 px-3 py-2 border border-blue-200/70 shadow-2xs">
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                        Total Kas Sistem yang Diharapkan
+                      </p>
+                      <p className="text-xs text-slate-500 font-medium">
+                        (Modal Awal + Tambahan Tunai)
+                      </p>
+                    </div>
+                    <span className="font-mono text-base font-black text-blue-700 tabular-nums">
+                      {formatRupiah(effectiveExpectedEndCash)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Rincian Finansial Sesi Shift */}
+            <dl className="mb-4 space-y-2 rounded-2xl bg-slate-50 p-3 text-xs ring-1 ring-slate-200/80">
               <div className="flex items-center justify-between">
                 <dt className="text-slate-500 font-medium">Modal Awal Kasir</dt>
-                <dd className="font-bold tabular-nums text-slate-900">
+                <dd className="font-bold tabular-nums text-slate-800">
                   {formatRupiah(activeShift.startCash)}
                 </dd>
               </div>
               <div className="flex items-center justify-between">
-                <dt className="text-slate-500 font-medium">Waktu Sesi Dimulai</dt>
-                <dd className="font-semibold tabular-nums text-slate-800">
+                <dt className="text-slate-500 font-medium">Pemasukan Kas Tunai Berjalan</dt>
+                <dd className="font-bold tabular-nums text-emerald-600">
+                  +{formatRupiah(effectiveCashSales)}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                <dt className="text-slate-700 font-bold">Target Total Kas di Laci</dt>
+                <dd className="font-bold tabular-nums text-slate-900">
+                  {formatRupiah(effectiveExpectedEndCash)}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between">
+                <dt className="text-slate-400 font-medium text-[11px]">Waktu Sesi Dimulai</dt>
+                <dd className="font-semibold tabular-nums text-slate-600 text-[11px]">
                   {formatClock(new Date(activeShift.startTime))} WIB
                 </dd>
               </div>
             </dl>
 
-            <form onSubmit={handleCloseShift} className="space-y-4">
-              <CashField
-                autoFocus
-                type="number"
-                inputMode="numeric"
-                label="Total Uang Fisik Aktual di Laci (Rp)"
-                placeholder="Nominal hasil hitungan fisik laci"
-                icon={CheckCircle2}
-                value={actualCash}
-                onChange={(e) => setActualCash(e.target.value)}
-                required
-              />
+            <form onSubmit={handleCloseShift} className="space-y-3.5">
+              <div>
+                <CashField
+                  autoFocus
+                  type="number"
+                  inputMode="numeric"
+                  label="Total Uang Fisik Aktual di Laci (Rp)"
+                  placeholder="Nominal hasil hitungan fisik laci kasir"
+                  icon={CheckCircle2}
+                  value={actualCash}
+                  onChange={(e) => setActualCash(e.target.value)}
+                  required
+                />
+
+                {/* Tombol Shortcut untuk Mengisi Nominal Sesuai Total Sistem */}
+                <div className="mt-1.5 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActualCash(String(effectiveExpectedEndCash))}
+                    className="flex items-center gap-1.5 text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:underline transition"
+                  >
+                    <Sparkles size={13} />
+                    <span>Isi sesuai total sistem ({formatRupiah(effectiveExpectedEndCash)})</span>
+                  </button>
+                </div>
+
+                {/* Indikator Selisih Kas Real-Time */}
+                {hasEnteredCash && (
+                  <div
+                    className={`mt-2 flex items-center justify-between rounded-xl px-3 py-2 text-xs font-medium border transition-all animate-in fade-in duration-150 ${
+                      cashDifference === 0
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                        : cashDifference < 0
+                        ? "bg-red-50 text-red-800 border-red-200"
+                        : "bg-amber-50 text-amber-800 border-amber-200"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      {cashDifference === 0 ? (
+                        <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+                      ) : cashDifference < 0 ? (
+                        <AlertTriangle size={15} className="text-red-600 shrink-0" />
+                      ) : (
+                        <Info size={15} className="text-amber-600 shrink-0" />
+                      )}
+                      <span>
+                        {cashDifference === 0
+                          ? "Uang laci pas (tidak ada selisih)"
+                          : cashDifference < 0
+                          ? "Selisih Kurang (Defisit)"
+                          : "Selisih Lebih (Surplus)"}
+                      </span>
+                    </div>
+                    <span className="font-mono font-bold tabular-nums">
+                      {cashDifference === 0
+                        ? "Rp 0"
+                        : `${cashDifference > 0 ? "+" : ""}${formatRupiah(cashDifference)}`}
+                    </span>
+                  </div>
+                )}
+              </div>
 
               <div className="flex gap-2.5 pt-2">
                 <Button

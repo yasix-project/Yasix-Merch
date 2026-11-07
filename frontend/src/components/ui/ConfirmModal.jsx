@@ -101,7 +101,7 @@ export default function ConfirmModal() {
               <h3 className="text-base font-bold text-slate-900 leading-snug">
                 {title}
               </h3>
-              <div className="mt-1.5 text-sm text-slate-500 leading-relaxed break-words">
+              <div className="mt-1.5 text-sm text-slate-500 leading-relaxed break-words whitespace-pre-line">
                 {message}
               </div>
             </div>
