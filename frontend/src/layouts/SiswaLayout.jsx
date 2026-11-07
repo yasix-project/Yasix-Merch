@@ -16,6 +16,7 @@ import { useAuthStore } from "../store/authStore";
 import { useCurrentUser } from "../hooks/useCurrentUser";
 import { useStudentCartStore } from "../store/studentCartStore";
 import { useStudentOrders } from "../hooks/siswa/useStudentTransactions";
+import { useStudentPrintOrders } from "../hooks/siswa/useStudentPrint";
 import { playNotificationSound } from "../utils/sound";
 import Button from "../components/ui/Button";
 
@@ -31,9 +32,20 @@ export default function SiswaLayout() {
   const user = liveUser || cachedUser;
   const cartCount = useStudentCartStore((state) => state.getTotalItems());
 
-  // Polling data transaksi pesanan siswa secara real-time
+  // Polling data transaksi produk dan dokumen cetak siswa secara real-time
   const { data: myOrders = [] } = useStudentOrders();
-  const readyOrders = myOrders.filter((o) => o.status === "READY");
+  const { data: myPrintOrders = [] } = useStudentPrintOrders();
+
+  const readyProductOrders = myOrders.filter((o) => o.status === "READY");
+  const readyPrintOrders = myPrintOrders.filter((o) => o.status === "READY");
+  const readyOrders = [
+    ...readyProductOrders.map((o) => ({ ...o, type: "PRODUCT" })),
+    ...readyPrintOrders.map((o) => ({
+      ...o,
+      type: "PRINT",
+      invoiceNumber: o.orderNumber,
+    })),
+  ];
   const readyCount = readyOrders.length;
 
   // Deteksi ketika status pesanan berubah menjadi READY (Siap Diambil)

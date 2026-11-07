@@ -6,7 +6,25 @@ export const useStudentCartStore = create(
   persist(
     (set, get) => ({
       cart: [], // Array item: [{ productId, product, quantity, price, subtotal }]
-      appliedVoucher: null, // { voucherId, code, discountPct, discountAmount }
+      appliedVoucher: null, // { voucherId, code, discountPct, discountAmount, minPurchase }
+
+      // Helper internal untuk memvalidasi syarat minimal voucher saat keranjang berubah
+      _revalidateVoucher: (newCart) => {
+        const { appliedVoucher } = get();
+        if (!appliedVoucher) return;
+
+        const newSubtotal = newCart.reduce((sum, item) => sum + item.subtotal, 0);
+        const minPurchase = Number(appliedVoucher.minPurchase || 0);
+
+        if (newCart.length === 0) {
+          set({ appliedVoucher: null });
+        } else if (minPurchase > 0 && newSubtotal < minPurchase) {
+          set({ appliedVoucher: null });
+          showWarningToast(
+            `Voucher "${appliedVoucher.code}" dilepas otomatis karena subtotal belanja di bawah syarat minimal.`,
+          );
+        }
+      },
 
       // 1. Tambah Produk ke Keranjang
       addToCart: (product, qty = 1) => {
@@ -78,24 +96,25 @@ export const useStudentCartStore = create(
           return;
         }
 
-        set({
-          cart: cart.map((i) =>
-            i.productId === productId
-              ? {
-                  ...i,
-                  quantity,
-                  subtotal: quantity * i.price,
-                }
-              : i,
-          ),
-        });
+        const newCart = cart.map((i) =>
+          i.productId === productId
+            ? {
+                ...i,
+                quantity,
+                subtotal: quantity * i.price,
+              }
+            : i,
+        );
+
+        set({ cart: newCart });
+        get()._revalidateVoucher(newCart);
       },
 
       // 3. Hapus 1 Item dari Keranjang
       removeFromCart: (productId) => {
-        set((state) => ({
-          cart: state.cart.filter((i) => i.productId !== productId),
-        }));
+        const newCart = get().cart.filter((i) => i.productId !== productId);
+        set({ cart: newCart });
+        get()._revalidateVoucher(newCart);
       },
 
       // 4. Kosongkan Keranjang
