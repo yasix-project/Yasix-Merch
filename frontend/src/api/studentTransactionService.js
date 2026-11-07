@@ -14,6 +14,9 @@ export const studentTransactionService = {
   validateVoucher: (code, subtotal) =>
     axiosClient.post("/vouchers/validate", { code, subtotal }),
 
+  // Tukar 100 poin dengan voucher diskon Rp 10.000
+  redeemPoints: () => axiosClient.post("/vouchers/redeem"),
+
   // Buat pre-order mandiri siswa (Pay on Pickup)
   createPreOrder: (payload) =>
     axiosClient.post("/transactions/pre-order", payload),
