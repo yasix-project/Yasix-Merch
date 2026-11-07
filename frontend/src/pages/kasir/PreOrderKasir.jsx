@@ -1,30 +1,28 @@
 import { useState, useRef, useEffect } from "react";
 import { useReactToPrint } from "react-to-print";
+import { useSearchParams } from "react-router-dom";
 import {
   Package,
   Clock,
   CheckCircle2,
   XCircle,
   PackageCheck,
-  AlertCircle,
   Printer,
   RefreshCw,
   Eye,
-  Check,
-  ArrowRight,
-  RotateCcw,
-  Sparkles,
-  ShoppingBag,
   Bell,
   Coins,
+  Camera,
+  QrCode,
 } from "lucide-react";
 
 import Table from "../../components/ui/Table";
 import FilterBar from "../../components/ui/FilterBar";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
-import Modal from "../../components/ui/Modal";
 import StrukPrinter from "../../components/shared/StrukPrinter";
+import BarcodeScannerModal from "../../components/shared/BarcodeScannerModal";
+import OrderConfirmModal from "../../components/kasir/OrderConfirmModal";
 import { useConfirm } from "../../hooks/useConfirm";
 import {
   useTransactions,
@@ -34,22 +32,19 @@ import { formatDate, formatRupiah } from "../../utils/formatters";
 import {
   showSuccessToast,
   showErrorToast,
-  showWarningToast,
 } from "../../utils/toast";
-import { playNotificationSound } from "../../utils/sound";
+import { playNotificationSound, playBarcodeBeep } from "../../utils/sound";
 import { useAuthStore } from "../../store/authStore";
 
 export default function PreOrderKasir() {
   const confirm = useConfirm();
   const currentUser = useAuthStore((state) => state.user);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [selectedOrderForDetail, setSelectedOrderForDetail] = useState(null);
-  const [orderToComplete, setOrderToComplete] = useState(null);
-  const [payAmountInput, setPayAmountInput] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("CASH");
-  const [autoPrintAfterComplete, setAutoPrintAfterComplete] = useState(true);
+  const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
+  const [orderToConfirm, setOrderToConfirm] = useState(null);
 
   const [printData, setPrintData] = useState([]);
   const strukRef = useRef();
@@ -91,7 +86,6 @@ export default function PreOrderKasir() {
 
   // Filter hanya transaksi yang merupakan pesanan / pre-order siswa
   const preOrders = allTransactions.filter((tx) => {
-    // Siswa order: invoice diawali "ORD-" atau memiliki studentId & status pre-order
     return (
       (tx.invoiceNumber && tx.invoiceNumber.startsWith("ORD-")) ||
       Boolean(tx.studentId && tx.status !== "COMPLETED") ||
@@ -153,11 +147,86 @@ export default function PreOrderKasir() {
     (o) => o.status === "COMPLETED",
   ).length;
 
+  // Fungsi Scan Barcode / QR Order Siswa
+  const handleScanOrder = (scannedCode) => {
+    if (!scannedCode) return;
+    const cleanCode = scannedCode.trim();
+
+    playBarcodeBeep();
+
+    // 1. Cari berdasarkan No. Invoice (cth: ORD-...)
+    let matched = preOrders.find(
+      (o) =>
+        o.invoiceNumber?.toLowerCase() === cleanCode.toLowerCase() ||
+        (cleanCode.toUpperCase().includes(o.invoiceNumber?.toUpperCase()) && o.invoiceNumber) ||
+        o.id === cleanCode
+    );
+
+    // 2. Jika belum ketemu, cari berdasarkan NIS Siswa (ambil order aktif siswa)
+    if (!matched) {
+      matched = preOrders.find(
+        (o) =>
+          (o.student?.nis && o.student.nis === cleanCode && o.status !== "CANCELLED") ||
+          (cleanCode.includes(o.student?.nis) && o.student?.nis)
+      );
+    }
+
+    // 3. Jika belum ketemu, cek di allTransactions
+    if (!matched) {
+      matched = allTransactions.find(
+        (t) =>
+          t.invoiceNumber?.toLowerCase() === cleanCode.toLowerCase() ||
+          t.id === cleanCode
+      );
+    }
+
+    if (matched) {
+      playNotificationSound("chime");
+      setIsBarcodeScannerOpen(false);
+      setOrderToConfirm(matched);
+      showSuccessToast(`Pesanan ${matched.invoiceNumber} berhasil dipindai!`);
+    } else {
+      showErrorToast(`Pesanan dengan barcode/QR "${cleanCode}" tidak ditemukan.`);
+    }
+  };
+
+  // Auto-scan jika ada parameter URL ?scan=ORD-...
+  useEffect(() => {
+    const scanParam = searchParams.get("scan");
+    if (scanParam && preOrders.length > 0) {
+      const timer = setTimeout(() => {
+        handleScanOrder(scanParam);
+        setSearchParams({}, { replace: true });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, preOrders]);
+
+  // Global Keyboard Shortcuts (F9 untuk scan, Esc untuk tutup)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "F9" || (e.ctrlKey && e.key.toLowerCase() === "b")) {
+        e.preventDefault();
+        setIsBarcodeScannerOpen((prev) => !prev);
+      }
+      if (e.key === "Escape") {
+        if (isBarcodeScannerOpen) setIsBarcodeScannerOpen(false);
+        if (orderToConfirm) setOrderToConfirm(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isBarcodeScannerOpen, orderToConfirm]);
+
   // Aksi: Tandai Siap Diambil (READY)
   const handleMarkReady = async (order) => {
     try {
       await markReady.mutateAsync(order.id);
-    } catch (err) {
+      if (orderToConfirm?.id === order.id) {
+        setOrderToConfirm((prev) => (prev ? { ...prev, status: "READY" } : null));
+      }
+    } catch {
       // Error handled by mutation
     }
   };
@@ -175,7 +244,10 @@ export default function PreOrderKasir() {
     });
 
     if (isConfirmed) {
-      cancel.mutate(order.id);
+      await cancel.mutateAsync(order.id);
+      if (orderToConfirm?.id === order.id) {
+        setOrderToConfirm(null);
+      }
     }
   };
 
@@ -190,24 +262,17 @@ export default function PreOrderKasir() {
     });
 
     if (isConfirmed) {
-      updateStatus.mutate({ id: order.id, status: "BOOKED" });
+      await updateStatus.mutateAsync({ id: order.id, status: "BOOKED" });
+      if (orderToConfirm?.id === order.id) {
+        setOrderToConfirm((prev) => (prev ? { ...prev, status: "BOOKED" } : null));
+      }
     }
   };
 
-  // Buka modal pelunasan
-  const handleOpenCompleteModal = (order) => {
-    setOrderToComplete(order);
-    setPayAmountInput(String(order.totalAmount || ""));
-    setPaymentMethod(order.paymentMethod === "QRIS" ? "QRIS" : "CASH");
-  };
-
-  // Eksekusi Pelunasan & Ambil di Kasir
-  const handleConfirmComplete = async (e) => {
-    e.preventDefault();
-    if (!orderToComplete) return;
-
-    const total = Number(orderToComplete.totalAmount || 0);
-    const payNum = Number(payAmountInput || 0);
+  // Aksi: Eksekusi Pelunasan & Ambil di Kasir
+  const handleExecuteComplete = async ({ order, payAmount, paymentMethod, autoPrint }) => {
+    const total = Number(order.totalAmount || 0);
+    const payNum = Number(payAmount || 0);
 
     if (payNum < total) {
       showErrorToast(`Uang pembayaran kurang. Total: ${formatRupiah(total)}`);
@@ -215,18 +280,18 @@ export default function PreOrderKasir() {
     }
 
     try {
-      const updated = await complete.mutateAsync({
-        id: orderToComplete.id,
+      await complete.mutateAsync({
+        id: order.id,
         data: {
           payAmount: payNum,
           paymentMethod,
         },
       });
 
-      if (autoPrintAfterComplete) {
+      if (autoPrint) {
         setPrintData([
           {
-            ...orderToComplete,
+            ...order,
             payAmount: payNum,
             changeAmount: payNum - total,
             paymentMethod,
@@ -236,8 +301,8 @@ export default function PreOrderKasir() {
         ]);
       }
 
-      setOrderToComplete(null);
-    } catch (err) {
+      setOrderToConfirm(null);
+    } catch {
       // Error handled by mutation
     }
   };
@@ -298,58 +363,50 @@ export default function PreOrderKasir() {
             </span>
           ) : (
             <span className="text-[10px] text-slate-400 italic block mt-0.5">
-              Member Siswa
+              Pembeli Umum
             </span>
           )}
         </div>
       ),
     },
     {
-      header: "Item Pesanan",
+      header: "Ringkasan Barang",
       render: (o) => {
         const items = o.items || [];
-        const firstTwo = items.slice(0, 2);
-        const remaining = items.length - 2;
+        const firstItem = items[0]?.itemName || items[0]?.product?.name || "-";
+        const othersCount = items.length - 1;
 
         return (
-          <div className="space-y-1 max-w-[220px]">
-            {firstTwo.map((it, idx) => (
-              <div
-                key={idx}
-                className="text-xs text-slate-700 flex items-center justify-between gap-1.5"
-              >
-                <span className="truncate">
-                  {it.quantity}x {it.itemName || it.product?.name}
-                </span>
-                <span className="font-semibold text-slate-900 text-[11px] shrink-0">
-                  {formatRupiah(it.subtotal || it.price * it.quantity)}
-                </span>
-              </div>
-            ))}
-            {remaining > 0 && (
-              <span className="text-[10px] text-blue-600 font-semibold block">
-                +{remaining} item lainnya...
+          <div className="text-xs">
+            <span className="font-medium text-slate-800 block truncate max-w-[200px]">
+              {firstItem}
+            </span>
+            {othersCount > 0 && (
+              <span className="text-[10px] text-blue-600 font-semibold block mt-0.5">
+                +{othersCount} barang lainnya
               </span>
             )}
-            {o.discountAmount > 0 && (
-              <span className="inline-block text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                Diskon {formatRupiah(o.discountAmount)}
-              </span>
-            )}
+            <span className="text-[11px] text-slate-400 block mt-0.5">
+              Total {items.reduce((acc, i) => acc + (i.quantity || 1), 0)} pcs
+            </span>
           </div>
         );
       },
     },
     {
       header: "Total Tagihan",
-      cellClassName: "font-black text-blue-600 text-xs",
       render: (o) => (
         <div>
-          <span>{formatRupiah(o.totalAmount)}</span>
-          <span className="block text-[10px] font-medium text-slate-400 uppercase mt-0.5">
-            {o.paymentMethod === "PAY_ON_PICKUP"
-              ? "Bayar di Kasir"
-              : o.paymentMethod}
+          <span className="font-bold text-slate-900 text-xs block">
+            {formatRupiah(o.totalAmount)}
+          </span>
+          {Number(o.discountAmount) > 0 && (
+            <span className="text-[10px] text-emerald-600 font-semibold block mt-0.5">
+              Diskon: -{formatRupiah(o.discountAmount)}
+            </span>
+          )}
+          <span className="text-[10px] text-slate-400 font-medium block mt-0.5 uppercase">
+            {o.paymentMethod || "PAY_ON_PICKUP"}
           </span>
         </div>
       ),
@@ -357,29 +414,23 @@ export default function PreOrderKasir() {
     {
       header: "Status",
       render: (o) => {
-        const isBooked = o.status === "BOOKED";
-        const isReady = o.status === "READY";
-        const isCompleted = o.status === "COMPLETED";
-
-        if (isReady) {
-          return (
-            <Badge variant="success">
-              <PackageCheck size={12} className="mr-1" />
-              Siap Diambil
-            </Badge>
-          );
-        }
-
-        if (isBooked) {
+        if (o.status === "BOOKED") {
           return (
             <Badge variant="warning">
-              <Clock size={12} className="mr-1 animate-spin" />
+              <Clock size={11} className="mr-1 animate-spin" />
               Menunggu
             </Badge>
           );
         }
-
-        if (isCompleted) {
+        if (o.status === "READY") {
+          return (
+            <Badge variant="success">
+              <PackageCheck size={12} className="mr-1" />
+              Siap Ambil
+            </Badge>
+          );
+        }
+        if (o.status === "COMPLETED") {
           return (
             <Badge variant="primary">
               <CheckCircle2 size={12} className="mr-1" />
@@ -423,7 +474,7 @@ export default function PreOrderKasir() {
               <Button
                 size="xs"
                 variant="primary"
-                onClick={() => handleOpenCompleteModal(o)}
+                onClick={() => setOrderToConfirm(o)}
                 title="Pelunasan dan serahkan barang"
               >
                 <Coins size={13} />
@@ -446,8 +497,8 @@ export default function PreOrderKasir() {
             <Button
               size="xs"
               variant="outline"
-              onClick={() => setSelectedOrderForDetail(o)}
-              title="Lihat detail transaksi"
+              onClick={() => setOrderToConfirm(o)}
+              title="Lihat detail & konfirmasi pesanan"
             >
               <Eye size={13} />
             </Button>
@@ -496,25 +547,48 @@ export default function PreOrderKasir() {
           </div>
         </div>
 
-        {/* Tombol Sinkronisasi / Refresh */}
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Sinkronisasi otomatis (5s)</span>
-          </div>
+        {/* Action Controls Kanan */}
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          {/* Tombol Buka Scanner Barcode / QR Order Siswa */}
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={() => setIsBarcodeScannerOpen(true)}
+            className="text-xs font-bold gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/30 active:scale-95 text-white"
+            title="Scan Barcode / QR Code Pesanan Siswa [F9]"
+          >
+            <Camera size={15} />
+            <span>Scan Barcode Order</span>
+            <kbd className="hidden sm:inline text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-mono font-bold">
+              F9
+            </kbd>
+          </Button>
 
+          {/* Tombol Demo Barcode HP */}
+          <a
+            href="/demo"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Buka Lembar Barcode Produk, Siswa & Orderan di HP (/demo)"
+            className="hidden md:flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-200 transition-all shrink-0 active:scale-95 shadow-2xs"
+          >
+            <QrCode size={14} className="text-emerald-600" />
+            <span>📱 Barcode HP (/demo)</span>
+          </a>
+
+          {/* Tombol Sinkronisasi / Refresh */}
           <Button
             size="sm"
             variant="outline"
             onClick={() => refetch()}
             disabled={isFetching}
-            className="text-xs font-bold gap-1.5 rounded-xl border-slate-200"
+            className="text-xs font-bold gap-1.5 rounded-xl border-slate-200 bg-white hover:bg-slate-50"
           >
             <RefreshCw
               size={13}
               className={isFetching ? "animate-spin text-blue-600" : ""}
             />
-            <span>Segarkan</span>
+            <span className="hidden sm:inline">Segarkan</span>
           </Button>
         </div>
       </div>
@@ -561,9 +635,14 @@ export default function PreOrderKasir() {
 
       {/* Filter Bar & Search */}
       <FilterBar
-        searchPlaceholder="Cari no. invoice, nama siswa, atau barang..."
+        searchPlaceholder="Cari no. invoice, nama siswa, atau scan barcode..."
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && searchQuery.trim()) {
+            handleScanOrder(searchQuery.trim());
+          }
+        }}
         filterTabs={filterTabs}
         activeTab={statusFilter}
         onTabChange={setStatusFilter}
@@ -584,348 +663,37 @@ export default function PreOrderKasir() {
         }
       />
 
-      {/* MODAL 1: Pelunasan & Ambil di Kasir */}
-      {orderToComplete && (
-        <Modal
-          isOpen={Boolean(orderToComplete)}
-          onClose={() => setOrderToComplete(null)}
-          title="Pelunasan & Pengambilan Pesanan"
-        >
-          <form onSubmit={handleConfirmComplete} className="space-y-4">
-            {/* Rincian Invoice & Siswa */}
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/70 space-y-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">No. Invoice:</span>
-                <span className="font-mono font-bold text-slate-900">
-                  {orderToComplete.invoiceNumber}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">Pemesan:</span>
-                <span className="font-bold text-slate-900">
-                  {orderToComplete.student?.name || "Siswa Umum"} (
-                  {orderToComplete.student?.nis || "-"})
-                </span>
-              </div>
-              <div className="flex items-center justify-between pt-1 border-t border-slate-200">
-                <span className="font-semibold text-slate-700">
-                  Total Tagihan:
-                </span>
-                <span className="font-black text-base text-blue-600">
-                  {formatRupiah(orderToComplete.totalAmount)}
-                </span>
-              </div>
-            </div>
+      {/* MODAL: Konfirmasi Pesanan & Modul Update Status Lengkap */}
+      <OrderConfirmModal
+        isOpen={Boolean(orderToConfirm)}
+        order={orderToConfirm}
+        onClose={() => setOrderToConfirm(null)}
+        onMarkReady={handleMarkReady}
+        onComplete={handleExecuteComplete}
+        onCancel={handleCancelOrder}
+        onRevertToBooked={handleRevertToBooked}
+        onReprint={handleReprintOrder}
+        onOpenScanner={() => {
+          setOrderToConfirm(null);
+          setIsBarcodeScannerOpen(true);
+        }}
+        isPending={
+          markReady.isPending ||
+          complete.isPending ||
+          cancel.isPending ||
+          updateStatus.isPending
+        }
+      />
 
-            {/* Pilihan Metode Pembayaran */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Metode Pembayaran
-              </label>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={paymentMethod === "CASH" ? "primary" : "outline"}
-                  onClick={() => setPaymentMethod("CASH")}
-                >
-                  Tunai (Cash)
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={paymentMethod === "QRIS" ? "primary" : "outline"}
-                  onClick={() => setPaymentMethod("QRIS")}
-                >
-                  QRIS Yasix
-                </Button>
-              </div>
-            </div>
-
-            {/* Input Nominal Uang Diterima */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nominal Uang Diterima (Rp)
-              </label>
-              <input
-                type="number"
-                min={Number(orderToComplete.totalAmount || 0)}
-                value={payAmountInput}
-                onChange={(e) => setPayAmountInput(e.target.value)}
-                placeholder="Masukkan nominal uang fisik"
-                required
-                className="w-full h-11 px-3 text-sm font-mono font-bold bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10"
-              />
-
-              {/* Quick Cash Buttons */}
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {[
-                  {
-                    label: "Uang Pas",
-                    amount: Number(orderToComplete.totalAmount || 0),
-                  },
-                  { label: "10rb", amount: 10000 },
-                  { label: "20rb", amount: 20000 },
-                  { label: "50rb", amount: 50000 },
-                  { label: "100rb", amount: 100000 },
-                ]
-                  .filter(
-                    (btn) =>
-                      btn.amount >= Number(orderToComplete.totalAmount || 0),
-                  )
-                  .map((btn, idx) => (
-                    <Button
-                      key={idx}
-                      type="button"
-                      size="xs"
-                      variant="secondary"
-                      onClick={() => setPayAmountInput(String(btn.amount))}
-                    >
-                      {btn.label}
-                    </Button>
-                  ))}
-              </div>
-            </div>
-
-            {/* Kalkulasi Kembalian */}
-            {Number(payAmountInput || 0) >=
-              Number(orderToComplete.totalAmount || 0) && (
-              <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-200 text-xs flex items-center justify-between">
-                <span className="font-semibold text-emerald-900">
-                  Uang Kembalian:
-                </span>
-                <span className="font-mono font-black text-sm text-emerald-700">
-                  {formatRupiah(
-                    Number(payAmountInput || 0) -
-                      Number(orderToComplete.totalAmount || 0),
-                  )}
-                </span>
-              </div>
-            )}
-
-            {/* Pilihan Cetak Struk */}
-            <label className="flex items-center gap-2 cursor-pointer pt-1 text-xs text-slate-600 select-none">
-              <input
-                type="checkbox"
-                checked={autoPrintAfterComplete}
-                onChange={(e) => setAutoPrintAfterComplete(e.target.checked)}
-                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
-              />
-              <span>Cetak struk thermal otomatis setelah pelunasan</span>
-            </label>
-
-            {/* Tombol Konfirmasi */}
-            <div className="flex items-center gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOrderToComplete(null)}
-                className="w-1/3 text-xs py-2.5 rounded-xl font-bold border-slate-200"
-              >
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={complete.isPending}
-                className="w-2/3 text-xs py-2.5 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/20"
-              >
-                {complete.isPending ? "Memproses..." : "Konfirmasi & Serahkan"}
-              </Button>
-            </div>
-          </form>
-        </Modal>
-      )}
-
-      {/* MODAL 2: Rincian Lengkap Pesanan */}
-      {selectedOrderForDetail && (
-        <Modal
-          isOpen={Boolean(selectedOrderForDetail)}
-          onClose={() => setSelectedOrderForDetail(null)}
-          title="Detail Transaksi Pre-Order"
-        >
-          <div className="space-y-4 text-xs">
-            {/* Header Ringkas */}
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">Nomor Invoice</span>
-                <span className="font-mono font-bold text-slate-900">
-                  {selectedOrderForDetail.invoiceNumber}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">Waktu Order</span>
-                <span className="font-medium text-slate-700">
-                  {formatDate(selectedOrderForDetail.createdAt, true)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">Status</span>
-                <Badge
-                  variant={
-                    selectedOrderForDetail.status === "READY"
-                      ? "success"
-                      : selectedOrderForDetail.status === "BOOKED"
-                        ? "warning"
-                        : selectedOrderForDetail.status === "COMPLETED"
-                          ? "primary"
-                          : "danger"
-                  }
-                >
-                  {selectedOrderForDetail.status}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">Pemesan</span>
-                <span className="font-bold text-slate-900">
-                  {selectedOrderForDetail.student?.name || "Siswa Umum"} (NIS:{" "}
-                  {selectedOrderForDetail.student?.nis || "-"})
-                </span>
-              </div>
-            </div>
-
-            {/* Daftar Barang */}
-            <div className="space-y-2">
-              <span className="font-bold text-slate-800 block text-xs">
-                Daftar Barang yang Dipesan:
-              </span>
-              <div className="border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-48 overflow-y-auto">
-                {(selectedOrderForDetail.items || []).map((it, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 flex items-center justify-between text-xs"
-                  >
-                    <div>
-                      <span className="font-semibold text-slate-800 block">
-                        {it.itemName || it.product?.name}
-                      </span>
-                      <span className="text-[11px] text-slate-400">
-                        {it.quantity} x {formatRupiah(it.price)}
-                      </span>
-                    </div>
-                    <span className="font-bold text-slate-900">
-                      {formatRupiah(it.subtotal || it.price * it.quantity)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Rincian Finansial */}
-            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5">
-              <div className="flex justify-between text-slate-500">
-                <span>Subtotal Barang:</span>
-                <span className="font-medium text-slate-700">
-                  {formatRupiah(selectedOrderForDetail.subtotal)}
-                </span>
-              </div>
-              {selectedOrderForDetail.discountAmount > 0 && (
-                <div className="flex justify-between text-emerald-600 font-semibold">
-                  <span>Potongan Voucher:</span>
-                  <span>
-                    -{formatRupiah(selectedOrderForDetail.discountAmount)}
-                  </span>
-                </div>
-              )}
-              <div className="flex justify-between text-slate-900 font-black text-sm pt-1.5 border-t border-slate-200">
-                <span>Total Tagihan:</span>
-                <span className="text-blue-600">
-                  {formatRupiah(selectedOrderForDetail.totalAmount)}
-                </span>
-              </div>
-            </div>
-
-            {/* Tombol Aksi di Modal Detail */}
-            <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-slate-100">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSelectedOrderForDetail(null)}
-              >
-                Tutup
-              </Button>
-
-              {selectedOrderForDetail.status === "BOOKED" && (
-                <>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => {
-                      const o = selectedOrderForDetail;
-                      setSelectedOrderForDetail(null);
-                      handleCancelOrder(o);
-                    }}
-                  >
-                    Batalkan Pesanan
-                  </Button>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => {
-                      const o = selectedOrderForDetail;
-                      setSelectedOrderForDetail(null);
-                      handleMarkReady(o);
-                    }}
-                  >
-                    Tandai Siap
-                  </Button>
-                </>
-              )}
-
-              {selectedOrderForDetail.status === "READY" && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const o = selectedOrderForDetail;
-                      setSelectedOrderForDetail(null);
-                      handleRevertToBooked(o);
-                    }}
-                  >
-                    Kembalikan ke Menunggu
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => {
-                      const o = selectedOrderForDetail;
-                      setSelectedOrderForDetail(null);
-                      handleCancelOrder(o);
-                    }}
-                  >
-                    Batalkan
-                  </Button>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => {
-                      const o = selectedOrderForDetail;
-                      setSelectedOrderForDetail(null);
-                      handleOpenCompleteModal(o);
-                    }}
-                  >
-                    Pelunasan & Bayar
-                  </Button>
-                </>
-              )}
-
-              {selectedOrderForDetail.status === "COMPLETED" && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    handleReprintOrder(selectedOrderForDetail);
-                  }}
-                >
-                  <Printer size={13} className="mr-1" />
-                  Cetak Ulang Struk
-                </Button>
-              )}
-            </div>
-          </div>
-        </Modal>
-      )}
+      {/* MODAL SCANNER: Webcam Barcode & QR Code Scanner untuk Order */}
+      <BarcodeScannerModal
+        isOpen={isBarcodeScannerOpen}
+        onClose={() => setIsBarcodeScannerOpen(false)}
+        onScan={handleScanOrder}
+        title="Scan Barcode / QR Pesanan Siswa"
+        description="Arahkan QR Code pengambilan pesanan di layar HP siswa atau Barcode Invoice ke depan webcam laptop."
+        continuous={false}
+      />
     </div>
   );
 }
