@@ -23,6 +23,7 @@ import {
   useTransactionMutations,
 } from "../../hooks/admin/useTransactions";
 import { formatDate, formatRupiah } from "../../utils/formatters";
+import { downloadCsv } from "../../utils/exportCsv";
 import { useConfirm } from "../../hooks/useConfirm";
 import {
   showSuccessToast,
@@ -114,41 +115,54 @@ export default function MonitoringTransaksi() {
       return;
     }
 
-    // Tentukan data yang akan diekspor (Semua atau yang di-cek saja)
     const dataToExport =
       selectedIds.length > 0
         ? transactions.filter((t) => selectedIds.includes(t.id))
         : filteredTransactions;
 
-    // Header CSV
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent +=
-      "No Invoice,Waktu Transaksi,Kasir,Pelanggan,Status,Metode Bayar,Subtotal,Diskon,Total\n";
+    if (dataToExport.length === 0) {
+      showWarningToast("Tidak ada transaksi yang cocok untuk diekspor.");
+      return;
+    }
 
-    // Isi Baris CSV
-    dataToExport.forEach((t) => {
-      const waktu = formatDate(t.createdAt, true).replace(/,/g, ""); // Hapus koma pada tanggal
-      const kasir = t.cashier?.name || "Mandiri/Sistem";
-      const pelanggan = t.student
-        ? `${t.student.name} (NIS:${t.student.nis})`
-        : "Umum";
-      const row = `"${t.invoiceNumber}","${waktu}","${kasir}","${pelanggan}","${t.status}","${t.paymentMethod}",${t.subtotal},${t.discountAmount},${t.totalAmount}`;
-      csvContent += row + "\n";
-    });
+    const headers = [
+      "No. Invoice",
+      "Waktu Transaksi",
+      "Nama Kasir",
+      "Pelanggan / Siswa",
+      "NIS",
+      "Status",
+      "Metode Bayar",
+      "Subtotal (Rp)",
+      "Diskon (Rp)",
+      "Total Belanja (Rp)",
+    ];
 
-    // Pemicu Unduhan Browser
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute(
-      "download",
-      `Data_Transaksi_Yasix_${new Date().getTime()}.csv`,
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const rows = dataToExport.map((t) => [
+      t.invoiceNumber || "-",
+      formatDate(t.createdAt, true),
+      t.cashier?.name || "Mandiri/Sistem",
+      t.student?.name || "Umum",
+      t.student?.nis || "-",
+      t.status || "-",
+      t.paymentMethod || "-",
+      t.subtotal || 0,
+      t.discountAmount || 0,
+      t.totalAmount || 0,
+    ]);
 
-    showSuccessToast("Data transaksi berhasil diekspor.");
+    try {
+      downloadCsv(
+        `Laporan_Transaksi_Yasix_${new Date().toISOString().slice(0, 10)}`,
+        headers,
+        rows,
+      );
+      showSuccessToast(
+        `${dataToExport.length} data transaksi berhasil diekspor ke CSV.`,
+      );
+    } catch {
+      showErrorToast("Gagal mengekspor data transaksi.");
+    }
   };
 
   const handleCancelTransaction = async (t) => {

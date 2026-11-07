@@ -5,6 +5,7 @@ import {
   Wallet,
   StopCircle,
   UserSquare2,
+  Download,
 } from "lucide-react";
 
 import Button from "../../components/ui/Button";
@@ -14,7 +15,8 @@ import { EndShiftModal } from "../../components/admin/ShiftModals";
 
 import { useShiftMutations, useShifts } from "../../hooks/admin/useShifts";
 import { formatRupiah, formatDate } from "../../utils/formatters";
-import { showSuccessToast, showErrorToast } from "../../utils/toast";
+import { downloadCsv } from "../../utils/exportCsv";
+import { showSuccessToast, showErrorToast, showWarningToast } from "../../utils/toast";
 
 export default function MonitoringShift() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,6 +59,50 @@ export default function MonitoringShift() {
   const filteredHistory = historyShifts.filter((s) =>
     s.cashier?.name?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  const handleExportShifts = () => {
+    if (historyShifts.length === 0 && activeShifts.length === 0) {
+      showWarningToast("Tidak ada data shift untuk diekspor.");
+      return;
+    }
+
+    const headers = [
+      "ID Shift",
+      "Nama Kasir",
+      "Waktu Buka",
+      "Waktu Tutup",
+      "Modal Awal (Rp)",
+      "Kas Penjualan Tunai (Rp)",
+      "Kas Sistem (Rp)",
+      "Kas Fisik Aktual (Rp)",
+      "Selisih Kas (Rp)",
+      "Status",
+    ];
+
+    const rows = allShifts.map((s) => [
+      s.id || "-",
+      s.cashier?.name || "Kasir",
+      formatDate(s.startTime, true),
+      s.endTime ? formatDate(s.endTime, true) : "Masih Berjalan",
+      s.startCash || 0,
+      s.cashSales || 0,
+      s.endCash || s.expectedEndCash || s.startCash || 0,
+      s.actualCash !== null && s.actualCash !== undefined ? s.actualCash : "-",
+      s.difference !== null && s.difference !== undefined ? s.difference : "-",
+      s.endTime ? "Selesai" : "Aktif",
+    ]);
+
+    try {
+      downloadCsv(
+        `Rekap_Shift_Kasir_Yasix_${new Date().toISOString().slice(0, 10)}`,
+        headers,
+        rows,
+      );
+      showSuccessToast(`${allShifts.length} riwayat shift berhasil diekspor ke CSV.`);
+    } catch {
+      showErrorToast("Gagal mengekspor data shift.");
+    }
+  };
 
   // 4. Konfigurasi Kolom Tabel
   const columns = [
@@ -135,6 +181,10 @@ export default function MonitoringShift() {
             Pantau kasir yang sedang bertugas dan rekonsiliasi riwayat kas
           </p>
         </div>
+
+        <Button variant="outline" size="sm" onClick={handleExportShifts}>
+          <Download size={15} className="text-slate-500" /> Export CSV
+        </Button>
       </div>
 
       {/* Kasir Aktif */}
