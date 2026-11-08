@@ -3,24 +3,24 @@ import { useQuery } from "@tanstack/react-query";
 import { analyticsService } from "../../api/analyticsService";
 
 export const analyticsKeys = {
-  dashboard: (dateFilter) => ["analytics", "dashboard", dateFilter],
-  sales: (dateFilter) => ["analytics", "sales", dateFilter],
+  dashboard: (filterParams) => ["analytics", "dashboard", filterParams],
+  sales: (filterParams) => ["analytics", "sales", filterParams],
 };
 
-export function useAnalytics(dateFilter = "7days", { enabled = true } = {}) {
+export function useAnalytics(filterParams = "7days", { enabled = true } = {}) {
   const dashboard = useQuery({
-    queryKey: analyticsKeys.dashboard(dateFilter),
+    queryKey: analyticsKeys.dashboard(filterParams),
     queryFn: async () => {
-      const response = await analyticsService.getDashboardMetrics(dateFilter);
+      const response = await analyticsService.getDashboardMetrics(filterParams);
       return response.data?.data || null;
     },
     enabled,
   });
 
   const sales = useQuery({
-    queryKey: analyticsKeys.sales(dateFilter),
+    queryKey: analyticsKeys.sales(filterParams),
     queryFn: async () => {
-      const response = await analyticsService.getSalesReport(dateFilter);
+      const response = await analyticsService.getSalesReport(filterParams);
       return response.data?.data || null;
     },
     enabled,

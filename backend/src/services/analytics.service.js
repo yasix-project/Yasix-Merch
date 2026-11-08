@@ -2,17 +2,88 @@
 const prisma = require("../config/prisma");
 
 /**
- * Menghitung rentang tanggal saat ini dan periode sebelumnya berdasarkan filter
- * @param {'7days' | '30days' | 'thisMonth'} filter
+ * Menghitung rentang tanggal saat ini dan periode sebelumnya berdasarkan filter / bulan / tanggal
+ * Mendukung filter preset ('7days', '30days', 'thisMonth', 'lastMonth', 'today'),
+ * serta filter spesifik bulan ('YYYY-MM') dan tanggal ('YYYY-MM-DD').
  */
-const getDateRanges = (filter = "7days") => {
+const getDateRanges = (filterParams = "7days") => {
   const now = new Date();
-  let currentStart, prevStart, prevEnd;
+  let currentStart, currentEnd, prevStart, prevEnd;
 
-  if (filter === "30days") {
+  let filter = "7days";
+  let month = null;
+  let date = null;
+  let startDate = null;
+  let endDate = null;
+
+  if (typeof filterParams === "string") {
+    filter = filterParams;
+    if (/^\d{4}-\d{2}$/.test(filterParams)) {
+      filter = "month";
+      month = filterParams;
+    } else if (/^\d{4}-\d{2}-\d{2}$/.test(filterParams)) {
+      filter = "date";
+      date = filterParams;
+    }
+  } else if (typeof filterParams === "object" && filterParams !== null) {
+    filter = filterParams.filter || "7days";
+    month = filterParams.month || (/^\d{4}-\d{2}$/.test(filter) ? filter : null);
+    date = filterParams.date || (/^\d{4}-\d{2}-\d{2}$/.test(filter) ? filter : null);
+    startDate = filterParams.startDate || null;
+    endDate = filterParams.endDate || null;
+  }
+
+  if (filter === "custom" && startDate && endDate) {
+    currentStart = new Date(startDate);
+    currentStart.setHours(0, 0, 0, 0);
+
+    currentEnd = new Date(endDate);
+    currentEnd.setHours(23, 59, 59, 999);
+
+    const duration = currentEnd.getTime() - currentStart.getTime();
+    prevEnd = new Date(currentStart.getTime() - 1);
+    prevStart = new Date(prevEnd.getTime() - duration);
+  } else if ((filter === "date" || date) && date) {
+    // Filter tanggal spesifik (YYYY-MM-DD)
+    const [y, m, d] = date.split("-").map(Number);
+    currentStart = new Date(y, m - 1, d, 0, 0, 0, 0);
+    currentEnd = new Date(y, m - 1, d, 23, 59, 59, 999);
+
+    prevStart = new Date(y, m - 1, d - 1, 0, 0, 0, 0);
+    prevEnd = new Date(y, m - 1, d - 1, 23, 59, 59, 999);
+  } else if ((filter === "month" || month) && month) {
+    // Filter bulan spesifik (YYYY-MM)
+    const [y, m] = month.split("-").map(Number);
+    currentStart = new Date(y, m - 1, 1, 0, 0, 0, 0);
+    currentEnd = new Date(y, m, 0, 23, 59, 59, 999); // Hari terakhir bulan yang dipilih
+
+    prevStart = new Date(y, m - 2, 1, 0, 0, 0, 0);
+    prevEnd = new Date(y, m - 1, 0, 23, 59, 59, 999);
+  } else if (filter === "today") {
+    currentStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    currentEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+    prevStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 0, 0, 0, 0);
+    prevEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 23, 59, 59, 999);
+  } else if (filter === "lastMonth") {
+    currentStart = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+    currentEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+    prevStart = new Date(now.getFullYear(), now.getMonth() - 2, 1, 0, 0, 0, 0);
+    prevEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0, 23, 59, 59, 999);
+  } else if (filter === "thisMonth") {
+    currentStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    currentEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+    prevEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+  } else if (filter === "30days") {
     currentStart = new Date(now);
     currentStart.setDate(currentStart.getDate() - 30);
     currentStart.setHours(0, 0, 0, 0);
+
+    currentEnd = new Date(now);
+    currentEnd.setHours(23, 59, 59, 999);
 
     prevEnd = new Date(currentStart);
     prevEnd.setMilliseconds(prevEnd.getMilliseconds() - 1);
@@ -20,18 +91,14 @@ const getDateRanges = (filter = "7days") => {
     prevStart = new Date(currentStart);
     prevStart.setDate(prevStart.getDate() - 30);
     prevStart.setHours(0, 0, 0, 0);
-  } else if (filter === "thisMonth") {
-    currentStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-
-    prevEnd = new Date(currentStart);
-    prevEnd.setMilliseconds(prevEnd.getMilliseconds() - 1);
-
-    prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
   } else {
     // Default: 7days
     currentStart = new Date(now);
     currentStart.setDate(currentStart.getDate() - 7);
     currentStart.setHours(0, 0, 0, 0);
+
+    currentEnd = new Date(now);
+    currentEnd.setHours(23, 59, 59, 999);
 
     prevEnd = new Date(currentStart);
     prevEnd.setMilliseconds(prevEnd.getMilliseconds() - 1);
@@ -41,10 +108,9 @@ const getDateRanges = (filter = "7days") => {
     prevStart.setHours(0, 0, 0, 0);
   }
 
-  const currentEnd = new Date();
-  currentEnd.setHours(23, 59, 59, 999);
+  const isSingleDay = filter === "date" || filter === "today" || (date !== null && filter !== "month");
 
-  return { currentStart, currentEnd, prevStart, prevEnd };
+  return { currentStart, currentEnd, prevStart, prevEnd, isSingleDay };
 };
 
 /**
@@ -57,8 +123,8 @@ const calculateTrend = (current, previous) => {
   return Number((((current - previous) / previous) * 100).toFixed(1));
 };
 
-const getDashboardMetricsService = async (filter = "7days") => {
-  const { currentStart, currentEnd, prevStart, prevEnd } = getDateRanges(filter);
+const getDashboardMetricsService = async (filterParams = "7days") => {
+  const { currentStart, currentEnd, prevStart, prevEnd } = getDateRanges(filterParams);
 
   // --- 1. AMBIL TRANSAKSI PERIODE AKTIF SESUAI FILTER ---
   const currentTransactions = await prisma.transaction.findMany({
@@ -166,7 +232,9 @@ const getDashboardMetricsService = async (filter = "7days") => {
     MINUMAN: "#38BDF8",
     MAKANAN: "#F97316",
     SERAGAM: "#10A352",
+    KEBUTUHAN_SISWA: "#10A352",
     MERCHANDISE: "#8B5CF6",
+    JASA_PRINT: "#EC4899",
     LAINNYA: "#0F2B5B",
   };
 
@@ -191,7 +259,7 @@ const getDashboardMetricsService = async (filter = "7days") => {
     return {
       id: cat.id,
       name: cat.name,
-      value: percentage, // Persentase (misal: 42.5) untuk chart & visualisasi porsi
+      value: percentage, // Persentase untuk chart & visualisasi porsi
       nominal: cat.totalNominal, // Nominal rupiah aktual
       itemsSold: cat.totalItemsSold,
       color:
@@ -242,8 +310,8 @@ const getDashboardMetricsService = async (filter = "7days") => {
   return { metrics, categoryData };
 };
 
-const getSalesReportService = async (filter = "7days") => {
-  const { currentStart, currentEnd } = getDateRanges(filter);
+const getSalesReportService = async (filterParams = "7days") => {
+  const { currentStart, currentEnd, isSingleDay } = getDateRanges(filterParams);
 
   const transactions = await prisma.transaction.findMany({
     where: {
@@ -251,6 +319,12 @@ const getSalesReportService = async (filter = "7days") => {
       status: "COMPLETED",
     },
     include: {
+      cashier: {
+        select: { id: true, name: true, email: true },
+      },
+      student: {
+        select: { id: true, name: true, nis: true },
+      },
       items: {
         include: { product: true },
       },
@@ -258,31 +332,81 @@ const getSalesReportService = async (filter = "7days") => {
     orderBy: { createdAt: "asc" },
   });
 
-  const salesByDate = {};
+  const salesGroupMap = {};
+  let totalPeriodRevenue = 0;
+  let totalPeriodHpp = 0;
 
-  transactions.forEach((tx) => {
-    const dateStr = new Intl.DateTimeFormat("id-ID", {
-      day: "numeric",
-      month: "short",
-    }).format(tx.createdAt);
+  const detailedTransactions = transactions.map((tx) => {
+    const txTotal = Number(tx.totalAmount);
+    totalPeriodRevenue += txTotal;
 
-    if (!salesByDate[dateStr]) {
-      salesByDate[dateStr] = { date: dateStr, pendapatan: 0, keuntungan: 0 };
+    let txHpp = 0;
+    const itemNames = tx.items
+      .map((it) => {
+        if (it.product) {
+          txHpp += Number(it.product.hpp) * it.quantity;
+        }
+        return `${it.itemName} (${it.quantity}x)`;
+      })
+      .join(", ");
+
+    totalPeriodHpp += txHpp;
+    const txMargin = txTotal - txHpp;
+
+    // Kunci grup grafik: jika single day, agregasi per jam; jika multi-hari/bulan, per tanggal
+    const groupKey = isSingleDay
+      ? `${String(new Date(tx.createdAt).getHours()).padStart(2, "0")}:00`
+      : new Intl.DateTimeFormat("id-ID", {
+          day: "numeric",
+          month: "short",
+        }).format(tx.createdAt);
+
+    if (!salesGroupMap[groupKey]) {
+      salesGroupMap[groupKey] = { date: groupKey, pendapatan: 0, keuntungan: 0 };
     }
 
-    salesByDate[dateStr].pendapatan += Number(tx.totalAmount);
+    salesGroupMap[groupKey].pendapatan += txTotal;
+    salesGroupMap[groupKey].keuntungan += txMargin;
 
-    let hpp = 0;
-    tx.items.forEach((item) => {
-      if (item.product) {
-        hpp += Number(item.product.hpp) * item.quantity;
-      }
-    });
-
-    salesByDate[dateStr].keuntungan += Number(tx.totalAmount) - hpp;
+    return {
+      id: tx.id,
+      invoiceNumber: tx.invoiceNumber,
+      createdAt: tx.createdAt,
+      formattedDate: new Intl.DateTimeFormat("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+        .format(tx.createdAt)
+        .replace(/\./g, ":"),
+      cashierName: tx.cashier?.name || "Kasir",
+      studentName: tx.student?.name || "Umum / Non-Member",
+      studentNis: tx.student?.nis || "-",
+      paymentMethod: tx.paymentMethod,
+      itemsSummary: itemNames || "-",
+      subtotal: Number(tx.subtotal),
+      discountAmount: Number(tx.discountAmount),
+      totalAmount: txTotal,
+      hpp: txHpp,
+      margin: txMargin,
+    };
   });
 
-  return Object.values(salesByDate);
+  const chartData = Object.values(salesGroupMap);
+
+  return {
+    chartData,
+    transactions: detailedTransactions,
+    summary: {
+      totalPendapatan: totalPeriodRevenue,
+      totalKeuntungan: totalPeriodRevenue - totalPeriodHpp,
+      totalTransaksi: transactions.length,
+      currentStart,
+      currentEnd,
+    },
+  };
 };
 
 module.exports = {

@@ -3,8 +3,15 @@ const analyticsService = require("../services/analytics.service");
 
 const getDashboardMetrics = async (req, res) => {
   try {
-    const filter = req.body?.filter || req.query?.filter || "7days";
-    const data = await analyticsService.getDashboardMetricsService(filter);
+    const filterParams = {
+      filter: req.body?.filter || req.query?.filter || "7days",
+      month: req.body?.month || req.query?.month,
+      date: req.body?.date || req.query?.date,
+      startDate: req.body?.startDate || req.query?.startDate,
+      endDate: req.body?.endDate || req.query?.endDate,
+    };
+
+    const data = await analyticsService.getDashboardMetricsService(filterParams);
     return res.status(200).json({
       success: true,
       message: "Berhasil memuat metrik dashboard",
@@ -20,13 +27,20 @@ const getDashboardMetrics = async (req, res) => {
 
 const getSalesReport = async (req, res) => {
   try {
-    const filter = req.body?.filter || req.query?.filter || "7days";
-    const reportData = await analyticsService.getSalesReportService(filter);
+    const filterParams = {
+      filter: req.body?.filter || req.query?.filter || "7days",
+      month: req.body?.month || req.query?.month,
+      date: req.body?.date || req.query?.date,
+      startDate: req.body?.startDate || req.query?.startDate,
+      endDate: req.body?.endDate || req.query?.endDate,
+    };
+
+    const reportData = await analyticsService.getSalesReportService(filterParams);
 
     return res.status(200).json({
       success: true,
       message: "Berhasil memuat laporan grafik",
-      data: reportData, // Berisi array of { date, pendapatan, keuntungan }
+      data: reportData, // Berisi { chartData, transactions, summary }
     });
   } catch (error) {
     return res.status(500).json({

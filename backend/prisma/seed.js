@@ -521,196 +521,155 @@ async function main() {
   }
 
   // ==========================================
-  // 7. SEED TRANSAKSI REALISTIS (UNTUK GRAFIK ANALITIK)
+  // 7. SEED TRANSAKSI REALISTIS MULTI-BULAN (UNTUK GRAFIK ANALITIK & FILTER TANGGAL/BULAN)
   // ==========================================
-  const pastTransactions = [
-    {
-      invoiceNumber: "INV-20261101-001",
-      cashierId: kasir1.id,
-      studentId: createdStudents["20261001"].id,
-      subtotal: 35000,
-      discountAmount: 0,
-      totalAmount: 35000,
-      payAmount: 40000,
-      changeAmount: 5000,
-      paymentMethod: "CASH",
-      status: "COMPLETED",
-      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-      items: [
-        {
-          productId: createdProducts["899550010001"].id, // Tote Bag KIK
-          itemName: "Tote Bag Kanvas Karya KIK DKV",
-          price: 35000,
-          quantity: 1,
-          subtotal: 35000,
-        },
-      ],
-    },
-    {
-      invoiceNumber: "INV-20261102-002",
-      cashierId: kasir1.id,
-      studentId: createdStudents["20261002"].id,
-      subtotal: 21500,
-      discountAmount: 0,
-      totalAmount: 21500,
-      payAmount: 21500,
-      changeAmount: 0,
-      paymentMethod: "QRIS",
-      status: "COMPLETED",
-      createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
-      items: [
-        {
-          productId: createdProducts["899770010002"].id, // Kaos Kaki
-          itemName: "Kaos Kaki Putih Logo Yadika 6",
-          price: 15000,
-          quantity: 1,
-          subtotal: 15000,
-        },
-        {
-          productId: createdProducts["899886670007"].id, // Teh Pucuk
-          itemName: "Teh Pucuk Harum 350ml",
-          price: 4000,
-          quantity: 1,
-          subtotal: 4000,
-        },
-        {
-          productId: createdProducts["899886620002"].id, // Penghapus
-          itemName: "Penghapus Joyko Hitam B-40",
-          price: 2500,
-          quantity: 1,
-          subtotal: 2500,
-        },
-      ],
-    },
-    {
-      invoiceNumber: "INV-20261103-003",
-      cashierId: kasir1.id,
-      studentId: createdStudents["20261003"].id,
-      subtotal: 44000,
-      discountAmount: 2200,
-      totalAmount: 41800,
-      payAmount: 50000,
-      changeAmount: 8200,
-      paymentMethod: "CASH",
-      status: "COMPLETED",
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      items: [
-        {
-          productId: createdProducts["899770010001"].id, // Dasi
-          itemName: "Dasi Formal SMK Yadika 6",
-          price: 20000,
-          quantity: 1,
-          subtotal: 20000,
-        },
-        {
-          productId: createdProducts["899770010003"].id, // Lanyard
-          itemName: "Lanyard & ID Card Holder Yadika 6",
-          price: 18000,
-          quantity: 1,
-          subtotal: 18000,
-        },
-        {
-          productId: createdProducts["899550010003"].id, // Sticker Pack
-          itemName: "Sticker Pack Hologram KIK",
-          price: 6000,
-          quantity: 1,
-          subtotal: 6000,
-        },
-      ],
-    },
-    {
-      invoiceNumber: "INV-20261104-004",
-      cashierId: kasir2.id,
-      studentId: createdStudents["20261004"].id,
-      subtotal: 18000,
-      discountAmount: 0,
-      totalAmount: 18000,
-      payAmount: 20000,
-      changeAmount: 2000,
-      paymentMethod: "CASH",
-      status: "COMPLETED",
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      items: [
-        {
-          productId: createdProducts["899123456702"].id, // Buku SiDu
-          itemName: "Buku Tulis Sidu 38 Lembar",
-          price: 4500,
-          quantity: 2,
-          subtotal: 9000,
-        },
-        {
-          productId: createdProducts["899123456701"].id, // Pensil
-          itemName: "Pensil 2B Faber-Castell",
-          price: 4000,
-          quantity: 1,
-          subtotal: 4000,
-        },
-        {
-          productId: createdProducts["899886630003"].id, // Penggaris
-          itemName: "Penggaris Butterfly 30cm Transparan",
-          price: 5000,
-          quantity: 1,
-          subtotal: 5000,
-        },
-      ],
-    },
-    {
-      invoiceNumber: "INV-20261105-005",
-      cashierId: kasir1.id,
-      studentId: createdStudents["20261005"].id,
-      subtotal: 28500,
-      discountAmount: 0,
-      totalAmount: 28500,
-      payAmount: 28500,
-      changeAmount: 0,
-      paymentMethod: "QRIS",
-      status: "COMPLETED",
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      items: [
-        {
-          productId: createdProducts["899770010004"].id, // Topi
-          itemName: "Topi Upacara SMK Yadika 6",
-          price: 25000,
-          quantity: 1,
-          subtotal: 25000,
-        },
-        {
-          productId: createdProducts["899600160018"].id, // Le Minerale
-          itemName: "Le Minerale 600ml",
-          price: 3500,
-          quantity: 1,
-          subtotal: 3500,
-        },
-      ],
-    },
+  const rawTxDefs = [
+    // --- AGUSTUS 2026 (Awal Semester Ganjil & MPLS) ---
+    { date: "2026-08-03T08:15:00", cashier: kasir1, student: "20261005", items: [ { bc: "899770010001", q: 1 }, { bc: "899770010004", q: 1 }, { bc: "899770010003", q: 1 } ], pay: "CASH" },
+    { date: "2026-08-03T10:30:00", cashier: kasir1, student: "20261001", items: [ { bc: "899770010002", q: 2 }, { bc: "899123456702", q: 5 } ], pay: "QRIS" },
+    { date: "2026-08-07T09:20:00", cashier: kasir2, student: "20261002", items: [ { bc: "899123456702", q: 3 }, { bc: "899886610001", q: 2 }, { bc: "899886620002", q: 1 } ], pay: "CASH" },
+    { date: "2026-08-07T13:45:00", cashier: kasir2, student: null, items: [ { bc: "899550010001", q: 1 }, { bc: "899886670007", q: 2 } ], pay: "QRIS" },
+    { date: "2026-08-12T07:45:00", cashier: kasir1, student: "20261003", items: [ { bc: "899770010004", q: 1 }, { bc: "899886630003", q: 1 } ], pay: "CASH" },
+    { date: "2026-08-12T11:15:00", cashier: kasir1, student: "20261004", items: [ { bc: "899886640004", q: 1 }, { bc: "899123456701", q: 2 }, { bc: "899600160018", q: 1 } ], pay: "QRIS" },
+    { date: "2026-08-18T08:30:00", cashier: kasir1, student: "20261005", items: [ { bc: "899550010003", q: 2 }, { bc: "899550010002", q: 1 } ], pay: "CASH" },
+    { date: "2026-08-18T14:10:00", cashier: kasir2, student: null, items: [ { bc: "899770010003", q: 1 }, { bc: "899886660006", q: 2 } ], pay: "QRIS" },
+    { date: "2026-08-22T09:40:00", cashier: kasir2, student: "20261001", items: [ { bc: "899123456702", q: 4 }, { bc: "899886610001", q: 1 } ], pay: "CASH" },
+    { date: "2026-08-22T12:20:00", cashier: kasir1, student: "20261002", items: [ { bc: "899600160018", q: 2 }, { bc: "899886670007", q: 2 } ], pay: "CASH" },
+    { date: "2026-08-28T10:05:00", cashier: kasir1, student: "20261003", items: [ { bc: "899550010001", q: 1 }, { bc: "899550010002", q: 2 } ], pay: "QRIS" },
+    { date: "2026-08-28T15:00:00", cashier: kasir2, student: "20261004", items: [ { bc: "899886640004", q: 1 }, { bc: "899886630003", q: 1 } ], pay: "CASH" },
+
+    // --- SEPTEMBER 2026 (Ujian Tengah Semester & Penugasan) ---
+    { date: "2026-09-02T08:10:00", cashier: kasir1, student: "20261001", items: [ { bc: "899123456701", q: 3 }, { bc: "899886620002", q: 2 }, { bc: "899886630003", q: 1 } ], pay: "CASH" },
+    { date: "2026-09-02T11:30:00", cashier: kasir1, student: "20261005", items: [ { bc: "899123456702", q: 2 }, { bc: "899886610001", q: 2 } ], pay: "QRIS" },
+    { date: "2026-09-05T09:15:00", cashier: kasir2, student: "20261002", items: [ { bc: "899886660006", q: 3 }, { bc: "899886640004", q: 1 } ], pay: "CASH" },
+    { date: "2026-09-05T13:40:00", cashier: kasir2, student: null, items: [ { bc: "899770010002", q: 1 }, { bc: "899770010001", q: 1 } ], pay: "QRIS" },
+    { date: "2026-09-09T08:50:00", cashier: kasir1, student: "20261003", items: [ { bc: "899550010001", q: 1 }, { bc: "899550010003", q: 1 } ], pay: "CASH" },
+    { date: "2026-09-09T12:15:00", cashier: kasir1, student: "20261004", items: [ { bc: "899600160018", q: 2 }, { bc: "899886670007", q: 1 } ], pay: "QRIS" },
+    { date: "2026-09-14T07:55:00", cashier: kasir1, student: "20261001", items: [ { bc: "899770010003", q: 1 }, { bc: "899123456702", q: 2 } ], pay: "CASH" },
+    { date: "2026-09-14T10:45:00", cashier: kasir2, student: "20261005", items: [ { bc: "899886610001", q: 3 }, { bc: "899886620002", q: 1 } ], pay: "QRIS" },
+    { date: "2026-09-18T09:30:00", cashier: kasir2, student: null, items: [ { bc: "899550010002", q: 2 }, { bc: "899550010003", q: 2 } ], pay: "CASH" },
+    { date: "2026-09-18T14:20:00", cashier: kasir1, student: "20261002", items: [ { bc: "899123456702", q: 4 }, { bc: "899886640004", q: 1 } ], pay: "QRIS" },
+    { date: "2026-09-22T08:20:00", cashier: kasir1, student: "20261003", items: [ { bc: "899770010001", q: 1 }, { bc: "899770010004", q: 1 } ], pay: "CASH" },
+    { date: "2026-09-22T11:40:00", cashier: kasir1, student: "20261004", items: [ { bc: "899886630003", q: 1 }, { bc: "899123456701", q: 2 } ], pay: "CASH" },
+    { date: "2026-09-26T09:05:00", cashier: kasir2, student: "20261005", items: [ { bc: "899600160018", q: 3 }, { bc: "899886670007", q: 2 } ], pay: "QRIS" },
+    { date: "2026-09-26T13:15:00", cashier: kasir2, student: "20261001", items: [ { bc: "899550010001", q: 1 }, { bc: "899886660006", q: 2 } ], pay: "CASH" },
+    { date: "2026-09-30T08:40:00", cashier: kasir1, student: "20261002", items: [ { bc: "899770010002", q: 2 }, { bc: "899770010003", q: 1 } ], pay: "QRIS" },
+    { date: "2026-09-30T10:50:00", cashier: kasir1, student: null, items: [ { bc: "899123456702", q: 3 }, { bc: "899886610001", q: 2 } ], pay: "CASH" },
+    { date: "2026-09-30T14:30:00", cashier: kasir2, student: "20261003", items: [ { bc: "899550010003", q: 3 } ], pay: "CASH" },
+
+    // --- OKTOBER 2026 (Bulan Penuh Penjualan & Kreativitas KIK) ---
+    { date: "2026-10-02T08:15:00", cashier: kasir1, student: "20261001", items: [ { bc: "899123456702", q: 4 }, { bc: "899886610001", q: 2 } ], pay: "CASH" },
+    { date: "2026-10-02T10:45:00", cashier: kasir1, student: "20261004", items: [ { bc: "899550010001", q: 1 }, { bc: "899550010002", q: 1 } ], pay: "QRIS" },
+    { date: "2026-10-05T09:00:00", cashier: kasir2, student: "20261002", items: [ { bc: "899770010004", q: 1 }, { bc: "899770010001", q: 1 } ], pay: "CASH" },
+    { date: "2026-10-05T13:20:00", cashier: kasir2, student: null, items: [ { bc: "899600160018", q: 2 }, { bc: "899886670007", q: 2 } ], pay: "QRIS" },
+    { date: "2026-10-08T08:30:00", cashier: kasir1, student: "20261005", items: [ { bc: "899886640004", q: 1 }, { bc: "899886620002", q: 2 } ], pay: "CASH" },
+    { date: "2026-10-08T11:15:00", cashier: kasir1, student: "20261003", items: [ { bc: "899770010002", q: 1 }, { bc: "899770010003", q: 1 } ], pay: "QRIS" },
+    { date: "2026-10-12T07:50:00", cashier: kasir1, student: "20261001", items: [ { bc: "899770010001", q: 1 }, { bc: "899123456702", q: 2 } ], pay: "CASH" },
+    { date: "2026-10-12T10:10:00", cashier: kasir2, student: "20261004", items: [ { bc: "899550010003", q: 2 }, { bc: "899886610001", q: 1 } ], pay: "QRIS" },
+    { date: "2026-10-15T09:40:00", cashier: kasir2, student: null, items: [ { bc: "899550010001", q: 1 }, { bc: "899886670007", q: 1 } ], pay: "CASH" },
+    { date: "2026-10-15T14:05:00", cashier: kasir1, student: "20261002", items: [ { bc: "899886660006", q: 2 }, { bc: "899886630003", q: 1 } ], pay: "QRIS" },
+    { date: "2026-10-19T08:20:00", cashier: kasir1, student: "20261005", items: [ { bc: "899123456702", q: 3 }, { bc: "899123456701", q: 2 } ], pay: "CASH" },
+    { date: "2026-10-19T11:35:00", cashier: kasir2, student: "20261003", items: [ { bc: "899770010004", q: 1 }, { bc: "899770010002", q: 1 } ], pay: "QRIS" },
+    { date: "2026-10-22T09:10:00", cashier: kasir2, student: "20261001", items: [ { bc: "899550010002", q: 3 }, { bc: "899550010003", q: 2 } ], pay: "CASH" },
+    { date: "2026-10-22T13:50:00", cashier: kasir1, student: null, items: [ { bc: "899600160018", q: 4 } ], pay: "QRIS" },
+    { date: "2026-10-26T08:00:00", cashier: kasir1, student: "20261004", items: [ { bc: "899770010003", q: 1 }, { bc: "899886610001", q: 2 } ], pay: "CASH" },
+    { date: "2026-10-26T10:30:00", cashier: kasir2, student: "20261002", items: [ { bc: "899550010001", q: 1 }, { bc: "899123456702", q: 2 } ], pay: "QRIS" },
+    { date: "2026-10-29T09:25:00", cashier: kasir2, student: "20261005", items: [ { bc: "899886640004", q: 1 }, { bc: "899886660006", q: 3 } ], pay: "CASH" },
+    { date: "2026-10-29T14:15:00", cashier: kasir1, student: null, items: [ { bc: "899770010001", q: 1 }, { bc: "899886670007", q: 2 } ], pay: "QRIS" },
+    { date: "2026-10-31T08:45:00", cashier: kasir1, student: "20261003", items: [ { bc: "899550010003", q: 4 }, { bc: "899550010002", q: 1 } ], pay: "CASH" },
+    { date: "2026-10-31T11:00:00", cashier: kasir2, student: "20261001", items: [ { bc: "899770010002", q: 1 }, { bc: "899600160018", q: 2 } ], pay: "QRIS" },
+    { date: "2026-10-31T15:20:00", cashier: kasir2, student: "20261004", items: [ { bc: "899123456702", q: 5 }, { bc: "899886610001", q: 3 } ], pay: "CASH" },
+
+    // --- NOVEMBER 2026 (Bulan Berjalan, 1 s/d 8 November 2026) ---
+    { date: "2026-11-01T08:30:00", cashier: kasir1, student: "20261001", items: [ { bc: "899550010001", q: 1 } ], pay: "CASH" },
+    { date: "2026-11-01T11:00:00", cashier: kasir1, student: "20261005", items: [ { bc: "899123456702", q: 2 }, { bc: "899886610001", q: 1 } ], pay: "QRIS" },
+    { date: "2026-11-01T14:20:00", cashier: kasir2, student: null, items: [ { bc: "899600160018", q: 3 } ], pay: "CASH" },
+    { date: "2026-11-02T08:15:00", cashier: kasir1, student: "20261002", items: [ { bc: "899770010002", q: 1 }, { bc: "899886670007", q: 1 }, { bc: "899886620002", q: 1 } ], pay: "QRIS" },
+    { date: "2026-11-02T10:45:00", cashier: kasir2, student: "20261003", items: [ { bc: "899123456701", q: 2 }, { bc: "899886630003", q: 1 } ], pay: "CASH" },
+    { date: "2026-11-02T13:30:00", cashier: kasir2, student: null, items: [ { bc: "899550010003", q: 2 } ], pay: "QRIS" },
+    { date: "2026-11-03T07:45:00", cashier: kasir1, student: "20261003", items: [ { bc: "899770010001", q: 1 }, { bc: "899770010003", q: 1 }, { bc: "899550010003", q: 1 } ], pay: "CASH", discPct: 5 },
+    { date: "2026-11-03T11:20:00", cashier: kasir1, student: "20261004", items: [ { bc: "899123456702", q: 3 }, { bc: "899886610001", q: 2 } ], pay: "CASH" },
+    { date: "2026-11-03T15:10:00", cashier: kasir2, student: "20261005", items: [ { bc: "899886640004", q: 1 }, { bc: "899600160018", q: 1 } ], pay: "QRIS" },
+    { date: "2026-11-04T08:50:00", cashier: kasir2, student: "20261004", items: [ { bc: "899123456702", q: 2 }, { bc: "899123456701", q: 1 }, { bc: "899886630003", q: 1 } ], pay: "CASH" },
+    { date: "2026-11-04T12:00:00", cashier: kasir1, student: null, items: [ { bc: "899550010001", q: 1 }, { bc: "899886670007", q: 2 } ], pay: "QRIS" },
+    { date: "2026-11-04T14:40:00", cashier: kasir1, student: "20261001", items: [ { bc: "899770010002", q: 1 }, { bc: "899770010004", q: 1 } ], pay: "CASH" },
+    { date: "2026-11-05T09:15:00", cashier: kasir1, student: "20261005", items: [ { bc: "899770010004", q: 1 }, { bc: "899600160018", q: 1 } ], pay: "QRIS" },
+    { date: "2026-11-05T11:30:00", cashier: kasir2, student: "20261002", items: [ { bc: "899886660006", q: 2 }, { bc: "899886610001", q: 2 } ], pay: "CASH" },
+    { date: "2026-11-05T15:00:00", cashier: kasir2, student: null, items: [ { bc: "899550010002", q: 2 } ], pay: "QRIS" },
+    { date: "2026-11-06T08:10:00", cashier: kasir1, student: "20261001", items: [ { bc: "899123456702", q: 4 }, { bc: "899886640004", q: 1 } ], pay: "CASH" },
+    { date: "2026-11-06T10:50:00", cashier: kasir1, student: "20261003", items: [ { bc: "899770010003", q: 1 }, { bc: "899550010003", q: 1 } ], pay: "QRIS" },
+    { date: "2026-11-06T13:40:00", cashier: kasir2, student: "20261004", items: [ { bc: "899600160018", q: 2 }, { bc: "899886670007", q: 2 } ], pay: "CASH" },
+    { date: "2026-11-07T08:40:00", cashier: kasir2, student: "20261002", items: [ { bc: "899550010001", q: 1 }, { bc: "899550010002", q: 1 } ], pay: "QRIS" },
+    { date: "2026-11-07T11:15:00", cashier: kasir1, student: null, items: [ { bc: "899770010001", q: 1 }, { bc: "899770010002", q: 1 } ], pay: "CASH" },
+    { date: "2026-11-07T14:30:00", cashier: kasir1, student: "20261005", items: [ { bc: "899123456702", q: 3 }, { bc: "899886620002", q: 1 } ], pay: "CASH" },
+    // HARI INI (8 November 2026)
+    { date: "2026-11-08T07:40:00", cashier: kasir1, student: "20261001", items: [ { bc: "899770010004", q: 1 }, { bc: "899770010001", q: 1 } ], pay: "CASH" },
+    { date: "2026-11-08T09:20:00", cashier: kasir1, student: "20261002", items: [ { bc: "899123456702", q: 4 }, { bc: "899886610001", q: 2 }, { bc: "899886640004", q: 1 } ], pay: "QRIS" },
+    { date: "2026-11-08T11:00:00", cashier: kasir1, student: "20261003", items: [ { bc: "899550010001", q: 1 }, { bc: "899550010003", q: 2 } ], pay: "QRIS" },
+    { date: "2026-11-08T13:15:00", cashier: kasir2, student: "20261004", items: [ { bc: "899600160018", q: 2 }, { bc: "899886670007", q: 2 } ], pay: "CASH" },
+    { date: "2026-11-08T15:30:00", cashier: kasir2, student: null, items: [ { bc: "899770010003", q: 1 }, { bc: "899886660006", q: 2 } ], pay: "CASH" },
   ];
 
-  for (const t of pastTransactions) {
+  let txCounter = 1;
+  for (const def of rawTxDefs) {
+    const txDate = new Date(def.date);
+    const dateFormatted = def.date.slice(0, 10).replace(/-/g, "");
+    const invoiceNumber = `INV-${dateFormatted}-${String(txCounter).padStart(3, "0")}`;
+    txCounter++;
+
+    let subtotal = 0;
+    const itemsData = [];
+
+    for (const itemDef of def.items) {
+      const product = createdProducts[itemDef.bc];
+      if (product) {
+        const itemPrice = Number(product.sellingPrice);
+        const itemSubtotal = itemPrice * itemDef.q;
+        subtotal += itemSubtotal;
+        itemsData.push({
+          productId: product.id,
+          itemName: product.name,
+          price: itemPrice,
+          quantity: itemDef.q,
+          subtotal: itemSubtotal,
+        });
+      }
+    }
+
+    if (itemsData.length === 0) continue;
+
+    const discountAmount = def.discPct ? Math.round((subtotal * def.discPct) / 100) : 0;
+    const totalAmount = subtotal - discountAmount;
+    const payAmount = def.pay === "QRIS" ? totalAmount : Math.ceil(totalAmount / 10000) * 10000 || totalAmount + 5000;
+    const changeAmount = payAmount - totalAmount;
+    const studentUser = def.student && createdStudents[def.student] ? createdStudents[def.student] : null;
+
     const existing = await prisma.transaction.findUnique({
-      where: { invoiceNumber: t.invoiceNumber },
+      where: { invoiceNumber },
     });
+
     if (!existing) {
       await prisma.transaction.create({
         data: {
-          invoiceNumber: t.invoiceNumber,
-          cashierId: t.cashierId,
-          studentId: t.studentId,
-          subtotal: t.subtotal,
-          discountAmount: t.discountAmount,
-          totalAmount: t.totalAmount,
-          payAmount: t.payAmount,
-          changeAmount: t.changeAmount,
-          paymentMethod: t.paymentMethod,
-          status: t.status,
-          createdAt: t.createdAt,
+          invoiceNumber,
+          cashierId: def.cashier.id,
+          studentId: studentUser ? studentUser.id : null,
+          subtotal,
+          discountAmount,
+          totalAmount,
+          payAmount,
+          changeAmount,
+          paymentMethod: def.pay,
+          status: "COMPLETED",
+          createdAt: txDate,
           items: {
-            create: t.items,
+            create: itemsData,
           },
         },
       });
     }
   }
-  console.log("✓ Transaksi historis multi-hari siap untuk analitik dashboard.");
+  console.log(`✓ ${rawTxDefs.length} Transaksi multi-bulan realistis (Agustus - November 2026) siap untuk analitik dashboard.`);
 
   console.log("🎉 Seed data realistis YasixMerch selesai dieksekusi dengan sempurna!");
 }
