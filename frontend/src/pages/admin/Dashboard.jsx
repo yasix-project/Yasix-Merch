@@ -42,6 +42,13 @@ export default function Dashboard() {
 
   const isLoading = isLoadingMetrics || isLoadingSales;
 
+  const trendLabel =
+    dateFilter === "30days"
+      ? "vs 30 hari sebelumnya"
+      : dateFilter === "thisMonth"
+      ? "vs bulan sebelumnya"
+      : "vs 7 hari sebelumnya";
+
   const handleDownloadCsv = () => {
     if (!chartSalesData || chartSalesData.length === 0) {
       showWarningToast("Belum ada data penjualan pada rentang waktu ini.");
@@ -107,24 +114,28 @@ export default function Dashboard() {
           value={formatRupiah(metrics.totalPendapatan)}
           icon={Wallet}
           trend={metrics.trendPendapatan}
+          trendLabel={trendLabel}
         />
         <StatCard
           title="Total Transaksi"
           value={metrics.totalTransaksi.toLocaleString("id-ID")}
           icon={ShoppingCart}
           trend={metrics.trendTransaksi}
+          trendLabel={trendLabel}
         />
         <StatCard
           title="Siswa/Pelanggan"
           value={metrics.totalSiswa.toLocaleString("id-ID")}
           icon={Users}
           trend={metrics.trendSiswa}
+          trendLabel="Total terdaftar"
         />
         <StatCard
           title="Laba Bersih"
           value={formatRupiah(metrics.labaBersih)}
           icon={ArrowUpRight}
           trend={metrics.trendLaba}
+          trendLabel={trendLabel}
         />
       </div>
 

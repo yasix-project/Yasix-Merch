@@ -2,7 +2,8 @@
 import axiosClient from "./axiosClient";
 
 export const analyticsService = {
-  getDashboardMetrics: () => axiosClient.get("/analytics/dashboard"),
+  getDashboardMetrics: (filter = "7days") =>
+    axiosClient.post("/analytics/dashboard", { filter }, { params: { filter } }),
   getSalesReport: (filter = "7days") =>
-    axiosClient.get(`/analytics/sales?filter=${filter}`),
+    axiosClient.post("/analytics/sales", { filter }, { params: { filter } }),
 };

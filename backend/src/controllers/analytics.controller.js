@@ -3,7 +3,8 @@ const analyticsService = require("../services/analytics.service");
 
 const getDashboardMetrics = async (req, res) => {
   try {
-    const data = await analyticsService.getDashboardMetricsService();
+    const filter = req.body?.filter || req.query?.filter || "7days";
+    const data = await analyticsService.getDashboardMetricsService(filter);
     return res.status(200).json({
       success: true,
       message: "Berhasil memuat metrik dashboard",
@@ -19,7 +20,7 @@ const getDashboardMetrics = async (req, res) => {
 
 const getSalesReport = async (req, res) => {
   try {
-    const filter = req.query.filter || "7days";
+    const filter = req.body?.filter || req.query?.filter || "7days";
     const reportData = await analyticsService.getSalesReportService(filter);
 
     return res.status(200).json({
