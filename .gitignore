@@ -11,3 +11,6 @@ docs/
 
 # Local design guidelines (tidak untuk di-commit)
 DESIGN.md
+
+# Anti-slop audit artifacts
+anti-slop/
