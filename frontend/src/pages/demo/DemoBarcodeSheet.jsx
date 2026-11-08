@@ -6,7 +6,6 @@ import {
   Copy,
   Check,
   Smartphone,
-  Sparkles,
   Award,
   Tag,
   ExternalLink,

@@ -6,7 +6,6 @@ import {
   Minus,
   Tag,
   Clock,
-  Sparkles,
   AlertCircle,
   Loader2,
   X,
@@ -362,7 +361,7 @@ export default function CartDrawerModal({ isOpen, onClose, onOrderSuccess }) {
                 </>
               ) : (
                 <>
-                  <Sparkles size={15} />
+                  <ShoppingBag size={15} />
                   <span>Konfirmasi & Buat Pesanan</span>
                 </>
               )}

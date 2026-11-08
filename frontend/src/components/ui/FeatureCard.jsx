@@ -1,46 +1,45 @@
 /**
- * FeatureCard - Komponen fitur/informasi yang fleksibel
+ * FeatureCard - Komponen informasi ringkas
  *
- * @param {React.ElementType} icon - Komponen ikon (misal: Lucide React)
- * @param {string} title - Judul fitur
- * @param {string} description - Deskripsi singkat
- * @param {'glass' | 'light' | 'outline'} variant - Tema tampilan kartu
+ * @param {React.ElementType} icon - Komponen ikon
+ * @param {string} title - Judul informasi
+ * @param {string} description - Deskripsi ringkas
+ * @param {'dark' | 'light' | 'outline'} variant - Tema tampilan kartu
  * @param {string} className - Kelas Tailwind kustom tambahan
  */
 export default function FeatureCard({
   icon: Icon,
   title,
   description,
-  variant = "glass",
+  variant = "light",
   className = "",
 }) {
-  // Preset tampilan berdasarkan variant
   const variants = {
-    glass: {
-      container: "bg-white/5 hover:bg-white/10 border-white/5",
-      icon: "bg-primary-hover text-highlight border-white/10",
-      title: "text-white/90",
-      description: "text-blue-200/70",
+    dark: {
+      container: "bg-dark border-slate-700 hover:border-slate-600",
+      icon: "bg-primary/20 text-sky border-primary/30",
+      title: "text-white",
+      description: "text-slate-200",
     },
     light: {
-      container: "bg-slate-50 hover:bg-slate-100/80 border-slate-200",
+      container: "bg-slate-50 hover:bg-slate-100 border-slate-200",
       icon: "bg-primary/10 text-primary border-primary/20",
-      title: "text-dark",
-      description: "text-slate-500",
+      title: "text-slate-900",
+      description: "text-slate-600",
     },
     outline: {
-      container: "bg-transparent hover:bg-slate-50 border-slate-200",
+      container: "bg-white hover:bg-slate-50 border-slate-200",
       icon: "bg-slate-100 text-slate-700 border-slate-200",
       title: "text-slate-800",
-      description: "text-slate-500",
+      description: "text-slate-600",
     },
   };
 
-  const currentVariant = variants[variant] || variants.glass;
+  const currentVariant = variants[variant] || variants.light;
 
   return (
     <div
-      className={`flex gap-4 items-start border p-3.5 rounded-xl transition-all duration-300 ${currentVariant.container} ${className}`}
+      className={`flex gap-4 items-start border p-3.5 rounded-xl transition-all ${currentVariant.container} ${className}`}
     >
       {Icon && (
         <div

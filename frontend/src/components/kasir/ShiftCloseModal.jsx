@@ -4,7 +4,7 @@ import {
   TrendingUp,
   AlertTriangle,
   Info,
-  Sparkles,
+  Calculator,
 } from "lucide-react";
 import Button from "../ui/Button";
 import { formatRupiah } from "../../utils/formatters";
@@ -159,7 +159,7 @@ export default function ShiftCloseModal({
                 onClick={() => setActualCash(String(effectiveExpectedEndCash))}
                 className="flex items-center gap-1.5 text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:underline transition"
               >
-                <Sparkles size={13} />
+                <Calculator size={13} />
                 <span>Isi sesuai total sistem ({formatRupiah(effectiveExpectedEndCash)})</span>
               </button>
             </div>

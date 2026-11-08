@@ -1,5 +1,5 @@
 import { QRCodeSVG } from "qrcode.react";
-import { Sparkles, ShieldCheck, School } from "lucide-react";
+import { Coins, ShieldCheck, School } from "lucide-react";
 
 export default function StudentIdCard({ user }) {
   const nis = user?.nis || "YASX-000000";
@@ -7,10 +7,7 @@ export default function StudentIdCard({ user }) {
   const points = user?.points ?? 0;
 
   return (
-    <div className="relative w-full rounded-3xl overflow-hidden shadow-xl bg-gradient-to-br from-dark via-[#0f2b5b] to-slate-950 text-bright p-5 border border-cyan/20">
-      {/* Background Decorative Pattern */}
-      <div className="absolute -top-12 -right-12 w-44 h-44 bg-primary/20 rounded-full blur-2xl pointer-events-none" />
-      <div className="absolute -bottom-12 -left-12 w-44 h-44 bg-cyan/15 rounded-full blur-2xl pointer-events-none" />
+    <div className="relative w-full rounded-3xl overflow-hidden shadow-xl bg-dark text-bright p-5 border border-slate-700">
 
       {/* Header Kartu */}
       <div className="flex items-start justify-between relative z-10 mb-4 pb-3 border-b border-white/10">
@@ -58,7 +55,7 @@ export default function StudentIdCard({ user }) {
 
           {/* Saldo Poin */}
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-accent/15 border border-accent/30 text-accent">
-            <Sparkles size={14} className="text-accent animate-pulse" />
+            <Coins size={14} className="text-accent" />
             <span className="text-xs font-black">{points}</span>
             <span className="text-[10px] text-accent/80">Yasix Points</span>
           </div>

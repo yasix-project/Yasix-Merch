@@ -1,5 +1,5 @@
 // src/components/kasir/ReceiptModal.jsx
-import { Printer, CheckCircle2, X, Sparkles, Award } from "lucide-react";
+import { Printer, CheckCircle2, X, Award } from "lucide-react";
 import Button from "../ui/Button";
 import { formatRupiah, formatDate } from "../../utils/formatters";
 import BarcodeSVG from "../shared/BarcodeSVG";

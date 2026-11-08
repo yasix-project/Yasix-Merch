@@ -9,7 +9,7 @@ import {
   ChevronRight,
   ChevronDown,
   RefreshCw,
-  Sparkles,
+  Ticket,
   Loader2,
   Copy,
   Check,
@@ -111,7 +111,7 @@ export default function SiswaProfil() {
             {redeemMutation.isPending ? (
               <Loader2 size={13} className="animate-spin mr-1" />
             ) : (
-              <Sparkles size={13} className="mr-1" />
+              <Ticket size={13} className="mr-1" />
             )}
             <span>Tukar</span>
           </Button>

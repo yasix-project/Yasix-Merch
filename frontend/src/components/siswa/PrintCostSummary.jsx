@@ -1,4 +1,4 @@
-import { Loader2, Sparkles, Check, Scissors } from "lucide-react";
+import { Loader2, Calculator, Check, Scissors } from "lucide-react";
 import { formatRupiah } from "../../utils/formatters";
 import { parsePrintSpecs } from "../../utils/printSpecs";
 
@@ -23,7 +23,7 @@ export default function PrintCostSummary({ estimate, isEstimating }) {
     <div className="bg-dark text-bright rounded-2xl p-4 space-y-2.5 shadow-md border border-cyan/20">
       <div className="flex items-center justify-between">
         <span className="text-[11px] uppercase tracking-wider font-semibold text-slate-400 flex items-center gap-1.5">
-          <Sparkles size={12} className="text-cyan" />
+          <Calculator size={12} className="text-cyan" />
           Rincian Estimasi Biaya
         </span>
         {isEstimating && (

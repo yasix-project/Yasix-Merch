@@ -1,4 +1,4 @@
-import { Printer, AlertCircle, Loader2, Sparkles } from "lucide-react";
+import { Printer, AlertCircle, Loader2 } from "lucide-react";
 import Button from "../../components/ui/Button";
 
 import { useStudentPrint } from "../../hooks/siswa/useStudentPrint";
@@ -99,7 +99,7 @@ export default function SiswaPrint() {
             </>
           ) : (
             <>
-              <Sparkles size={16} />
+              <Printer size={16} />
               Kirim Antrean Cetak ({selectedPages.length || 0} Halaman)
             </>
           )}

@@ -3,7 +3,6 @@ import {
   CheckCircle2,
   XCircle,
   Layers,
-  Sparkles,
   BookOpen,
   Scissors,
 } from "lucide-react";
@@ -41,7 +40,7 @@ export default function PrintConfigOptions({
           <div className="flex items-center justify-between">
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                <Sparkles size={13} className="text-primary" />
+                <FileText size={13} className="text-primary" />
                 Pilih Halaman yang Dicetak
               </span>
               <p className="text-[11px] text-slate-500 mt-0.5">
