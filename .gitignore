@@ -8,3 +8,6 @@ postman/
 
 # Dokumen internal tim (proposal & skrip video GTNIC lokal)
 docs/
+
+# Local design guidelines (tidak untuk di-commit)
+DESIGN.md
