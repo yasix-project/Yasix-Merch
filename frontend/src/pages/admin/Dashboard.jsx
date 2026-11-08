@@ -6,6 +6,7 @@ import {
   Users,
   ArrowUpRight,
   Loader2,
+  Download,
 } from "lucide-react";
 
 import StatCard from "../../components/admin/StatCard";
@@ -14,25 +15,8 @@ import CategoryDonutChart from "../../components/admin/CategoryDonutChart";
 
 import { useAnalytics } from "../../hooks/admin/useAnalytics";
 import { formatRupiah } from "../../utils/formatters";
-
-// --- FALLBACK DUMMY DATA ---
-const dummySalesData = [
-  { date: "1 Jul", pendapatan: 450000, keuntungan: 180000 },
-  { date: "2 Jul", pendapatan: 620000, keuntungan: 250000 },
-  { date: "3 Jul", pendapatan: 380000, keuntungan: 120000 },
-  { date: "4 Jul", pendapatan: 890000, keuntungan: 340000 },
-  { date: "5 Jul", pendapatan: 750000, keuntungan: 290000 },
-  { date: "6 Jul", pendapatan: 980000, keuntungan: 410000 },
-  { date: "7 Jul", pendapatan: 540000, keuntungan: 210000 },
-];
-
-const dummyCategoryData = [
-  { name: "Makanan ringan", value: 42, color: "#1C62C4" },
-  { name: "Minuman", value: 28, color: "#38BDF8" },
-  { name: "ATK & Alat Tulis", value: 18, color: "#FFC800" },
-  { name: "Merchandise", value: 12, color: "#0F2B5B" },
-];
-// -----------------------------
+import { downloadCsv } from "../../utils/exportCsv";
+import { showWarningToast, showSuccessToast } from "../../utils/toast";
 
 export default function Dashboard() {
   const [dateFilter, setDateFilter] = useState("7days");
@@ -41,22 +25,42 @@ export default function Dashboard() {
   const { data: dashboardData, isLoading: isLoadingMetrics } = dashboard;
   const { data: salesData, isLoading: isLoadingSales } = sales;
 
-  // Pemetaan Data (Gunakan data asli jika ada, jika tidak pakai dummy)
+  // Pemetaan Data Riil (Nilai 0 jika belum ada data, tanpa angka fiktif)
   const metrics = dashboardData?.metrics || {
-    totalPendapatan: 4610000,
-    totalTransaksi: 1136,
-    totalSiswa: 567,
-    labaBersih: 1800000,
-    trendPendapatan: 12.5,
-    trendTransaksi: -0.8,
-    trendSiswa: 4.2,
-    trendLaba: 8.1,
+    totalPendapatan: 0,
+    totalTransaksi: 0,
+    totalSiswa: 0,
+    labaBersih: 0,
+    trendPendapatan: undefined,
+    trendTransaksi: undefined,
+    trendSiswa: undefined,
+    trendLaba: undefined,
   };
 
-  const chartSalesData = salesData || dummySalesData;
-  const chartCategoryData = dashboardData?.categoryData || dummyCategoryData;
+  const chartSalesData = salesData || [];
+  const chartCategoryData = dashboardData?.categoryData || [];
 
   const isLoading = isLoadingMetrics || isLoadingSales;
+
+  const handleDownloadCsv = () => {
+    if (!chartSalesData || chartSalesData.length === 0) {
+      showWarningToast("Belum ada data penjualan pada rentang waktu ini.");
+      return;
+    }
+
+    try {
+      const headers = ["Tanggal", "Omset (Pendapatan)", "Margin (Keuntungan)"];
+      const rows = chartSalesData.map((d) => [
+        d.date || "-",
+        d.pendapatan || 0,
+        d.keuntungan || 0,
+      ]);
+      downloadCsv(`laporan-penjualan-yasix-${dateFilter}`, headers, rows);
+      showSuccessToast("Laporan CSV berhasil diunduh.");
+    } catch {
+      showWarningToast("Gagal memproses ekspor CSV.");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -75,17 +79,19 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-dark tracking-tight">
             Dashboard Overview
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Ringkasan performa penjualan Yasix Merch
+          <p className="text-xs text-slate-500 mt-0.5">
+            Ringkasan performa penjualan dan operasional YasixMerch
           </p>
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-3">
+          <label htmlFor="filter-rentang" className="sr-only">Rentang Waktu Analitik</label>
           <select
+            id="filter-rentang"
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="bg-white px-3 py-2 rounded-xl border border-slate-200/80 text-xs font-semibold text-slate-600 shadow-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className="bg-white px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 shadow-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 cursor-pointer"
           >
             <option value="7days">7 Hari Terakhir</option>
             <option value="30days">30 Hari Terakhir</option>
@@ -132,24 +138,27 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Info Card */}
-        <div className="bg-linear-to-br from-dark to-primary rounded-2xl p-6 text-white flex flex-col justify-between relative overflow-hidden shadow-sm">
-          <div className="relative z-10 space-y-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest bg-white/10 px-2.5 py-1 rounded-full text-cyan border border-white/10">
-              Informasi Aktif
+        <div className="bg-dark rounded-2xl p-6 text-white border border-slate-700 flex flex-col justify-between shadow-xs">
+          <div className="space-y-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider bg-white/10 px-2.5 py-1 rounded-full text-sky border border-white/10 inline-block">
+              Unit Produksi
             </span>
             <h3 className="text-lg font-bold text-white pt-2">
-              Status Operasional
+              Laporan Penjualan
             </h3>
-            <p className="text-xs text-blue-100 leading-relaxed">
-              YasixMerch SMK Yadika 6 saat ini beroperasi dengan baik.
-              Pantau terus grafik penjualan untuk melihat performa HPP dan Laba
-              secara aktual.
+            <p className="text-xs text-slate-200 leading-relaxed font-normal">
+              Unduh rincian penjualan aktual sesuai rentang tanggal yang dipilih untuk kebutuhan pembukuan kasir dan rekonsiliasi stok.
             </p>
           </div>
 
-          <div className="relative z-10 pt-6">
-            <button className="w-full py-2.5 bg-accent text-dark text-xs font-bold rounded-xl hover:bg-yellow-400 transition-colors shadow-sm">
-              Unduh Laporan Lengkap (.CSV)
+          <div className="pt-6">
+            <button
+              type="button"
+              onClick={handleDownloadCsv}
+              className="w-full py-2.5 bg-accent text-dark text-xs font-bold rounded-xl hover:bg-yellow-400 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-accent"
+            >
+              <Download size={14} />
+              <span>Unduh Laporan Penjualan (.CSV)</span>
             </button>
           </div>
         </div>

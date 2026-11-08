@@ -8,7 +8,15 @@ import {
   CartesianGrid,
 } from "recharts";
 
-export default function SalesBarChart({ data }) {
+export default function SalesBarChart({ data = [] }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col items-center justify-center h-72 text-slate-400 text-xs font-semibold gap-2">
+        <p>Belum ada rekaman grafik penjualan pada rentang waktu ini.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">

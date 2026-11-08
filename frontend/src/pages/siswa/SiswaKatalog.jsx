@@ -4,10 +4,7 @@ import {
   ShoppingBag,
   Plus,
   Minus,
-  Sparkles,
-  Filter,
   RefreshCw,
-  AlertCircle,
   Package,
 } from "lucide-react";
 import {
@@ -79,10 +76,12 @@ export default function SiswaKatalog() {
         </div>
 
         <button
+          type="button"
           onClick={() => refetch()}
           disabled={isFetching}
-          className="p-2 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-primary hover:border-primary/30 transition-colors shrink-0"
+          className="p-2 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-primary hover:border-primary/30 transition-colors shrink-0 cursor-pointer"
           title="Segarkan Katalog"
+          aria-label="Segarkan katalog"
         >
           <RefreshCw size={14} className={isFetching ? "animate-spin" : ""} />
         </button>
@@ -90,13 +89,19 @@ export default function SiswaKatalog() {
 
       {/* Bar Pencarian */}
       <div className="relative">
+        <label htmlFor="katalog-search-input" className="sr-only">
+          Cari perlengkapan sekolah
+        </label>
         <Search
           size={16}
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+          aria-hidden="true"
         />
         <input
+          id="katalog-search-input"
           type="text"
           placeholder="Cari buku, pulpen, seragam, KIK..."
+          aria-label="Cari buku, pulpen, seragam, KIK"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full pl-10 pr-4 py-2.5 text-xs bg-white border border-slate-200 rounded-2xl outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 shadow-2xs transition-all"
@@ -108,7 +113,7 @@ export default function SiswaKatalog() {
         <button
           type="button"
           onClick={() => setSelectedCategoryId("ALL")}
-          className={`px-3 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap text-[11px] ${
+          className={`px-3 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap text-[11px] cursor-pointer ${
             selectedCategoryId === "ALL"
               ? "bg-primary text-white shadow-xs"
               : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
@@ -122,7 +127,7 @@ export default function SiswaKatalog() {
             key={cat.id}
             type="button"
             onClick={() => setSelectedCategoryId(cat.id)}
-            className={`px-3 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap text-[11px] ${
+            className={`px-3 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap text-[11px] cursor-pointer ${
               selectedCategoryId === cat.id
                 ? "bg-primary text-white shadow-xs"
                 : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
@@ -219,8 +224,9 @@ export default function SiswaKatalog() {
                     {/* Tombol Aksi Keranjang */}
                     {isOutOfStock ? (
                       <button
+                        type="button"
                         disabled
-                        className="w-full py-1.5 bg-slate-100 text-slate-400 text-[11px] font-bold rounded-xl cursor-not-allowed"
+                        className="w-full py-2 bg-slate-100 text-slate-400 text-[11px] font-bold rounded-xl cursor-not-allowed"
                       >
                         Habis
                       </button>
@@ -231,9 +237,10 @@ export default function SiswaKatalog() {
                           onClick={() =>
                             updateQuantity(product.id, inCartQty - 1)
                           }
-                          className="w-6 h-6 rounded-lg bg-white text-primary flex items-center justify-center shadow-2xs hover:bg-slate-50 transition-colors"
+                          aria-label="Kurangi jumlah dalam keranjang"
+                          className="w-8 h-8 rounded-lg bg-white text-primary flex items-center justify-center shadow-2xs hover:bg-slate-50 transition-colors cursor-pointer"
                         >
-                          <Minus size={12} />
+                          <Minus size={14} />
                         </button>
                         <span className="text-xs font-black text-primary px-1">
                           {inCartQty}
@@ -244,9 +251,10 @@ export default function SiswaKatalog() {
                             updateQuantity(product.id, inCartQty + 1)
                           }
                           disabled={inCartQty >= product.stock}
-                          className="w-6 h-6 rounded-lg bg-primary text-white flex items-center justify-center shadow-2xs hover:bg-primary-hover disabled:opacity-40 transition-colors"
+                          aria-label="Tambah jumlah dalam keranjang"
+                          className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center shadow-2xs hover:bg-primary-hover disabled:opacity-40 transition-colors cursor-pointer"
                         >
-                          <Plus size={12} />
+                          <Plus size={14} />
                         </button>
                       </div>
                     ) : (
@@ -268,12 +276,14 @@ export default function SiswaKatalog() {
         </div>
       )}
 
-      {/* Floating Cart Bar (Melayang di atas Bottom Nav jika keranjang terisi) */}
+      {/* Floating Cart Bar (Bisa dioperasikan keyboard) */}
       {totalItems > 0 && (
         <div className="fixed bottom-16 sm:bottom-18 left-1/2 -translate-x-1/2 w-full max-w-lg px-3 z-30 animate-in slide-in-from-bottom duration-200">
-          <div
+          <button
+            type="button"
             onClick={() => setIsCartOpen(true)}
-            className="bg-primary text-white p-3 rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-between cursor-pointer border border-white/20 hover:bg-primary-hover transition-colors"
+            aria-label={`Buka keranjang belanja: ${totalItems} item seharga ${formatRupiah(subtotal)}`}
+            className="w-full bg-primary text-white p-3 rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-between cursor-pointer border border-white/20 hover:bg-primary-hover transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <div className="flex items-center gap-2.5">
               <div className="relative">
@@ -295,10 +305,10 @@ export default function SiswaKatalog() {
             </div>
 
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-primary font-bold text-xs shadow-xs">
-              <Sparkles size={13} />
+              <ShoppingBag size={13} />
               <span>Checkout</span>
             </div>
-          </div>
+          </button>
         </div>
       )}
 
