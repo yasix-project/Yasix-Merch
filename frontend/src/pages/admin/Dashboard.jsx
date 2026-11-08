@@ -10,6 +10,7 @@ import {
   Calendar,
 } from "lucide-react";
 
+import Button from "../../components/ui/Button";
 import StatCard from "../../components/admin/StatCard";
 import SalesBarChart from "../../components/admin/SalesBarChart";
 import CategoryDonutChart from "../../components/admin/CategoryDonutChart";
@@ -177,8 +178,8 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
-      {/* Header Top Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      {/* Header Top Bar: Konsisten dengan halaman admin lainnya */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-dark tracking-tight">
             Dashboard Overview
@@ -191,87 +192,116 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Action Controls: Filter Presets, Bulan, & Tanggal */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Segmented Control Mode */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => setFilterMode("preset")}
-              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                filterMode === "preset"
-                  ? "bg-white text-dark shadow-xs font-bold"
-                  : "text-slate-500 hover:text-dark"
-              }`}
-            >
-              Rentang Cepat
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterMode("month")}
-              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                filterMode === "month"
-                  ? "bg-white text-dark shadow-xs font-bold"
-                  : "text-slate-500 hover:text-dark"
-              }`}
-            >
-              Pilih Bulan
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterMode("date")}
-              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                filterMode === "date"
-                  ? "bg-white text-dark shadow-xs font-bold"
-                  : "text-slate-500 hover:text-dark"
-              }`}
-            >
-              Pilih Tanggal
-            </button>
+        {/* Action Button: Export CSV di Header konsisten dengan seluruh halaman admin */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDownloadCsv}
+        >
+          <Download size={15} className="text-slate-500" />
+          <span>Export CSV ({activeFilterInfo.label})</span>
+        </Button>
+      </div>
+
+      {/* Filter Bar Konsisten: Desain & Wadah Sama dengan Halaman Lain */}
+      <div className="bg-bright p-2 rounded-2xl border border-slate-200 shadow-sm shadow-dark/5 flex flex-col md:flex-row gap-3 justify-between items-stretch md:items-center">
+        {/* Tab Mode Filter: Konsisten dengan Tab FilterBar */}
+        <div className="flex items-center gap-1 p-1 bg-white border border-slate-200 rounded-xl overflow-x-auto w-full md:w-auto">
+          <button
+            type="button"
+            onClick={() => setFilterMode("preset")}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              filterMode === "preset"
+                ? "bg-dark text-white shadow-md shadow-dark/25 font-bold"
+                : "text-slate-500 hover:bg-sky/60 hover:text-dark"
+            }`}
+          >
+            {filterMode === "preset" && (
+              <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+            )}
+            Rentang Cepat
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilterMode("month")}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              filterMode === "month"
+                ? "bg-dark text-white shadow-md shadow-dark/25 font-bold"
+                : "text-slate-500 hover:bg-sky/60 hover:text-dark"
+            }`}
+          >
+            {filterMode === "month" && (
+              <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+            )}
+            Pilih Bulan
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilterMode("date")}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              filterMode === "date"
+                ? "bg-dark text-white shadow-md shadow-dark/25 font-bold"
+                : "text-slate-500 hover:bg-sky/60 hover:text-dark"
+            }`}
+          >
+            {filterMode === "date" && (
+              <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+            )}
+            Pilih Tanggal
+          </button>
+        </div>
+
+        {/* Input Kontrol Filter: Lebar & Posisi Konsisten */}
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="relative w-full md:w-64">
+            {filterMode === "preset" && (
+              <select
+                id="filter-rentang"
+                value={presetFilter}
+                onChange={(e) => setPresetFilter(e.target.value)}
+                className="w-full px-3 py-2 text-xs font-medium text-dark bg-white border border-slate-200 rounded-xl outline-none hover:border-primary/40 focus:border-primary focus:ring-4 focus:ring-primary/15 transition-all cursor-pointer"
+                aria-label="Pilihan rentang waktu cepat"
+              >
+                <option value="7days">7 Hari Terakhir</option>
+                <option value="30days">30 Hari Terakhir</option>
+                <option value="thisMonth">Bulan Ini</option>
+                <option value="lastMonth">Bulan Lalu</option>
+                <option value="today">Hari Ini</option>
+              </select>
+            )}
+
+            {filterMode === "month" && (
+              <div className="relative flex items-center">
+                <Calendar
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                  size={15}
+                />
+                <input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-xs font-medium text-dark bg-white border border-slate-200 rounded-xl outline-none hover:border-primary/40 focus:border-primary focus:ring-4 focus:ring-primary/15 transition-all cursor-pointer"
+                  aria-label="Pilih bulan dan tahun analitik"
+                />
+              </div>
+            )}
+
+            {filterMode === "date" && (
+              <div className="relative flex items-center">
+                <Calendar
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                  size={15}
+                />
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-xs font-medium text-dark bg-white border border-slate-200 rounded-xl outline-none hover:border-primary/40 focus:border-primary focus:ring-4 focus:ring-primary/15 transition-all cursor-pointer"
+                  aria-label="Pilih tanggal spesifik analitik"
+                />
+              </div>
+            )}
           </div>
-
-          {/* Input Kontrol sesuai Mode */}
-          {filterMode === "preset" && (
-            <select
-              id="filter-rentang"
-              value={presetFilter}
-              onChange={(e) => setPresetFilter(e.target.value)}
-              className="bg-white px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 shadow-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 cursor-pointer"
-              aria-label="Pilihan rentang waktu cepat"
-            >
-              <option value="7days">7 Hari Terakhir</option>
-              <option value="30days">30 Hari Terakhir</option>
-              <option value="thisMonth">Bulan Ini</option>
-              <option value="lastMonth">Bulan Lalu</option>
-              <option value="today">Hari Ini</option>
-            </select>
-          )}
-
-          {filterMode === "month" && (
-            <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs">
-              <Calendar size={14} className="text-slate-400" />
-              <input
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="text-xs font-semibold text-slate-700 outline-none cursor-pointer bg-transparent"
-                aria-label="Pilih bulan dan tahun analitik"
-              />
-            </div>
-          )}
-
-          {filterMode === "date" && (
-            <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs">
-              <Calendar size={14} className="text-slate-400" />
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="text-xs font-semibold text-slate-700 outline-none cursor-pointer bg-transparent"
-                aria-label="Pilih tanggal spesifik analitik"
-              />
-            </div>
-          )}
         </div>
       </div>
 
@@ -335,14 +365,14 @@ export default function Dashboard() {
           </div>
 
           <div className="pt-6">
-            <button
-              type="button"
+            <Button
+              variant="amber"
+              className="w-full"
               onClick={handleDownloadCsv}
-              className="w-full py-2.5 bg-accent text-dark text-xs font-bold rounded-xl hover:bg-yellow-400 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-accent"
             >
               <Download size={14} />
               <span>Unduh CSV ({activeFilterInfo.label})</span>
-            </button>
+            </Button>
           </div>
         </div>
       </div>
