@@ -39,8 +39,37 @@
     opacity: 0.4;
   }
 }
-.animate-pulse-slow {
-  animation: pulse-slow 8s ease-in-out infinite;
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-pulse-slow {
+    animation: pulse-slow 8s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-slow {
+    animation: none;
+  }
+}
+
+@layer base {
+  button:not(:disabled),
+  a[href],
+  input[type="button"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="reset"]:not(:disabled),
+  summary,
+  select:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
 }
 
 body {

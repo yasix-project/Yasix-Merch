@@ -10,7 +10,7 @@ export default function Button({
   ...props
 }) {
   const baseStyle =
-    "flex items-center justify-center gap-2 font-semibold rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed";
+    "inline-flex items-center justify-center gap-2 font-semibold rounded-lg transition-all cursor-pointer select-none active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100";
 
   const variants = {
     primary: "bg-primary text-white hover:bg-primary-hover shadow-xs",
@@ -24,9 +24,9 @@ export default function Button({
   };
 
   const sizes = {
-    xs: "px-2.5 py-1.5 text-xs",
-    sm: "px-3.5 py-2 text-xs",
-    md: "px-4 py-2 text-sm",
+    xs: "px-3 py-2 text-xs min-h-[36px]",
+    sm: "px-3.5 py-2.5 text-xs min-h-[40px]",
+    md: "px-4 py-2.5 text-sm min-h-[44px]",
   };
 
   return (
@@ -36,7 +36,7 @@ export default function Button({
       {...props}
     >
       {isLoading && (
-        <svg className="animate-spin h-4 w-4 text-current" viewBox="0 0 24 24">
+        <svg className="animate-spin h-4 w-4 text-current" viewBox="0 0 24 24" aria-hidden="true">
           <circle
             className="opacity-25"
             cx="12"

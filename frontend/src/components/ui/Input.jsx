@@ -20,7 +20,7 @@ const Input = forwardRef(
         <div className="relative">
           {/* Ikon Kiri */}
           {Icon && (
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" aria-hidden="true">
               <Icon size={18} strokeWidth={2} />
             </div>
           )}
@@ -29,6 +29,7 @@ const Input = forwardRef(
             id={id}
             ref={ref}
             type={inputType}
+            aria-invalid={error ? "true" : undefined}
             className={`w-full py-3 rounded-xl border bg-gray-50/50 outline-none transition-all duration-300
             ${Icon ? "pl-11" : "px-4"}
             ${
@@ -46,16 +47,16 @@ const Input = forwardRef(
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
-              tabIndex="-1"
+              aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
             >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              {showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
             </button>
           )}
 
           {/* Error Icon */}
           {error && !isPassword && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 pointer-events-none" aria-hidden="true">
               <AlertCircle size={18} />
             </div>
           )}

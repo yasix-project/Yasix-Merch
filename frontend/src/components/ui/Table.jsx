@@ -62,6 +62,7 @@ export default function Table({
                     type="checkbox"
                     checked={isAllSelected}
                     onChange={onSelectAll}
+                    aria-label="Pilih semua baris"
                     className="rounded border-white/40 bg-transparent accent-accent cursor-pointer"
                   />
                 </th>
@@ -98,6 +99,7 @@ export default function Table({
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => onSelectRow(row[keyField])}
+                        aria-label={`Pilih baris ${row[keyField]}`}
                         className="rounded border-slate-300 accent-primary cursor-pointer"
                       />
                     </td>

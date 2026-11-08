@@ -5,7 +5,7 @@ import {
   Printer,
   ClipboardList,
   User,
-  Sparkles,
+  Coins,
   LogOut,
   PackageCheck,
   ChevronRight,
@@ -90,13 +90,14 @@ export default function SiswaLayout() {
                   }}
                   className="mt-2 text-xs font-bold bg-white text-emerald-900 border-none hover:bg-emerald-50 shadow-xs"
                 >
-                  Buka Kode Pengambilan &rarr;
+                  Buka Kode Pengambilan
                 </Button>
               </div>
               <button
                 type="button"
                 onClick={() => toast.dismiss(t.id)}
-                className="text-white/60 hover:text-white p-1 text-sm font-bold"
+                aria-label="Tutup notifikasi"
+                className="text-white/60 hover:text-white p-1 text-sm font-bold cursor-pointer"
               >
                 &times;
               </button>
@@ -146,22 +147,26 @@ export default function SiswaLayout() {
           <div className="flex items-center gap-2">
             {/* Badge Saldo Poin dengan tombol Refresh */}
             <button
+              type="button"
               onClick={() => refetch()}
-              className="flex items-center gap-1 px-2.5 py-1 bg-accent/15 border border-accent/30 rounded-full text-amber-900 text-xs font-black shadow-2xs hover:bg-accent/25 transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1 bg-accent/15 border border-accent/30 rounded-full text-amber-900 text-xs font-black shadow-2xs hover:bg-accent/25 transition-colors cursor-pointer"
               title="Klik untuk menyegarkan saldo poin"
+              aria-label="Segarkan saldo poin"
             >
-              <Sparkles
+              <Coins
                 size={13}
-                className={`text-accent ${isFetching ? "animate-spin" : ""}`}
+                className={`text-amber-600 ${isFetching ? "animate-spin" : ""}`}
               />
               <span>{user?.points ?? 0} Poin</span>
             </button>
 
             {/* Tombol Keluar */}
             <button
+              type="button"
               onClick={handleLogout}
-              className="p-2 rounded-xl text-slate-400 hover:text-danger hover:bg-danger/10 transition-colors"
+              className="p-2 rounded-xl text-slate-400 hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer"
               title="Keluar"
+              aria-label="Keluar dari akun siswa"
             >
               <LogOut size={16} />
             </button>
