@@ -50,35 +50,35 @@ async function main() {
       name: "Budi Pratama - XII RPL 1",
       email: "siswa@smkyadika6.sch.id",
       qrCodeMember: "MEMBER-20261001",
-      points: 145,
+      points: 215,
     },
     {
       nis: "20261002",
       name: "Aditya Wardhana - XII TKJ 2",
       email: "aditya@smkyadika6.sch.id",
       qrCodeMember: "MEMBER-20261002",
-      points: 90,
+      points: 140,
     },
     {
       nis: "20261003",
       name: "Siti Nurhaliza - XI DKV 1",
       email: "siti.dkv@smkyadika6.sch.id",
       qrCodeMember: "MEMBER-20261003",
-      points: 230,
+      points: 310,
     },
     {
       nis: "20261004",
       name: "Farhan Kurniawan - XI AKL",
       email: "farhan.akl@smkyadika6.sch.id",
       qrCodeMember: "MEMBER-20261004",
-      points: 55,
+      points: 85,
     },
     {
       nis: "20261005",
       name: "Zahra Aulia - X MPLB",
       email: "zahra.mplb@smkyadika6.sch.id",
       qrCodeMember: "MEMBER-20261005",
-      points: 20,
+      points: 45,
     },
   ];
 
@@ -243,7 +243,7 @@ async function main() {
       hpp: 15000,
       margin: 33.33,
       sellingPrice: 20000,
-      stock: 45,
+      stock: 4, // Set low stock (< minStock) untuk demo alert stok
       minStock: 5,
     },
     {
@@ -380,7 +380,7 @@ async function main() {
       discountPct: 5.0,
       maxDiscount: 5000,
       minPurchase: 20000,
-      validUntil: new Date("2027-12-31"),
+      validUntil: new Date("2027-12-31T23:59:59Z"),
       isActive: true,
     },
     {
@@ -388,7 +388,7 @@ async function main() {
       discountPct: 10.0,
       maxDiscount: 10000,
       minPurchase: 30000,
-      validUntil: new Date("2027-12-31"),
+      validUntil: new Date("2027-12-31T23:59:59Z"),
       isActive: true,
     },
     {
@@ -396,22 +396,24 @@ async function main() {
       discountPct: 15.0,
       maxDiscount: 15000,
       minPurchase: 40000,
-      validUntil: new Date("2027-12-31"),
+      validUntil: new Date("2027-12-31T23:59:59Z"),
       isActive: true,
     },
   ];
 
+  const createdVouchers = {};
   for (const v of vouchersDef) {
-    await prisma.voucher.upsert({
+    const voucher = await prisma.voucher.upsert({
       where: { code: v.code },
       update: v,
       create: v,
     });
+    createdVouchers[v.code] = voucher;
   }
   console.log("✓ Voucher diskon siap.");
 
   // ==========================================
-  // 5. SEED ORDER PRINT (DOKUMEN SISWA)
+  // 5. SEED ORDER PRINT (DOKUMEN SISWA) HINGGA HARI INI 10 NOVEMBER 2026
   // ==========================================
   const printOrdersDef = [
     {
@@ -426,9 +428,10 @@ async function main() {
       totalPrice: 18000,
       status: "COMPLETED",
       notes: "Selesai dicetak dan telah diambil.",
+      createdAt: new Date("2026-11-01T08:00:00+07:00"),
     },
     {
-      orderNumber: "PRN-20261102-02",
+      orderNumber: "PRN-20261105-02",
       studentId: createdStudents["20261003"].id,
       fileUrl: "/uploads/prints/Proposal_KIK_DKV_Siti.pdf",
       fileName: "Proposal_KIK_DKV_Siti.pdf",
@@ -437,34 +440,66 @@ async function main() {
       paperSize: "A4",
       finishing: "Jilid Lakban",
       totalPrice: 24000,
-      status: "READY",
-      notes: "Sudah siap diambil di Business Center Yasix.",
+      status: "COMPLETED",
+      notes: "Sudah diambil pada 5 November.",
+      createdAt: new Date("2026-11-05T09:30:00+07:00"),
     },
     {
-      orderNumber: "PRN-20261103-03",
+      orderNumber: "PRN-20261109-03",
       studentId: createdStudents["20261002"].id,
-      fileUrl: "/uploads/prints/Tugas_Makalah_Aditya.docx",
-      fileName: "Tugas_Makalah_Aditya.docx",
+      fileUrl: "/uploads/prints/Tugas_Makalah_Jaringan_Aditya.docx",
+      fileName: "Tugas_Makalah_Jaringan_Aditya.docx",
       pageCount: 12,
       colorType: "BW",
       paperSize: "A4",
       finishing: "Staples Sudut",
       totalPrice: 6000,
-      status: "PROCESSING",
-      notes: "Sedang dalam antrean cetak mesin 1.",
+      status: "COMPLETED",
+      notes: "Selesai dicetak kemarin sore.",
+      createdAt: new Date("2026-11-09T14:15:00+07:00"),
+    },
+    // Antrean Cetak HARI INI (10 November 2026 - Deadline Day)
+    {
+      orderNumber: "PRN-20261110-01",
+      studentId: createdStudents["20261001"].id,
+      fileUrl: "/uploads/prints/Laporan_Akhir_Proyek_RPL_Budi.pdf",
+      fileName: "Laporan_Akhir_Proyek_RPL_Budi.pdf",
+      pageCount: 45,
+      colorType: "BW",
+      paperSize: "A4",
+      finishing: "Jilid Mika Biru",
+      totalPrice: 22500,
+      status: "READY",
+      notes: "Dokumen telah selesai dicetak mesin 1, menunggu diambil Budi.",
+      createdAt: new Date("2026-11-10T08:30:00+07:00"),
     },
     {
-      orderNumber: "PRN-20261104-04",
-      studentId: createdStudents["20261005"].id,
-      fileUrl: "/uploads/prints/Portofolio_Zahra.pdf",
-      fileName: "Portofolio_Zahra.pdf",
-      pageCount: 10,
+      orderNumber: "PRN-20261110-02",
+      studentId: createdStudents["20261003"].id,
+      fileUrl: "/uploads/prints/Portofolio_Karya_DKV_Siti.pdf",
+      fileName: "Portofolio_Karya_DKV_Siti.pdf",
+      pageCount: 20,
       colorType: "COLOR",
       paperSize: "A4",
-      finishing: "Tanpa Jilid",
-      totalPrice: 15000,
+      finishing: "Jilid Spiral Kawat",
+      totalPrice: 35000,
+      status: "PROCESSING",
+      notes: "Sedang dalam proses pencetakan printer warna.",
+      createdAt: new Date("2026-11-10T09:15:00+07:00"),
+    },
+    {
+      orderNumber: "PRN-20261110-03",
+      studentId: createdStudents["20261005"].id,
+      fileUrl: "/uploads/prints/Tugas_Administrasi_Zahra.pdf",
+      fileName: "Tugas_Administrasi_Zahra.pdf",
+      pageCount: 8,
+      colorType: "BW",
+      paperSize: "A4",
+      finishing: "Staples Sudut",
+      totalPrice: 4000,
       status: "PENDING",
-      notes: "Menunggu giliran cetak mandiri.",
+      notes: "Baru masuk antrean cetak mandiri.",
+      createdAt: new Date("2026-11-10T10:00:00+07:00"),
     },
   ];
 
@@ -475,53 +510,76 @@ async function main() {
       create: po,
     });
   }
-  console.log("✓ Order cetak mandiri siswa siap.");
+  console.log("✓ Order cetak mandiri siswa (historis & antrean aktif hari ini 10 Nov) siap.");
 
   // ==========================================
-  // 6. SEED SHIFT KASIR (HISTORIS & AKTIF HARI INI)
+  // 6. SEED SHIFT KASIR (HISTORIS & AKTIF HARI INI 10 NOVEMBER 2026)
   // ==========================================
-  // Cek apakah sudah ada shift kasir
-  const existingShift = await prisma.cashierShift.findFirst({
-    where: { cashierId: kasir1.id, endTime: null },
+  // Tutup shift kasir gantung sebelumnya (jika ada) agar tidak konflik
+  await prisma.cashierShift.updateMany({
+    where: { endTime: null },
+    data: {
+      endTime: new Date("2026-11-09T16:00:00+07:00"),
+      endCash: 520000,
+      actualCash: 520000,
+      difference: 0,
+    },
   });
 
-  if (!existingShift) {
-    // Shift kemarin (sudah ditutup)
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(7, 30, 0, 0);
+  // Shift historis 9 November 2026 (Kemarin)
+  const shiftKemarin = await prisma.cashierShift.findFirst({
+    where: {
+      cashierId: kasir1.id,
+      startTime: {
+        gte: new Date("2026-11-09T00:00:00+07:00"),
+        lt: new Date("2026-11-10T00:00:00+07:00"),
+      },
+    },
+  });
 
-    const yesterdayEnd = new Date(yesterday);
-    yesterdayEnd.setHours(15, 0, 0, 0);
-
+  if (!shiftKemarin) {
     await prisma.cashierShift.create({
       data: {
         cashierId: kasir1.id,
         startCash: 100000,
-        endCash: 485000,
-        actualCash: 485000,
+        endCash: 520000,
+        actualCash: 520000,
         difference: 0,
-        startTime: yesterday,
-        endTime: yesterdayEnd,
+        startTime: new Date("2026-11-09T07:30:00+07:00"),
+        endTime: new Date("2026-11-09T15:30:00+07:00"),
       },
     });
+  }
 
-    // Shift aktif hari ini agar kasir langsung bisa transaksi tanpa modal blokir
-    const today = new Date();
-    today.setHours(7, 0, 0, 0);
+  // Shift AKTIF HARI INI (10 November 2026 - Deadline Day)
+  const shiftHariIni = await prisma.cashierShift.findFirst({
+    where: {
+      cashierId: kasir1.id,
+      startTime: { gte: new Date("2026-11-10T00:00:00+07:00") },
+    },
+  });
+
+  if (!shiftHariIni) {
     await prisma.cashierShift.create({
       data: {
         cashierId: kasir1.id,
         startCash: 150000,
-        startTime: today,
-        endTime: null, // Masih Aktif/Terbuka
+        startTime: new Date("2026-11-10T07:00:00+07:00"),
+        endTime: null, // Masih AKTIF / OPEN agar kasir bisa langsung bertransaksi
       },
     });
-    console.log("✓ Shift kasir aktif hari ini & historis kemarin siap.");
+    console.log("✓ Shift kasir aktif hari ini (10 November 2026) dibuka (modal Rp 150.000).");
+  } else {
+    // Pastikan tetap aktif (endTime null)
+    await prisma.cashierShift.update({
+      where: { id: shiftHariIni.id },
+      data: { endTime: null },
+    });
+    console.log("✓ Shift kasir aktif hari ini (10 November 2026) dipastikan OPEN.");
   }
 
   // ==========================================
-  // 7. SEED TRANSAKSI REALISTIS MULTI-BULAN (UNTUK GRAFIK ANALITIK & FILTER TANGGAL/BULAN)
+  // 7. SEED TRANSAKSI REALISTIS MULTI-BULAN (AGUSTUS - 10 NOVEMBER 2026)
   // ==========================================
   const rawTxDefs = [
     // --- AGUSTUS 2026 (Awal Semester Ganjil & MPLS) ---
@@ -580,14 +638,14 @@ async function main() {
     { date: "2026-10-31T11:00:00", cashier: kasir2, student: "20261001", items: [ { bc: "899770010002", q: 1 }, { bc: "899600160018", q: 2 } ], pay: "QRIS" },
     { date: "2026-10-31T15:20:00", cashier: kasir2, student: "20261004", items: [ { bc: "899123456702", q: 5 }, { bc: "899886610001", q: 3 } ], pay: "CASH" },
 
-    // --- NOVEMBER 2026 (Bulan Berjalan, 1 s/d 8 November 2026) ---
+    // --- NOVEMBER 2026 (1 s/d 8 November 2026) ---
     { date: "2026-11-01T08:30:00", cashier: kasir1, student: "20261001", items: [ { bc: "899550010001", q: 1 } ], pay: "CASH" },
     { date: "2026-11-01T11:00:00", cashier: kasir1, student: "20261005", items: [ { bc: "899123456702", q: 2 }, { bc: "899886610001", q: 1 } ], pay: "QRIS" },
     { date: "2026-11-01T14:20:00", cashier: kasir2, student: null, items: [ { bc: "899600160018", q: 3 } ], pay: "CASH" },
     { date: "2026-11-02T08:15:00", cashier: kasir1, student: "20261002", items: [ { bc: "899770010002", q: 1 }, { bc: "899886670007", q: 1 }, { bc: "899886620002", q: 1 } ], pay: "QRIS" },
     { date: "2026-11-02T10:45:00", cashier: kasir2, student: "20261003", items: [ { bc: "899123456701", q: 2 }, { bc: "899886630003", q: 1 } ], pay: "CASH" },
     { date: "2026-11-02T13:30:00", cashier: kasir2, student: null, items: [ { bc: "899550010003", q: 2 } ], pay: "QRIS" },
-    { date: "2026-11-03T07:45:00", cashier: kasir1, student: "20261003", items: [ { bc: "899770010001", q: 1 }, { bc: "899770010003", q: 1 }, { bc: "899550010003", q: 1 } ], pay: "CASH", discPct: 5 },
+    { date: "2026-11-03T07:45:00", cashier: kasir1, student: "20261003", items: [ { bc: "899770010001", q: 1 }, { bc: "899770010003", q: 1 }, { bc: "899550010003", q: 1 } ], pay: "CASH", discPct: 5, vCode: "YASIXHEMAT5" },
     { date: "2026-11-03T11:20:00", cashier: kasir1, student: "20261004", items: [ { bc: "899123456702", q: 3 }, { bc: "899886610001", q: 2 } ], pay: "CASH" },
     { date: "2026-11-03T15:10:00", cashier: kasir2, student: "20261005", items: [ { bc: "899886640004", q: 1 }, { bc: "899600160018", q: 1 } ], pay: "QRIS" },
     { date: "2026-11-04T08:50:00", cashier: kasir2, student: "20261004", items: [ { bc: "899123456702", q: 2 }, { bc: "899123456701", q: 1 }, { bc: "899886630003", q: 1 } ], pay: "CASH" },
@@ -602,12 +660,38 @@ async function main() {
     { date: "2026-11-07T08:40:00", cashier: kasir2, student: "20261002", items: [ { bc: "899550010001", q: 1 }, { bc: "899550010002", q: 1 } ], pay: "QRIS" },
     { date: "2026-11-07T11:15:00", cashier: kasir1, student: null, items: [ { bc: "899770010001", q: 1 }, { bc: "899770010002", q: 1 } ], pay: "CASH" },
     { date: "2026-11-07T14:30:00", cashier: kasir1, student: "20261005", items: [ { bc: "899123456702", q: 3 }, { bc: "899886620002", q: 1 } ], pay: "CASH" },
-    // HARI INI (8 November 2026)
     { date: "2026-11-08T07:40:00", cashier: kasir1, student: "20261001", items: [ { bc: "899770010004", q: 1 }, { bc: "899770010001", q: 1 } ], pay: "CASH" },
     { date: "2026-11-08T09:20:00", cashier: kasir1, student: "20261002", items: [ { bc: "899123456702", q: 4 }, { bc: "899886610001", q: 2 }, { bc: "899886640004", q: 1 } ], pay: "QRIS" },
     { date: "2026-11-08T11:00:00", cashier: kasir1, student: "20261003", items: [ { bc: "899550010001", q: 1 }, { bc: "899550010003", q: 2 } ], pay: "QRIS" },
     { date: "2026-11-08T13:15:00", cashier: kasir2, student: "20261004", items: [ { bc: "899600160018", q: 2 }, { bc: "899886670007", q: 2 } ], pay: "CASH" },
     { date: "2026-11-08T15:30:00", cashier: kasir2, student: null, items: [ { bc: "899770010003", q: 1 }, { bc: "899886660006", q: 2 } ], pay: "CASH" },
+
+    // --- 9 NOVEMBER 2026 (Kemarin) ---
+    { date: "2026-11-09T08:15:00", cashier: kasir1, student: "20261001", items: [ { bc: "899123456701", q: 2 }, { bc: "899886620002", q: 1 }, { bc: "899886630003", q: 1 } ], pay: "CASH" },
+    { date: "2026-11-09T10:20:00", cashier: kasir1, student: "20261003", items: [ { bc: "899550010001", q: 1 }, { bc: "899600160018", q: 1 } ], pay: "QRIS" },
+    { date: "2026-11-09T12:30:00", cashier: kasir2, student: "20261002", items: [ { bc: "899123456702", q: 3 }, { bc: "899886610001", q: 2 } ], pay: "CASH" },
+    { date: "2026-11-09T14:10:00", cashier: kasir2, student: "20261004", items: [ { bc: "899770010003", q: 1 }, { bc: "899770010002", q: 1 } ], pay: "QRIS", discPct: 10, vCode: "GTNIC2026" },
+    { date: "2026-11-09T15:05:00", cashier: kasir2, student: null, items: [ { bc: "899886670007", q: 3 }, { bc: "899550010003", q: 1 } ], pay: "CASH" },
+
+    // --- 10 NOVEMBER 2026 (HARI INI - DEADLINE DAY GTNIC 2026) ---
+    // Pagi sebelum jam pelajaran (07:00 - 07:30)
+    { date: "2026-11-10T07:25:00", cashier: kasir1, student: "20261005", items: [ { bc: "899123456701", q: 2 }, { bc: "899886620002", q: 1 } ], pay: "CASH" },
+    { date: "2026-11-10T08:10:00", cashier: kasir1, student: "20261001", items: [ { bc: "899770010001", q: 1 }, { bc: "899770010004", q: 1 } ], pay: "QRIS" },
+    // Jam Istirahat 1 (09:30 - 10:15) - Penjualan Padat ATK & Produk KIK
+    { date: "2026-11-10T09:35:00", cashier: kasir1, student: "20261002", items: [ { bc: "899123456702", q: 3 }, { bc: "899886640004", q: 1 } ], pay: "CASH" },
+    { date: "2026-11-10T09:50:00", cashier: kasir1, student: "20261003", items: [ { bc: "899550010001", q: 1 }, { bc: "899550010002", q: 1 }, { bc: "899886670007", q: 2 } ], pay: "QRIS", discPct: 10, vCode: "GTNIC2026" },
+    { date: "2026-11-10T10:10:00", cashier: kasir1, student: null, items: [ { bc: "899886660006", q: 4 }, { bc: "899886610001", q: 2 } ], pay: "CASH" },
+    // Siang Jam Istirahat Dzuhur & Makan (12:00 - 13:00)
+    { date: "2026-11-10T12:05:00", cashier: kasir1, student: "20261004", items: [ { bc: "899550010003", q: 3 }, { bc: "899550010002", q: 2 } ], pay: "QRIS" },
+    { date: "2026-11-10T12:25:00", cashier: kasir1, student: "20261001", items: [ { bc: "899600160018", q: 3 }, { bc: "899886670007", q: 2 }, { bc: "899886610001", q: 2 } ], pay: "CASH" },
+    // Sore Hari Penyerahan Barang Pre-order & Penjualan Terakhir (13:45 - 16:00)
+    { date: "2026-11-10T13:50:00", cashier: kasir2, student: "20261005", items: [ { bc: "899770010003", q: 1 }, { bc: "899770010002", q: 1 } ], pay: "CASH", discPct: 5, vCode: "YASIXHEMAT5" },
+    { date: "2026-11-10T15:15:00", cashier: kasir2, student: "20261002", items: [ { bc: "899123456702", q: 2 }, { bc: "899123456701", q: 1 }, { bc: "899600160018", q: 1 } ], pay: "QRIS" },
+    { date: "2026-11-10T16:00:00", cashier: kasir2, student: null, items: [ { bc: "899550010001", q: 1 } ], pay: "CASH" },
+
+    // Pre-Order Siswa Hari Ini (Status: BOOKED & READY) untuk demonstrasi konter pengambilan
+    { date: "2026-11-10T14:30:00", cashier: null, student: "20261004", items: [ { bc: "899550010001", q: 1 }, { bc: "899550010003", q: 2 } ], pay: "PAY_ON_PICKUP", status: "READY" },
+    { date: "2026-11-10T15:45:00", cashier: null, student: "20261003", items: [ { bc: "899770010003", q: 1 }, { bc: "899770010001", q: 1 } ], pay: "PAY_ON_PICKUP", status: "BOOKED" },
   ];
 
   let txCounter = 1;
@@ -640,9 +724,11 @@ async function main() {
 
     const discountAmount = def.discPct ? Math.round((subtotal * def.discPct) / 100) : 0;
     const totalAmount = subtotal - discountAmount;
-    const payAmount = def.pay === "QRIS" ? totalAmount : Math.ceil(totalAmount / 10000) * 10000 || totalAmount + 5000;
-    const changeAmount = payAmount - totalAmount;
+    const isPreorder = def.pay === "PAY_ON_PICKUP" || def.status === "BOOKED";
+    const payAmount = isPreorder ? null : (def.pay === "QRIS" ? totalAmount : Math.ceil(totalAmount / 10000) * 10000 || totalAmount + 5000);
+    const changeAmount = isPreorder ? null : (payAmount - totalAmount);
     const studentUser = def.student && createdStudents[def.student] ? createdStudents[def.student] : null;
+    const voucher = def.vCode && createdVouchers[def.vCode] ? createdVouchers[def.vCode] : null;
 
     const existing = await prisma.transaction.findUnique({
       where: { invoiceNumber },
@@ -652,15 +738,16 @@ async function main() {
       await prisma.transaction.create({
         data: {
           invoiceNumber,
-          cashierId: def.cashier.id,
+          cashierId: def.cashier ? def.cashier.id : null,
           studentId: studentUser ? studentUser.id : null,
+          voucherId: voucher ? voucher.id : null,
           subtotal,
           discountAmount,
           totalAmount,
           payAmount,
           changeAmount,
           paymentMethod: def.pay,
-          status: "COMPLETED",
+          status: def.status || "COMPLETED",
           createdAt: txDate,
           items: {
             create: itemsData,
@@ -669,7 +756,7 @@ async function main() {
       });
     }
   }
-  console.log(`✓ ${rawTxDefs.length} Transaksi multi-bulan realistis (Agustus - November 2026) siap untuk analitik dashboard.`);
+  console.log(`✓ ${rawTxDefs.length} Transaksi multi-bulan realistis (Agustus s/d 10 November 2026) siap untuk analitik dashboard.`);
 
   console.log("🎉 Seed data realistis YasixMerch selesai dieksekusi dengan sempurna!");
 }
