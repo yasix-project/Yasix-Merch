@@ -68,9 +68,9 @@ export default function LandingPage() {
           aria-label="Kembali ke atas"
           variant="primary"
           size="sm"
-          className="fixed bottom-6 right-6 z-40 p-3 rounded-2xl shadow-xl shadow-primary/30 min-h-0 animate-in fade-in"
+          className="fixed bottom-6 right-6 z-40 p-2.5 rounded-xl shadow-md min-h-0"
         >
-          <ArrowUp size={20} />
+          <ArrowUp size={18} />
         </Button>
       )}
     </div>

@@ -4,196 +4,202 @@ import {
   BookOpen,
   ShoppingBag,
   Camera,
-  ShieldAlert,
+  ShieldCheck,
   Coins,
   Receipt,
+  FileCheck,
   CheckCircle,
-  Sparkles,
 } from "lucide-react";
 import Badge from "../ui/Badge";
 import FeatureCard from "../ui/FeatureCard";
 
 export default function LandingFeatures() {
-  const services = [
-    {
-      icon: Printer,
-      title: "Jasa Print Mandiri (Self-Service)",
-      description:
-        "Unggah dokumen tugas PDF langsung dari ponsel atau laptop Anda. Jumlah halaman, warna, dan estimasi biaya langsung terdeteksi otomatis oleh sistem tanpa perlu repot colok flashdisk.",
-      tag: "Paling Populer",
-      tagVariant: "sky",
-    },
+  const storeCategories = [
     {
       icon: Shirt,
-      title: "Seragam & Atribut Resmi Sekolah",
-      description:
-        "Penyediaan seragam kejuruan resmi SMK Yadika 6, jas praktikum, dasi, sabuk, topi upacara, kaos olahraga, hingga bordir badge jurusan siap pakai.",
-      tag: "Resmi Yadika 6",
+      title: "Seragam & Atribut Sekolah",
+      desc: "Seragam kejuruan resmi Yadika 6, jas praktikum, dasi, sabuk, topi upacara, kaos olahraga, dan bordir badge siap pakai.",
+      tag: "Resmi Sekolah",
       tagVariant: "emerald",
     },
     {
       icon: BookOpen,
-      title: "Alat Tulis Kantor & Kebutuhan Siswa",
-      description:
-        "Pusat belanja ATK harian: kertas folio bergaris, map arsip tugas, buku catatan, pena, pensil ujian, dan kebutuhan belajar harian dengan harga bersahabat untuk pelajar.",
-      tag: "Lengkap & Murah",
+      title: "Alat Tulis & Kebutuhan Belajar",
+      desc: "Kertas folio bergaris, map arsip tugas, buku catatan, pena ujian, dan perlengkapan harian dengan harga pelajar.",
+      tag: "Stok Lengkap",
       tagVariant: "amber",
     },
     {
       icon: ShoppingBag,
-      title: "Merchandise & Produk Kreatif (KIK)",
-      description:
-        "Wadah pemasaran hasil karya kreatif unit produksi siswa kejuruan: gantungan kunci, merchandise sekolah, tote bag, stiker, dan produk inovatif lainnya.",
-      tag: "Karya Kejuruan",
+      title: "Merchandise & Produk KIK",
+      desc: "Hasil karya unit produksi kreatif siswa kejuruan: gantungan kunci akrilik, tote bag kanvas, stiker, dan souvenir eksklusif.",
+      tag: "Karya Siswa",
       tagVariant: "purple",
     },
   ];
 
-  const techFeatures = [
+  const systemCapabilities = [
     {
       icon: Camera,
-      title: "Webcam Barcode & QR Scanner",
-      description:
-        "Memindai barcode produk 1D (EAN-13) dan QR Code kartu pelajar menggunakan kamera web laptop tanpa perlu beli alat scanner fisik tambahan.",
+      title: "Webcam Barcode & QR",
+      description: "Memindai barcode produk 1D dan QR Code kartu pelajar langsung lewat webcam laptop tanpa alat scanner tambahan.",
     },
     {
       icon: Coins,
-      title: "Loyalty Point & Diskon Siswa",
-      description:
-        "Siswa mengumpulkan poin setiap transaksi kelipatan Rp 10.000 yang dapat ditukar dengan kupon potongan harga belanja.",
+      title: "Loyalty Poin Siswa",
+      description: "Akumulasi +1 poin per kelipatan Rp 10.000 belanja yang dapat ditukarkan voucher diskon langsung.",
     },
     {
-      icon: ShieldAlert,
-      title: "Audit Shift Kasir Ketat",
-      description:
-        "Mewajibkan input kas awal (Start Cash) dan verifikasi kas fisik (Actual Cash) saat pergantian giliran kasir untuk mencegah selisih.",
+      icon: ShieldCheck,
+      title: "Audit Shift Kasir Terkunci",
+      description: "Pencatatan kas awal wajib dan rekonsiliasi kas fisik di akhir shift untuk transparansi unit produksi.",
     },
     {
       icon: Receipt,
-      title: "Cetak Struk Thermal Otomatis",
-      description:
-        "Mendukung cetak struk kasir thermal 58mm / 80mm secara langsung melalui web browser saat transaksi selesai.",
+      title: "Cetak Struk Thermal",
+      description: "Pencetakan struk transaksi 58mm/80mm instan langsung dari browser saat pembayaran selesai.",
     },
   ];
 
   return (
-    <section id="layanan" className="py-20 md:py-28 bg-slate-900 text-white relative">
+    <section id="layanan" className="py-16 md:py-24 bg-slate-900 text-white border-b border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div>
-            <Badge variant="sky" icon={Sparkles}>
-              Layanan Unggulan Unit Produksi
-            </Badge>
-          </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">
-            Solusi Terintegrasi untuk Seluruh Kebutuhan Sekolah
+        {/* Section Header: Content-first without decorative pill badges */}
+        <div className="max-w-3xl mb-12">
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            Layanan Unit Produksi & Retail Siswa
           </h2>
-          <p className="text-slate-400 text-sm md:text-base">
-            Business Center SMK Yadika 6 menyediakan ekosistem terpadu untuk kemudahan
-            siswa dan guru dalam bertransaksi cepat tanpa antrean konvensional.
+          <p className="text-slate-300 text-sm mt-2 leading-relaxed">
+            Menggabungkan kemudahan pemesanan cetak tugas secara digital dengan ketersediaan
+            barang kebutuhan sekolah harian di satu tempat.
           </p>
         </div>
 
-        {/* 4 Pilar Layanan Grid */}
-        <div className="mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {services.map((item, idx) => {
-            const Icon = item.icon;
-            return (
-              <div
-                key={idx}
-                className="group relative bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-primary/50 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="p-3 rounded-2xl bg-primary/10 group-hover:bg-primary/20 text-sky transition-colors">
-                      <Icon size={24} />
-                    </div>
-                    <Badge variant={item.tagVariant} className="text-[10px] font-bold">
-                      {item.tag}
-                    </Badge>
-                  </div>
-                  <h3 className="text-base font-bold text-white mb-2.5 group-hover:text-cyan-300 transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    {item.description}
-                  </p>
+        {/* Flagship Feature (Wide Card) + Retail Grid (3 Cards) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          {/* Flagship: Jasa Print Mandiri (7 cols) */}
+          <div className="lg:col-span-6 bg-slate-950 border border-slate-800 rounded-2xl p-6 sm:p-7 flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
+                  <Printer size={22} />
                 </div>
+                <Badge variant="sky">Layanan Utama</Badge>
+              </div>
 
-                <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center gap-2 text-xs text-slate-300 font-semibold group-hover:text-sky transition-colors">
-                  <CheckCircle size={15} className="text-emerald-400" />
-                  <span>Tersedia di Loket Yasix</span>
+              <div>
+                <h3 className="text-lg font-bold text-white">
+                  Jasa Cetak / Print Dokumen Mandiri
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+                  Siswa cukup mengunggah file tugas berformat PDF melalui portal. Sistem server-side
+                  langsung menghitung jumlah lembar, membedakan halaman warna atau hitam-putih,
+                  serta mengkalkulasi biaya total beserta opsi penjilidan.
+                </p>
+              </div>
+
+              <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
+                <div className="flex items-center gap-2 bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                  <FileCheck size={16} className="text-sky shrink-0" />
+                  <span>Bebas antre flashdisk & WhatsApp</span>
+                </div>
+                <div className="flex items-center gap-2 bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                  <CheckCircle size={16} className="text-emerald-400 shrink-0" />
+                  <span>Nomor tiket antrean otomatis</span>
                 </div>
               </div>
-            );
-          })}
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-slate-800 text-xs text-slate-400">
+              Pengambilan hasil cetak langsung di konter loket kasir saat jam istirahat atau jam pulang sekolah.
+            </div>
+          </div>
+
+          {/* Supporting Categories (6 cols) */}
+          <div className="lg:col-span-6 flex flex-col justify-between gap-4">
+            {storeCategories.map((item, idx) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={idx}
+                  className="bg-slate-950 border border-slate-800 rounded-xl p-4 sm:p-5 flex items-start gap-4"
+                >
+                  <div className="p-2.5 rounded-lg bg-slate-900 text-slate-200 border border-slate-800 shrink-0">
+                    <Icon size={20} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <h4 className="text-sm font-bold text-white truncate">
+                        {item.title}
+                      </h4>
+                      <Badge variant={item.tagVariant} className="text-[10px] shrink-0">
+                        {item.tag}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      {item.desc}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        {/* How It Works (Alur Layanan Cetak & Belanja) */}
-        <div className="mt-20 p-8 sm:p-10 rounded-3xl bg-slate-950 border border-slate-800 relative overflow-hidden">
-          <div className="text-center max-w-2xl mx-auto space-y-2 mb-10">
-            <h3 className="text-xl sm:text-2xl font-bold text-white">
-              Alur Cepat Cetak Dokumen & Pre-Order
+        {/* Real Process Timeline: Bukan 4 lingkaran clone yang sama */}
+        <div className="mt-14 bg-slate-950 border border-slate-800 rounded-2xl p-6 sm:p-8">
+          <div className="max-w-2xl mb-8">
+            <h3 className="text-lg font-bold text-white">
+              Alur Penggunaan Layanan
             </h3>
-            <p className="text-xs sm:text-sm text-slate-400">
-              Hanya butuh 4 langkah mudah dari perangkat Anda hingga pesanan siap diambil.
+            <p className="text-xs text-slate-400 mt-1">
+              Panduan praktis memesan barang dan mencetak dokumen tugas di Business Center.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
-            <div className="bg-slate-900/70 border border-slate-800 p-5 rounded-2xl space-y-3 relative">
-              <span className="w-8 h-8 rounded-full bg-primary text-white font-bold text-sm flex items-center justify-center">
-                1
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2 border-l-2 border-primary pl-4">
+              <span className="text-[11px] font-mono text-primary font-bold uppercase tracking-wider block">
+                Langkah 1
               </span>
-              <h4 className="font-bold text-sm text-white">Unggah PDF / Pilih Barang</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Pilih file tugas Anda di portal siswa atau masukkan produk seragam/ATK ke keranjang.
+              <h4 className="text-sm font-bold text-white">Ajukan Pesanan di Portal</h4>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Masuk ke akun siswa, unggah dokumen PDF atau pilih barang kebutuhan sekolah dari katalog pre-order.
               </p>
             </div>
 
-            <div className="bg-slate-900/70 border border-slate-800 p-5 rounded-2xl space-y-3 relative">
-              <span className="w-8 h-8 rounded-full bg-primary text-white font-bold text-sm flex items-center justify-center">
-                2
+            <div className="space-y-2 border-l-2 border-slate-700 pl-4">
+              <span className="text-[11px] font-mono text-slate-400 font-bold uppercase tracking-wider block">
+                Langkah 2
               </span>
-              <h4 className="font-bold text-sm text-white">Deteksi Biaya Otomatis</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Sistem menghitung jumlah lembar, pilihan warna, dan jilid. Nomor tiket antrean otomatis diterbitkan.
+              <h4 className="text-sm font-bold text-white">Proses Kasir & Cetak</h4>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Sistem menerbitkan nomor tiket. Kasir mencetak dokumen dan menyiapkan barang sebelum Anda tiba di loket.
               </p>
             </div>
 
-            <div className="bg-slate-900/70 border border-slate-800 p-5 rounded-2xl space-y-3 relative">
-              <span className="w-8 h-8 rounded-full bg-primary text-white font-bold text-sm flex items-center justify-center">
-                3
+            <div className="space-y-2 border-l-2 border-accent pl-4">
+              <span className="text-[11px] font-mono text-accent font-bold uppercase tracking-wider block">
+                Langkah 3
               </span>
-              <h4 className="font-bold text-sm text-white">Kasir Memproses Antrean</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Kasir langsung mencetak pesanan dari antrean digital tanpa meminta flashdisk Anda.
-              </p>
-            </div>
-
-            <div className="bg-slate-900/70 border border-slate-800 p-5 rounded-2xl space-y-3 relative">
-              <span className="w-8 h-8 rounded-full bg-accent text-slate-950 font-bold text-sm flex items-center justify-center">
-                4
-              </span>
-              <h4 className="font-bold text-sm text-white">Ambil & Raih Poin</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Ambil hasil cetak di konter kasir, bayar tunai atau QRIS, dan kumpulkan poin loyalitas siswa!
+              <h4 className="text-sm font-bold text-white">Pengambilan & Poin</h4>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Tunjukkan nomor tiket atau kartu pelajar di konter BC, selesaikan pembayaran, dan klaim poin loyalitas Anda.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Keunggulan Ekosistem Teknis */}
-        <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {techFeatures.map((feat, idx) => (
+        {/* Capability Cards */}
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {systemCapabilities.map((feat, idx) => (
             <FeatureCard
               key={idx}
               icon={feat.icon}
               title={feat.title}
               description={feat.description}
               variant="dark"
-              className="bg-slate-950/60 border-slate-800/80"
+              className="bg-slate-950 border-slate-800 rounded-xl"
             />
           ))}
         </div>

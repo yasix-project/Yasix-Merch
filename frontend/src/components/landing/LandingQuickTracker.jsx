@@ -13,7 +13,7 @@ import Button from "../ui/Button";
 import Badge from "../ui/Badge";
 import Input from "../ui/Input";
 import { printService } from "../../api/printService";
-import { formatRupiah, formatDate } from "../../utils/formatters";
+import { formatRupiah } from "../../utils/formatters";
 
 export default function LandingQuickTracker() {
   const [ticketInput, setTicketInput] = useState("");
@@ -46,31 +46,31 @@ export default function LandingQuickTracker() {
     switch (status) {
       case "READY":
         return {
-          label: "SIAP DIAMBIL DI LOKET",
-          variant: "emerald",
+          label: "Siap Diambil di Loket",
+          variant: "success",
           icon: BadgeCheck,
         };
       case "PROCESSING":
         return {
-          label: "SEDANG DICETAK KASIR",
+          label: "Sedang Dicetak Petugas",
           variant: "sky",
           icon: Clock,
         };
       case "PENDING":
         return {
-          label: "DALAM ANTREAN DIGITAL",
-          variant: "amber",
+          label: "Dalam Antrean Kasir",
+          variant: "warning",
           icon: Clock,
         };
       case "COMPLETED":
         return {
-          label: "SELESAI / SUDAH DIAMBIL",
+          label: "Sudah Diambil / Selesai",
           variant: "dark",
           icon: CheckCircle2,
         };
       case "CANCELLED":
         return {
-          label: "DIBATALKAN",
+          label: "Dibatalkan",
           variant: "danger",
           icon: AlertCircle,
         };
@@ -84,28 +84,22 @@ export default function LandingQuickTracker() {
   };
 
   return (
-    <section id="lacak" className="py-20 md:py-28 bg-slate-950 text-white relative border-t border-slate-900">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center space-y-3 mb-10">
-          <div>
-            <Badge variant="sky" icon={Search}>
-              Lacak Status Cepat
-            </Badge>
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Cek Status Tiket Cetak Tanpa Login
+    <section id="lacak" className="py-16 md:py-24 bg-slate-950 text-white border-b border-slate-800">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header without decorative eyebrow */}
+        <div className="text-center mb-8">
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            Cek Status Tiket Cetak
           </h2>
-          <p className="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto">
-            Sudah mengunggah tugas di portal? Masukkan nomor tiket Anda untuk melihat
-            apakah dokumen sudah selesai dicetak oleh petugas kasir.
+          <p className="text-slate-300 text-sm mt-2 max-w-lg mx-auto">
+            Masukkan nomor tiket pesanan cetak Anda untuk mengetahui status proses di loket kasir.
           </p>
         </div>
 
-        {/* Input Box */}
+        {/* Search Form */}
         <form
           onSubmit={handleTrack}
-          className="bg-slate-900 border border-slate-800 rounded-3xl p-3 sm:p-4 shadow-2xl flex flex-col sm:flex-row items-center gap-3"
+          className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3"
         >
           <div className="w-full flex-1">
             <Input
@@ -114,8 +108,8 @@ export default function LandingQuickTracker() {
               type="text"
               value={ticketInput}
               onChange={(e) => setTicketInput(e.target.value)}
-              placeholder="Masukkan Nomor Tiket (Contoh: PRN-2026-0842)"
-              className="font-mono"
+              placeholder="Contoh: PRN-2026-0842"
+              className="font-mono text-sm"
             />
           </div>
 
@@ -126,7 +120,7 @@ export default function LandingQuickTracker() {
             isLoading={isLoading}
             leftIcon={Printer}
             disabled={!ticketInput.trim()}
-            className="w-full sm:w-auto shadow-lg shadow-primary/25 shrink-0 min-h-[46px]"
+            className="w-full sm:w-auto shrink-0 min-h-[44px]"
           >
             <span>Cek Status</span>
           </Button>
@@ -134,36 +128,36 @@ export default function LandingQuickTracker() {
 
         {/* Error Notification */}
         {errorMessage && (
-          <div className="mt-4 p-4 rounded-2xl bg-danger/10 border border-danger/20 text-danger text-xs flex items-center gap-2.5 animate-in fade-in">
-            <AlertCircle size={18} className="shrink-0" />
+          <div className="mt-4 p-3.5 rounded-lg bg-danger/10 border border-danger/20 text-danger text-xs flex items-center gap-2">
+            <AlertCircle size={16} className="shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         {/* Result Card */}
         {trackResult && (
-          <div className="mt-6 bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="mt-6 bg-slate-900 border border-slate-800 rounded-xl p-5 sm:p-6 space-y-5">
             {/* Header Result */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-2xl bg-primary/20 text-sky">
-                  <FileText size={22} />
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                  <FileText size={20} />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-sm sm:text-base text-white">
+                  <h3 className="font-bold text-sm text-white">
                     {trackResult.fileName}
                   </h3>
                   <p className="text-xs font-mono text-slate-400 mt-0.5">
-                    No. Tiket: {trackResult.orderNumber}
+                    Tiket: {trackResult.orderNumber}
                   </p>
                 </div>
               </div>
 
-              {/* Status Pill */}
+              {/* Status Badge */}
               {(() => {
                 const badge = getStatusBadge(trackResult.status);
                 return (
-                  <Badge variant={badge.variant} icon={badge.icon} className="px-3.5 py-1.5 text-xs font-bold">
+                  <Badge variant={badge.variant} icon={badge.icon} className="px-3 py-1 text-xs">
                     {badge.label}
                   </Badge>
                 );
@@ -172,56 +166,41 @@ export default function LandingQuickTracker() {
 
             {/* Spec Details Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800/80">
-                <span className="text-slate-400 block text-[10px] mb-0.5">
-                  Jumlah Lembar:
-                </span>
-                <span className="font-bold text-white text-sm">
-                  {trackResult.pageCount} Halaman
+              <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">Halaman:</span>
+                <span className="font-bold text-white text-sm font-mono">
+                  {trackResult.pageCount} Hal
                 </span>
               </div>
 
-              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800/80">
-                <span className="text-slate-400 block text-[10px] mb-0.5">
-                  Format Warna:
-                </span>
+              <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">Warna:</span>
                 <span className="font-bold text-white text-sm">
-                  {trackResult.colorType === "COLOR" ? "Warna" : "Hitam-Putih"}
+                  {trackResult.colorType === "COLOR" ? "Berwarna" : "Hitam-Putih"}
                 </span>
               </div>
 
-              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800/80">
-                <span className="text-slate-400 block text-[10px] mb-0.5">
-                  Kertas & Jilid:
-                </span>
+              <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">Kertas:</span>
                 <span className="font-bold text-white text-sm truncate block">
-                  {trackResult.paperSize} • {trackResult.finishing || "Tanpa Jilid"}
+                  {trackResult.paperSize} ({trackResult.finishing || "Tanpa Jilid"})
                 </span>
               </div>
 
-              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800/80">
-                <span className="text-slate-400 block text-[10px] mb-0.5">
-                  Total Biaya:
-                </span>
-                <span className="font-bold text-accent text-sm">
+              <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">Total Biaya:</span>
+                <span className="font-bold text-accent text-sm font-mono">
                   {formatRupiah(trackResult.totalPrice)}
                 </span>
               </div>
             </div>
 
             {/* Direction Instruction */}
-            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-200 flex items-start gap-2.5">
-              <MapPin size={18} className="shrink-0 text-emerald-400 mt-0.5" />
-              <div>
-                <p className="font-bold text-emerald-300">
-                  {trackResult.status === "READY"
-                    ? "Dokumen Anda sudah selesai dicetak!"
-                    : "Pesanan terdaftar di sistem antrean kasir."}
-                </p>
-                <p className="text-[11px] text-slate-300 mt-0.5">
-                  Tunjukkan nomor tiket ini ke petugas kasir di Business Center Lantai 1 SMK Yadika 6 saat mengambil dokumen.
-                </p>
-              </div>
+            <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-300 flex items-start gap-2.5">
+              <MapPin size={16} className="shrink-0 text-primary mt-0.5" />
+              <p className="text-[11px] leading-relaxed">
+                Tunjukkan nomor tiket ini ke petugas loket kasir Business Center (Lantai 1) saat mengambil dokumen.
+              </p>
             </div>
           </div>
         )}

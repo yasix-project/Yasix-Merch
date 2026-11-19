@@ -3,8 +3,7 @@ import { Link } from "react-router-dom";
 import {
   Calculator,
   Printer,
-  Sparkles,
-  ArrowRight,
+  Info,
 } from "lucide-react";
 import Button from "../ui/Button";
 import Badge from "../ui/Badge";
@@ -20,7 +19,7 @@ export default function LandingPrintEstimator() {
 
   const user = useAuthStore((state) => state.user);
 
-  // Tarif standar Yasix
+  // Tarif resmi Yasix
   const PRICE_RATES = {
     BW: 500, // Rp 500 per halaman
     COLOR: 1500, // Rp 1.500 per halaman
@@ -63,38 +62,33 @@ export default function LandingPrintEstimator() {
   return (
     <section
       id="kalkulator"
-      className="py-20 md:py-28 bg-slate-950 text-white relative border-t border-slate-900"
+      className="py-16 md:py-24 bg-slate-950 text-white border-b border-slate-800"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Title */}
-        <div className="text-center max-w-2xl mx-auto space-y-3 mb-14">
-          <div>
-            <Badge variant="amber" icon={Calculator}>
-              Transparansi Tarif & Simulasi Cepat
-            </Badge>
-          </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">
-            Kalkulator Simulasi Biaya Cetak
+        {/* Section Header */}
+        <div className="max-w-3xl mb-12">
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            Kalkulator Estimasi Biaya Cetak
           </h2>
-          <p className="text-slate-400 text-xs sm:text-sm">
-            Hitung perkiraan biaya cetak tugas atau laporan Anda sebelum memesan di konter kasir.
+          <p className="text-slate-300 text-sm mt-2 leading-relaxed">
+            Hitung perkiraan biaya pencetakan dokumen tugas atau modul sebelum mengunggah file asli ke portal siswa.
           </p>
         </div>
 
         {/* Calculator Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Sisi Kiri: Form Opsi Perhitungan */}
-          <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6">
+          <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-7 space-y-6">
             {/* Opsi 1: Jumlah Halaman */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label
                   htmlFor="page-count-input"
-                  className="text-xs font-bold text-slate-300 uppercase tracking-wider"
+                  className="text-xs font-semibold text-slate-300 uppercase tracking-wide"
                 >
-                  Jumlah Halaman PDF / Dokumen:
+                  Jumlah Halaman Dokumen:
                 </label>
-                <span className="text-sm font-extrabold text-sky">
+                <span className="text-sm font-bold text-sky">
                   {calculation.validPages} Halaman
                 </span>
               </div>
@@ -117,7 +111,7 @@ export default function LandingPrintEstimator() {
                   onChange={(e) =>
                     setPageCount(Math.max(1, parseInt(e.target.value) || 1))
                   }
-                  className="w-20 px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-center font-bold text-sm text-white focus:outline-none focus:border-primary"
+                  className="w-20 px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-center font-bold text-sm text-white focus:outline-none focus:border-primary"
                   aria-label="Input angka jumlah halaman"
                 />
               </div>
@@ -128,7 +122,7 @@ export default function LandingPrintEstimator() {
                     key={num}
                     type="button"
                     onClick={() => setPageCount(num)}
-                    className={`px-2.5 py-1 text-[11px] rounded-lg font-semibold border transition-all ${
+                    className={`px-2.5 py-1 text-[11px] rounded font-semibold border transition-colors ${
                       pageCount === num
                         ? "bg-primary text-white border-primary"
                         : "bg-slate-950 text-slate-400 border-slate-800 hover:text-white hover:border-slate-700"
@@ -142,17 +136,17 @@ export default function LandingPrintEstimator() {
 
             {/* Opsi 2: Tinta & Warna */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2.5">
-                Pilihan Jenis Cetak:
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-2.5">
+                Jenis Cetak:
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setColorType("BW")}
-                  className={`p-3.5 rounded-2xl border text-left transition-all ${
+                  className={`p-3.5 rounded-xl border text-left transition-colors ${
                     colorType === "BW"
-                      ? "bg-primary/20 border-primary text-white shadow-md shadow-primary/20"
-                      : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700"
+                      ? "bg-primary/10 border-primary text-white"
+                      : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
                   }`}
                 >
                   <p className="font-bold text-xs text-white">Hitam - Putih (B/W)</p>
@@ -162,10 +156,10 @@ export default function LandingPrintEstimator() {
                 <button
                   type="button"
                   onClick={() => setColorType("COLOR")}
-                  className={`p-3.5 rounded-2xl border text-left transition-all ${
+                  className={`p-3.5 rounded-xl border text-left transition-colors ${
                     colorType === "COLOR"
-                      ? "bg-accent/20 border-accent text-white shadow-md shadow-accent/20"
-                      : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700"
+                      ? "bg-amber-500/10 border-amber-500 text-white"
+                      : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
                   }`}
                 >
                   <p className="font-bold text-xs text-white">Berwarna (Color)</p>
@@ -177,14 +171,14 @@ export default function LandingPrintEstimator() {
             {/* Opsi 3: Ukuran Kertas & Rangkap */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-2">
                   Ukuran Kertas:
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setPaperSize("A4")}
-                    className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
+                    className={`py-2 px-3 rounded-lg border text-xs font-bold transition-colors ${
                       paperSize === "A4"
                         ? "bg-slate-800 border-sky text-sky"
                         : "bg-slate-950 border-slate-800 text-slate-400"
@@ -195,7 +189,7 @@ export default function LandingPrintEstimator() {
                   <button
                     type="button"
                     onClick={() => setPaperSize("F4")}
-                    className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
+                    className={`py-2 px-3 rounded-lg border text-xs font-bold transition-colors ${
                       paperSize === "F4"
                         ? "bg-slate-800 border-sky text-sky"
                         : "bg-slate-950 border-slate-800 text-slate-400"
@@ -207,7 +201,7 @@ export default function LandingPrintEstimator() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-2">
                   Jumlah Rangkap (Copies):
                 </label>
                 <div className="flex items-center gap-2">
@@ -216,7 +210,7 @@ export default function LandingPrintEstimator() {
                       key={c}
                       type="button"
                       onClick={() => setCopies(c)}
-                      className={`flex-1 py-2 rounded-xl border text-xs font-bold transition-all ${
+                      className={`flex-1 py-2 rounded-lg border text-xs font-bold transition-colors ${
                         copies === c
                           ? "bg-primary text-white border-primary"
                           : "bg-slate-950 border-slate-800 text-slate-400"
@@ -231,7 +225,7 @@ export default function LandingPrintEstimator() {
 
             {/* Opsi 4: Finishing / Jilid */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2.5">
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-2.5">
                 Finishing / Penjilidan:
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -240,10 +234,10 @@ export default function LandingPrintEstimator() {
                     key={key}
                     type="button"
                     onClick={() => setFinishing(key)}
-                    className={`p-3 rounded-xl border text-left transition-all ${
+                    className={`p-3 rounded-lg border text-left transition-colors ${
                       finishing === key
-                        ? "bg-primary/20 border-primary text-white"
-                        : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700"
+                        ? "bg-primary/10 border-primary text-white"
+                        : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
                     }`}
                   >
                     <p className="text-xs font-bold text-white">{item.label}</p>
@@ -257,65 +251,63 @@ export default function LandingPrintEstimator() {
           </div>
 
           {/* Sisi Kanan: Rincian & Summary Card */}
-          <div className="lg:col-span-5 bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-accent/20 text-accent">
-                  <Calculator size={18} />
-                </div>
-                <h3 className="font-extrabold text-sm text-white">
+          <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-7 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <Calculator size={16} className="text-accent" />
+                <h3 className="font-bold text-sm text-white">
                   Rincian Estimasi Biaya
                 </h3>
               </div>
-              <Badge variant="dark" className="text-[10px] font-mono uppercase">
-                Tarif Resmi BC
-              </Badge>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                Tarif Resmi
+              </span>
             </div>
 
             {/* Breakdown item */}
             <div className="space-y-3 text-xs">
-              <div className="flex justify-between text-slate-400">
+              <div className="flex justify-between text-slate-300">
                 <span>
                   Cetak {calculation.validPages} Hal x {calculation.validCopies} Rangkap (
                   {colorType === "COLOR" ? "Warna" : "B/W"} • {paperSize})
                 </span>
-                <span className="font-semibold text-white">
+                <span className="font-semibold text-white font-mono">
                   {formatRupiah(calculation.printSubtotal)}
                 </span>
               </div>
 
-              <div className="flex justify-between text-slate-400">
+              <div className="flex justify-between text-slate-300">
                 <span>
                   Finishing ({PRICE_RATES.FINISHING[finishing]?.label || "-"})
                 </span>
-                <span className="font-semibold text-white">
+                <span className="font-semibold text-white font-mono">
                   {formatRupiah(calculation.finishingCost)}
                 </span>
               </div>
 
               <div className="pt-3 border-t border-slate-800 flex items-baseline justify-between">
                 <div>
-                  <span className="text-xs text-slate-400 block font-normal">
+                  <span className="text-xs text-slate-400 block">
                     Total Estimasi:
                   </span>
-                  <span className="text-2xl sm:text-3xl font-black text-accent">
+                  <span className="text-2xl font-bold text-accent font-mono">
                     {formatRupiah(calculation.grandTotal)}
                   </span>
                 </div>
                 {calculation.earnedPoints > 0 && (
-                  <Badge variant="emerald" className="text-xs font-bold">
-                    +{calculation.earnedPoints} Poin Siswa
+                  <Badge variant="success" className="text-xs font-mono">
+                    +{calculation.earnedPoints} Poin
                   </Badge>
                 )}
               </div>
             </div>
 
-            {/* Note alert */}
-            <div className="p-3.5 rounded-2xl bg-primary/10 border border-primary/20 text-sky text-xs flex items-start gap-2.5">
-              <Sparkles size={16} className="text-accent shrink-0 mt-0.5" />
+            {/* Note alert without Sparkles */}
+            <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 text-xs flex items-start gap-2.5">
+              <Info size={16} className="text-primary shrink-0 mt-0.5" />
               <p className="leading-relaxed text-[11px]">
-                Untuk mencetak dokumen asli, silakan masuk ke portal siswa. Server akan
-                membaca jumlah halaman dokumen PDF Anda secara otomatis dan akurat.
+                Dokumen PDF yang diunggah ke portal siswa akan diverifikasi jumlah halamannya
+                secara otomatis oleh server sebelum dicetak oleh petugas kasir.
               </p>
             </div>
 
@@ -324,16 +316,15 @@ export default function LandingPrintEstimator() {
               <Button
                 as={Link}
                 to={user ? "/siswa/print" : "/login"}
-                size="lg"
+                size="md"
                 variant="primary"
                 leftIcon={Printer}
-                rightIcon={ArrowRight}
-                className="w-full shadow-lg shadow-primary/30"
+                className="w-full"
               >
                 <span>
                   {user
-                    ? "Buka Menu Unggah PDF Siswa"
-                    : "Masuk Akun untuk Cetak PDF"}
+                    ? "Unggah Dokumen di Portal Siswa"
+                    : "Masuk untuk Cetak Dokumen"}
                 </span>
               </Button>
             </div>

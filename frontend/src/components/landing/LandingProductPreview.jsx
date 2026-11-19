@@ -2,9 +2,7 @@ import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
-  ShoppingBag,
   Package,
-  ArrowRight,
 } from "lucide-react";
 import Button from "../ui/Button";
 import Badge from "../ui/Badge";
@@ -13,7 +11,6 @@ import { formatRupiah } from "../../utils/formatters";
 import { resolveFileUrl } from "../../utils/imageUrl";
 import { useAuthStore } from "../../store/authStore";
 
-// Mock Fallback jika backend kosong atau belum terisi
 const FALLBACK_PRODUCTS = [
   {
     id: "f1",
@@ -75,8 +72,7 @@ export default function LandingProductPreview() {
   const [selectedFilter, setSelectedFilter] = useState("ALL");
   const user = useAuthStore((state) => state.user);
 
-  // Ambil data produk publik dari backend
-  const { data: publicProducts = [], isLoading } = useQuery({
+  const { data: publicProducts = [] } = useQuery({
     queryKey: ["landing-public-products"],
     queryFn: async () => {
       try {
@@ -89,12 +85,11 @@ export default function LandingProductPreview() {
       }
       return FALLBACK_PRODUCTS;
     },
-    staleTime: 1000 * 60 * 5, // 5 menit
+    staleTime: 1000 * 60 * 5,
   });
 
   const displayList = publicProducts.length > 0 ? publicProducts : FALLBACK_PRODUCTS;
 
-  // Filter kategori
   const filteredProducts = useMemo(() => {
     if (selectedFilter === "ALL") return displayList;
     return displayList.filter((item) => {
@@ -124,49 +119,45 @@ export default function LandingProductPreview() {
   }, [displayList, selectedFilter]);
 
   return (
-    <section id="produk" className="py-20 md:py-28 bg-slate-900 text-white relative">
+    <section id="produk" className="py-16 md:py-24 bg-slate-900 text-white border-b border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <div className="space-y-3">
-            <div>
-              <Badge variant="sky" icon={ShoppingBag}>
-                Etalase Business Center
-              </Badge>
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">
-              Produk & Perlengkapan Sekolah
+        {/* Header without decorative eyebrow */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div className="max-w-xl">
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+              Katalog Produk Business Center
             </h2>
-            <p className="text-slate-400 text-xs sm:text-sm max-w-xl">
-              Lihat pratinjau barang yang tersedia di konter YasixMerch. Siswa dapat
-              melakukan pemesanan langsung melalui portal.
+            <p className="text-slate-300 text-sm mt-2 leading-relaxed">
+              Daftar barang kebutuhan seragam, ATK, dan produk kejuruan yang tersedia langsung di loket kasir.
             </p>
           </div>
 
-          {/* Filter Pills */}
-          <div className="flex flex-wrap items-center gap-2">
+          {/* Segmented Filter Control */}
+          <div className="flex flex-wrap items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
             {[
-              { id: "ALL", label: "Semua Produk" },
+              { id: "ALL", label: "Semua" },
               { id: "SERAGAM", label: "Seragam & Atribut" },
-              { id: "ATK", label: "Alat Tulis (ATK)" },
-              { id: "KIK", label: "KIK & Merch" },
+              { id: "ATK", label: "Alat Tulis" },
+              { id: "KIK", label: "Karya Siswa (KIK)" },
             ].map((tab) => (
-              <Button
+              <button
                 key={tab.id}
                 type="button"
-                size="xs"
-                variant={selectedFilter === tab.id ? "primary" : "dark"}
                 onClick={() => setSelectedFilter(tab.id)}
-                className={selectedFilter === tab.id ? "shadow-primary/30" : "text-slate-400 hover:text-white"}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                  selectedFilter === tab.id
+                    ? "bg-primary text-white"
+                    : "text-slate-400 hover:text-white"
+                }`}
               >
                 {tab.label}
-              </Button>
+              </button>
             ))}
           </div>
         </div>
 
         {/* Product Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredProducts.slice(0, 6).map((prod) => {
             const hasImage = Boolean(prod.imageUrl);
             const resolvedImg = hasImage ? resolveFileUrl(prod.imageUrl) : null;
@@ -174,58 +165,60 @@ export default function LandingProductPreview() {
             return (
               <div
                 key={prod.id}
-                className="group bg-slate-950 border border-slate-800 hover:border-primary/50 rounded-3xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/10 flex flex-col justify-between"
+                className="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden flex flex-col justify-between"
               >
                 {/* Media Image / Graphic Banner */}
-                <div className="relative aspect-[16/10] bg-slate-850 overflow-hidden flex items-center justify-center">
+                <div className="relative aspect-[16/10] bg-slate-900 overflow-hidden flex items-center justify-center">
                   {resolvedImg ? (
                     <img
                       src={resolvedImg}
                       alt={prod.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      width={400}
+                      height={250}
+                      className="w-full h-full object-cover"
                       loading="lazy"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex flex-col items-center justify-center p-6 text-center">
-                      <div className="p-3.5 rounded-2xl bg-primary/10 text-sky mb-2 group-hover:scale-110 transition-transform">
-                        <Package size={28} />
+                    <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center">
+                      <div className="p-3 rounded-lg bg-slate-800 text-slate-400 mb-2">
+                        <Package size={24} />
                       </div>
                       <span className="text-[11px] font-mono text-slate-400">
-                        YasixMerch Yadika 6
+                        SMK Yadika 6
                       </span>
                     </div>
                   )}
 
-                  {/* Category Pill Tag */}
-                  <div className="absolute top-3 left-3">
-                    <Badge variant="sky" className="text-[10px] font-bold shadow-md">
-                      {prod.category?.name || "Kategori Produk"}
-                    </Badge>
+                  {/* Category Pill Tag (Solid, no blur) */}
+                  <div className="absolute top-2.5 left-2.5">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-900 text-sky border border-slate-700">
+                      {prod.category?.name || "Produk"}
+                    </span>
                   </div>
 
-                  {/* Stock indicator badge */}
-                  <div className="absolute top-3 right-3">
-                    <Badge variant="emerald" className="text-[10px] font-bold">
+                  {/* Stock indicator badge (Solid, no blur) */}
+                  <div className="absolute top-2.5 right-2.5">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-900 text-emerald-400 border border-slate-700">
                       Stok: {prod.stock > 0 ? `${prod.stock} unit` : "Habis"}
-                    </Badge>
+                    </span>
                   </div>
                 </div>
 
                 {/* Content Details */}
-                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div className="p-4 flex-1 flex flex-col justify-between space-y-4">
                   <div>
-                    <h3 className="font-bold text-sm sm:text-base text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
+                    <h3 className="font-bold text-sm text-white line-clamp-1">
                       {prod.name}
                     </h3>
-                    <p className="text-xs text-slate-400 line-clamp-2 mt-1 leading-relaxed">
-                      {prod.description || "Tersedia untuk pembelian langsung di loket kasir Business Center SMK Yadika 6."}
+                    <p className="text-xs text-slate-300 line-clamp-2 mt-1 leading-relaxed">
+                      {prod.description || "Tersedia untuk pembelian di loket kasir Business Center SMK Yadika 6."}
                     </p>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                  <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] text-slate-400 block">Harga Satuan:</span>
-                      <span className="text-base font-extrabold text-accent">
+                      <span className="text-[10px] text-slate-400 block">Harga:</span>
+                      <span className="text-sm font-bold text-accent font-mono">
                         {formatRupiah(prod.sellingPrice)}
                       </span>
                     </div>
@@ -234,10 +227,9 @@ export default function LandingProductPreview() {
                       as={Link}
                       to={user ? "/siswa/katalog" : "/login"}
                       size="xs"
-                      variant="primary"
-                      rightIcon={ArrowRight}
+                      variant="dark"
                     >
-                      <span>{user ? "Pesan" : "Masuk"}</span>
+                      <span>{user ? "Beli via Portal" : "Masuk"}</span>
                     </Button>
                   </div>
                 </div>
@@ -246,17 +238,14 @@ export default function LandingProductPreview() {
           })}
         </div>
 
-        {/* Bottom Banner */}
-        <div className="mt-12 text-center">
-          <Button
-            as={Link}
+        {/* Bottom Navigation Link */}
+        <div className="mt-10 text-center">
+          <Link
             to={user ? "/siswa/katalog" : "/login"}
-            variant="dark"
-            rightIcon={ArrowRight}
-            className="text-sky hover:text-white border-slate-800 hover:border-slate-700 px-5 py-3 rounded-2xl"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky hover:text-white underline underline-offset-4"
           >
-            <span>Lihat Seluruh Katalog Lengkap di Portal Siswa</span>
-          </Button>
+            Buka Katalog Lengkap di Portal Siswa
+          </Link>
         </div>
       </div>
     </section>

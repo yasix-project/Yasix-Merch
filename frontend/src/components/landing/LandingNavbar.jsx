@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Menu,
   X,
@@ -7,36 +7,16 @@ import {
   LayoutDashboard,
   Store,
   GraduationCap,
-  Sparkles,
-  Printer,
-  ShoppingBag,
-  HelpCircle,
-  Clock,
-  Search,
 } from "lucide-react";
 import YasixLogo from "../ui/YasixLogo";
 import Button from "../ui/Button";
 import { useAuthStore } from "../../store/authStore";
 
 export default function LandingNavbar() {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
 
   const user = useAuthStore((state) => state.user);
   const role = useAuthStore((state) => state.role);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const navLinks = [
     { name: "Beranda", href: "#beranda" },
@@ -60,7 +40,7 @@ export default function LandingNavbar() {
             variant="primary"
             leftIcon={LogIn}
             onClick={() => setMobileMenuOpen(false)}
-            className={`shadow-lg shadow-primary/20 ${isMobile ? "w-full" : ""}`}
+            className={isMobile ? "w-full" : ""}
           >
             <span>Masuk Portal Siswa / Kasir</span>
           </Button>
@@ -70,7 +50,7 @@ export default function LandingNavbar() {
             size="sm"
             variant="dark"
             onClick={() => setMobileMenuOpen(false)}
-            className={`text-slate-400 hover:text-white border-slate-700/60 ${isMobile ? "w-full" : ""}`}
+            className={isMobile ? "w-full" : ""}
             title="Portal Administrator"
           >
             <span>Admin</span>
@@ -90,7 +70,7 @@ export default function LandingNavbar() {
           variant="primary"
           leftIcon={LayoutDashboard}
           onClick={() => setMobileMenuOpen(false)}
-          className={`bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/20 ${isMobile ? "w-full" : ""}`}
+          className={`bg-indigo-600 hover:bg-indigo-700 ${isMobile ? "w-full" : ""}`}
         >
           <span>Dashboard Admin</span>
         </Button>
@@ -106,7 +86,7 @@ export default function LandingNavbar() {
           variant="primary"
           leftIcon={Store}
           onClick={() => setMobileMenuOpen(false)}
-          className={`bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20 ${isMobile ? "w-full" : ""}`}
+          className={`bg-emerald-600 hover:bg-emerald-700 ${isMobile ? "w-full" : ""}`}
         >
           <span>Terminal Kasir POS</span>
         </Button>
@@ -122,39 +102,33 @@ export default function LandingNavbar() {
         variant="amber"
         leftIcon={GraduationCap}
         onClick={() => setMobileMenuOpen(false)}
-        className={`shadow-accent/25 ${isMobile ? "w-full" : ""}`}
+        className={isMobile ? "w-full" : ""}
       >
-        <span>Buka Portal Siswa ({user.name ? user.name.split(" ")[0] : "Siswa"})</span>
+        <span>Portal Siswa ({user.name ? user.name.split(" ")[0] : "Siswa"})</span>
       </Button>
     );
   };
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 shadow-2xl py-3"
-          : "bg-slate-950/60 backdrop-blur-sm border-b border-transparent py-4"
-      }`}
-    >
+    <header className="fixed top-0 left-0 right-0 z-50 bg-slate-950 border-b border-slate-800 py-3.5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Brand Logo */}
           <a
             href="#beranda"
-            className="flex items-center gap-3 group focus:outline-none"
+            className="flex items-center gap-3 focus:outline-none"
             aria-label="Kembali ke beranda YasixMerch"
           >
-            <YasixLogo variant="full" theme="dark" size={38} />
+            <YasixLogo variant="full" theme="dark" size={36} />
           </a>
 
           {/* Desktop Nav Links */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 bg-slate-900/60 p-1.5 rounded-full border border-slate-800">
+          <nav className="hidden lg:flex items-center gap-1 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
             {navLinks.map((item) => (
               <a
                 key={item.name}
                 href={item.href}
-                className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all"
+                className="px-3 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
               >
                 {item.name}
               </a>
@@ -162,7 +136,7 @@ export default function LandingNavbar() {
           </nav>
 
           {/* Right Action Button (Desktop) */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
             {renderUserButton(false)}
           </div>
 
@@ -171,24 +145,25 @@ export default function LandingNavbar() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-slate-300 hover:text-white bg-slate-800 border border-slate-700/60 focus:outline-none focus:ring-2 focus:ring-primary"
+              className="p-2 rounded-lg text-slate-300 hover:text-white bg-slate-900 border border-slate-800 focus:outline-none focus:ring-2 focus:ring-primary"
               aria-label="Menu navigasi"
+              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu */}
+        {/* Mobile Dropdown Menu (Solid, no excessive blur) */}
         {mobileMenuOpen && (
-          <div className="md:hidden mt-3 p-4 bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
-            <nav className="flex flex-col gap-1.5 mb-4">
+          <div className="md:hidden mt-3 p-4 bg-slate-900 border border-slate-800 rounded-xl shadow-lg">
+            <nav className="flex flex-col gap-1 mb-4">
               {navLinks.map((item) => (
                 <a
                   key={item.name}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-200 hover:text-white hover:bg-slate-800/80 transition-all"
+                  className="px-3 py-2 rounded-lg text-xs font-medium text-slate-200 hover:text-white hover:bg-slate-800 transition-colors"
                 >
                   {item.name}
                 </a>
