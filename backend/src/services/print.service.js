@@ -268,6 +268,44 @@ const updatePrintOrderStatusService = async (id, status) => {
   });
 };
 
+// Lacak status tiket cetak publik
+const trackPrintOrderService = async (orderNumber) => {
+  if (!orderNumber) {
+    throw new Error("Nomor tiket pesanan wajib diisi.");
+  }
+  const cleanOrderNumber = String(orderNumber).trim();
+  const order = await prisma.printOrder.findFirst({
+    where: {
+      OR: [
+        { orderNumber: { equals: cleanOrderNumber } },
+        { id: { equals: cleanOrderNumber } },
+      ],
+    },
+    select: {
+      orderNumber: true,
+      fileName: true,
+      pageCount: true,
+      colorType: true,
+      paperSize: true,
+      finishing: true,
+      totalPrice: true,
+      status: true,
+      createdAt: true,
+      student: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    throw new Error("Tiket pesanan tidak ditemukan. Periksa kembali nomor tiket Anda.");
+  }
+
+  return order;
+};
+
 module.exports = {
   FINISHING_PRICES,
   resolveFinishing,
@@ -278,4 +316,5 @@ module.exports = {
   createPrintOrderService,
   getAllPrintOrdersService,
   updatePrintOrderStatusService,
+  trackPrintOrderService,
 };

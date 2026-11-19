@@ -20,6 +20,8 @@ const buildFormData = (data) => {
 };
 
 export const productService = {
+  getPublic: (params) => axiosInstance.get("/products/public", { params }),
+
   getAll: (params) => axiosInstance.get("/products", { params }),
 
   getById: (id) => axiosInstance.get(`/products/${id}`),

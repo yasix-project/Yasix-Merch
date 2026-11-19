@@ -216,6 +216,49 @@ const getLowStockAlertService = async () => {
   return products.filter((p) => p.stock <= p.minStock);
 };
 
+const getPublicProductsService = async (query = {}) => {
+  const { search, categoryId, limit = 12 } = query;
+  const whereCondition = { isActive: true };
+
+  if (search) {
+    whereCondition.OR = [
+      { name: { contains: search } },
+      { description: { contains: search } },
+    ];
+  }
+
+  if (categoryId && categoryId !== "ALL") {
+    whereCondition.categoryId = categoryId;
+  }
+
+  const take = Math.min(Math.max(Number(limit) || 12, 1), 50);
+
+  const products = await prisma.product.findMany({
+    where: whereCondition,
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      sellingPrice: true,
+      stock: true,
+      imageUrl: true,
+      category: {
+        select: {
+          id: true,
+          name: true,
+          type: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take,
+  });
+
+  return products;
+};
+
 module.exports = {
   getAllProductsService,
   getProductByIdService,
@@ -223,4 +266,5 @@ module.exports = {
   updateProductService,
   deleteProductService,
   getLowStockAlertService,
+  getPublicProductsService,
 };

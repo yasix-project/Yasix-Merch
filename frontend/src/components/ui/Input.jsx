@@ -3,24 +3,42 @@ import { Eye, EyeOff, AlertCircle } from "lucide-react";
 
 const Input = forwardRef(
   (
-    { label, error, id, type = "text", icon: Icon, className = "", ...props },
+    {
+      label,
+      error,
+      id,
+      type = "text",
+      icon: Icon,
+      variant = "light",
+      className = "",
+      ...props
+    },
     ref,
   ) => {
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = type === "password";
     const inputType = isPassword && showPassword ? "text" : type;
+    const isDark = variant === "dark";
 
     return (
       <div className={`flex flex-col gap-1.5 w-full ${className}`}>
         {label && (
-          <label htmlFor={id} className="text-sm font-semibold text-gray-700">
+          <label
+            htmlFor={id}
+            className={`text-sm font-semibold ${isDark ? "text-slate-200" : "text-gray-700"}`}
+          >
             {label}
           </label>
         )}
         <div className="relative">
           {/* Ikon Kiri */}
           {Icon && (
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" aria-hidden="true">
+            <div
+              className={`absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none ${
+                isDark ? "text-slate-400" : "text-gray-400"
+              }`}
+              aria-hidden="true"
+            >
               <Icon size={18} strokeWidth={2} />
             </div>
           )}
@@ -30,12 +48,16 @@ const Input = forwardRef(
             ref={ref}
             type={inputType}
             aria-invalid={error ? "true" : undefined}
-            className={`w-full py-3 rounded-xl border bg-gray-50/50 outline-none transition-all duration-300
+            className={`w-full py-3 rounded-xl border outline-none transition-all duration-300
             ${Icon ? "pl-11" : "px-4"}
             ${
               error
-                ? "border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20 bg-red-50/10"
-                : "border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 hover:border-gray-300"
+                ? isDark
+                  ? "border-red-500 focus:border-red-500 focus:ring-4 focus:ring-red-500/20 bg-red-950/20 text-white"
+                  : "border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20 bg-red-50/10"
+                : isDark
+                  ? "bg-slate-950 border-slate-700/80 text-white placeholder:text-slate-500 hover:border-slate-600 focus:border-primary focus:ring-4 focus:ring-primary/20"
+                  : "bg-gray-50/50 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 hover:border-gray-300"
             }
             ${isPassword ? "pr-12" : ""}
           `}

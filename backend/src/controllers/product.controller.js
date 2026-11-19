@@ -115,6 +115,21 @@ const getLowStockAlert = async (req, res) => {
   }
 };
 
+const getPublicProducts = async (req, res) => {
+  try {
+    const products = await productService.getPublicProductsService(req.query);
+    return res.status(200).json({
+      status: "success",
+      data: products,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getProducts,
   getProductById,
@@ -122,4 +137,5 @@ module.exports = {
   updateProduct,
   deleteProduct,
   getLowStockAlert,
+  getPublicProducts,
 };

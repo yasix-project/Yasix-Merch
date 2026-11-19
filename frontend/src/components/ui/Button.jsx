@@ -1,9 +1,12 @@
 // src/components/ui/Button.jsx
 
 export default function Button({
+  as: Component = "button",
   variant = "primary",
   size = "md",
   isLoading,
+  leftIcon: LeftIcon,
+  rightIcon: RightIcon,
   children,
   className = "",
   disabled,
@@ -21,22 +24,27 @@ export default function Button({
     outline:
       "bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/80 shadow-xs",
     dark: "bg-dark text-slate-100 hover:bg-dark/90 border border-slate-700",
+    ghost: "bg-transparent text-slate-300 hover:text-white hover:bg-slate-800",
   };
 
   const sizes = {
     xs: "px-3 py-2 text-xs min-h-[36px]",
     sm: "px-3.5 py-2.5 text-xs min-h-[40px]",
     md: "px-4 py-2.5 text-sm min-h-[44px]",
+    lg: "px-6 py-3.5 text-sm sm:text-base min-h-[48px]",
   };
 
+  const isButton = Component === "button";
+
   return (
-    <button
-      className={`${baseStyle} ${variants[variant]} ${sizes[size]} ${className}`}
-      disabled={isLoading || disabled}
+    <Component
+      className={`${baseStyle} ${variants[variant] || variants.primary} ${sizes[size] || sizes.md} ${className}`}
+      disabled={isButton ? (isLoading || disabled) : undefined}
+      aria-disabled={!isButton && (isLoading || disabled) ? "true" : undefined}
       {...props}
     >
       {isLoading && (
-        <svg className="animate-spin h-4 w-4 text-current" viewBox="0 0 24 24" aria-hidden="true">
+        <svg className="animate-spin h-4 w-4 text-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
           <circle
             className="opacity-25"
             cx="12"
@@ -53,7 +61,9 @@ export default function Button({
           />
         </svg>
       )}
+      {!isLoading && LeftIcon && <LeftIcon size={16} className="shrink-0" />}
       {children}
-    </button>
+      {RightIcon && <RightIcon size={16} className="shrink-0" />}
+    </Component>
   );
 }

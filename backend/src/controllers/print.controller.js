@@ -111,9 +111,27 @@ const updatePrintOrderStatus = async (req, res) => {
   }
 };
 
+const trackPrintOrder = async (req, res) => {
+  try {
+    const { orderNumber } = req.params;
+    const order = await printService.trackPrintOrderService(orderNumber);
+
+    return res.status(200).json({
+      status: "success",
+      data: order,
+    });
+  } catch (error) {
+    return res.status(404).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   estimatePrintCost,
   createPrintOrder,
   getAllPrintOrders,
   updatePrintOrderStatus,
+  trackPrintOrder,
 };

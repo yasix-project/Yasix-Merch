@@ -35,6 +35,7 @@ import SiswaPrint from "./pages/siswa/SiswaPrint";
 import SiswaPesanan from "./pages/siswa/SiswaPesanan";
 import SiswaKatalog from "./pages/siswa/SiswaKatalog";
 import DemoBarcodeSheet from "./pages/demo/DemoBarcodeSheet";
+import LandingPage from "./pages/landing/LandingPage";
 
 // Fallback Halaman 403
 const Unauthorized = () => (
@@ -47,7 +48,11 @@ const Unauthorized = () => (
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Navigate to="/login" />,
+    element: <LandingPage />,
+  },
+  {
+    path: "/landing",
+    element: <Navigate to="/" replace />,
   },
   {
     path: "/demo",

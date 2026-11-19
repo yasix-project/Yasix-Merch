@@ -4,6 +4,9 @@ const printController = require("../controllers/print.controller");
 const { uploadDocument } = require("../middlewares/upload.middleware");
 const { verifyToken, checkRole } = require("../middlewares/auth.middleware");
 
+// Lacak status tiket cetak (Publik tanpa wajib login)
+router.get("/track/:orderNumber", printController.trackPrintOrder);
+
 // Hitung estimasi biaya cetak (Unggah PDF sementara)
 router.post(
   "/estimate",

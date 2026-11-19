@@ -4,7 +4,10 @@ const productController = require("../controllers/product.controller");
 const { verifyToken, checkRole } = require("../middlewares/auth.middleware");
 const { uploadProductImage } = require("../middlewares/upload.middleware");
 
-// Public / Logged-in Users (Siswa, Kasir, Admin)
+// Public Endpoint (Landing Page)
+router.get("/public", productController.getPublicProducts);
+
+// Logged-in Users (Siswa, Kasir, Admin)
 router.get("/", verifyToken, productController.getProducts);
 router.get(
   "/low-stock",
